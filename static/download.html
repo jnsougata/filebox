@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Filebox</title>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="/assets/icon.png" type="image/x-icon">
+        <link rel="stylesheet" type="text/css" href="/styles/style.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@100;400;900&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" />
+
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="left-box">
+                    <img src="/assets/icon.png" alt="Filebox">
+                    <h3>Filebox</h3>
+                </div>
+                <div class="middle-box">
+                </div>
+                <div class="right-box">
+                </div>
+            </div>
+            <div class="body">
+                <div class="sidebar">
+                    <button id="upload">
+                        <span style="margin-left: 10px;">Advertisemant</span>
+                    </button>
+                    <button>
+                        <span style="margin-left: 10px;">Coming Soon</span>
+                    </button>
+                    <button id="upload">
+                        <span style="margin-left: 10px;">Just Kidding</span>
+                    </button>
+                </div>
+                <div class="panel" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
+                    <table>
+                        <tbody id="file-view">
+                            <tr id="table-header">
+                                <th>Name</th>
+                                <th>Size</th>
+                                <th>Last Modified</th>
+                                <th>Download</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="snackbar"></div>
+        </div>
+        <script src="/scripts/magic.js"></script>
+    </body>
+</html>

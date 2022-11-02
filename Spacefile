@@ -1,0 +1,15 @@
+v: 1
+icon: ./assets/icon.png
+micros:
+    - name: filebox
+      src: .
+      engine: python3.9
+      primary: true
+      public_routes:
+        - "/assets/*"
+        - "/download/*"
+        - "/api/chunk/*"
+        - "/api/shared/*"
+        - "/scripts/magic.js"
+        - "/styles/style.css"
+        

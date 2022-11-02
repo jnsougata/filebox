@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Filebox</title>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href="/assets/icon.png" type="image/x-icon">
+        <link rel="stylesheet" type="text/css" href="/styles/style.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@100;400;900&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" />
+
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="left-box">
+                    <img src="/assets/icon.png" alt="Filebox">
+                    <h3>Filebox</h3>
+                </div>
+                <div class="middle-box">
+                    <input type="text" placeholder="search or paste an url" id="search" autocomplete="off">
+                    <button>
+                        <i class="fa-sharp fa-solid fa-magnifying-glass"></i>
+                    </button>
+                    
+                </div>
+                <div class="right-box">
+                    <button>
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="body">
+                <div class="sidebar">
+                    <button id="upload">
+                        <i class="fa-solid fa-file-arrow-up"></i> 
+                        <span>New</span>
+                    </button>
+                    <input type="file" id="file-input" multiple style="display: none;">
+                    <button>
+                        <i class="fa-solid fa-trash"></i>
+                        <span>Trash</span>
+                    </button>
+                </div>
+                <div class="panel" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
+                    <table>
+                        <tbody id="file-view">
+                            <tr id="table-header">
+                                <th>Name</th>
+                                <th>Size</th>
+                                <th>Last Modified</th>
+                                <th style="text-align: center;">Share</th>
+                                <th style="text-align: center;">Delete</th>
+                                <th style="text-align: center;">Download</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="snackbar"></div>
+        </div>
+        <script src="/scripts/index.js"></script>
+    </body>
+</html>
