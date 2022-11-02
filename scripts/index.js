@@ -12,18 +12,18 @@ uploadButton.addEventListener('click', () => {
 });
 
 uploadInput.addEventListener('change', () => {
-    file = uploadInput.files[0];
+    let file = uploadInput.files[0];
     uploadFile(file);
 });
 
 function uploadFile(file) {
     fetch("/api/secret")
     .then(response => response.text())
-    .then(data => {
+    .then(token => {
         showSnack(`Uploading ${file.name}`);
-        let header = {"X-Api-Key": data}
+        let header = {"X-Api-Key": token}
         let fileHash = randomFileHash();
-        let projectId = data.split("_")[0];
+        let projectId = token.split("_")[0];
         const ROOT = 'https://drive.deta.sh/v1';
         var reader = new FileReader();
         reader.onload = function(e) {
@@ -32,12 +32,10 @@ function uploadFile(file) {
                 "name": file.name,
                 "hash": fileHash,
                 "size": file.size,
-                "date": new Date().toISOString(),
                 "mime": file.type,
-                "sharing": "Off"
+                "date": new Date().toISOString(),
             }
-            let newFile = newFileRow(body);
-            fileView.appendChild(newFile);
+            fileView.appendChild(newFileRow(body));
             let extension = file.name.split('.').pop();
             let qualifiedName = fileHash + "." + extension;
             let progressBar = document.getElementById(`progress-${fileHash}`);
@@ -63,19 +61,18 @@ function uploadFile(file) {
                 .then(response => response.json())
                 .then(data => {
                     let chunks = [];
-                    let chunkSize = 10485760;
+                    const chunkSize = 10485760;
                     let offset = 0;
                     while (offset < file.size) {
                         chunks.push(content.slice(offset, offset + chunkSize));
                         offset += chunkSize;
                     }
-                    let lastChunk = chunks.pop();
                     let uploadId = data.upload_id;
                     let name = data.name;
                     let promises = [];
                     progressBar.style.width = "1%";
-                    progressIndex = 0;
-                    totaIndex = chunks.length;
+                    let progressIndex = 0;
+                    let totalIndex = chunks.length;
                     chunks.forEach((chunk, index) => {
                         promises.push(
                             fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${index+1}`, {
@@ -84,15 +81,16 @@ function uploadFile(file) {
                             headers: header
                         }).then(() => {
                             progressIndex ++;
-                            let percent = Math.round((progressIndex / totaIndex) * 100);
+                            let percent = Math.round((progressIndex / totalIndex) * 100);
                             progressBar.style.width = `${percent}%`;
                         }))
                     })
-                    Promise.all(promises).then(() => {
+                    Promise.all(promises)
+                    .then(() => {
                         fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
                             method: 'PATCH',
                             headers: header,
-                            body: lastChunk
+                            body: chunks.pop()
                         })
                         .then(response => response.json())
                         .then(() => {
