@@ -89,37 +89,36 @@ function handleSizeUnit(size) {
 }
 
 function chunkedDownload(file) {
-    let progressElement = document.getElementById(`progress-${file.hash}`);
-    let fileSize = file.size;
-    let fileName = file.name;
-    showSnack(`Downloading ${fileName}`);
-    let fileExtension = fileName.split('.').pop();
+    let progressBar = document.getElementById(`progress-${file.hash}`);
+    let size = file.size;
+    let name = file.name;
+    let extension = name.split('.').pop();
     const CHUNK_SIZE = 4 * 1024 * 1024
-    if (fileSize < CHUNK_SIZE) {
-        fetch(`/api/chunk/0/${file.hash}.${fileExtension}`)
+    showSnack(`Downloading ${name}`);
+    if (size < CHUNK_SIZE) {
+        fetch(`/api/chunk/0/${file.hash}.${extension}`)
         .then(response => response.blob())
         .then(blob => {
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
-            a.download = fileName;
+            a.download = name;
             a.click();
         })
     } else {
-        let parts = 0;
-        if (fileSize % CHUNK_SIZE === 0) {
-            parts = fileSize / CHUNK_SIZE;
+        let skips = 0;
+        if (size % CHUNK_SIZE === 0) {
+            skips = size / CHUNK_SIZE;
         } else {
-            parts = Math.floor(fileSize / CHUNK_SIZE) + 1;
+            skips = Math.floor(size / CHUNK_SIZE) + 1;
         }
-        let progress = 0;
-        let fetches = [];
-        for (let i = 0; i < parts; i++) {
-            fetches.push(
-                fetch(`/api/chunk/${i}/${file.hash}.${fileExtension}`)
+        let promises = [];
+        for (let i = 0; i < skips; i++) {
+            promises.push(
+                fetch(`/api/chunk/${i}/${file.hash}.${extension}`)
                     .then(response => {
                         progress++;
-                        progressElement.style.width = (progress / parts * 100) + "%";
+                        progressBar.style.width = (progress / skips * 100) + "%";
                         return response.blob();
                     })
                     .then(blob => {
@@ -127,22 +126,23 @@ function chunkedDownload(file) {
                     })
             );
         }
-        Promise.all(fetches)
+        let progress = 0;
+        Promise.all(promises)
         .then(blobs => {
-            let blob = new Blob(blobs);
+            let blob = new Blob(blobs, {type: file.mime});
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
-            a.download = fileName;
+            a.download = name;
             a.click();
-            progressElement.style.width = "100%";
+            progressBar.style.width = "100%";
             progress = 0;
             setTimeout(() => {
-                progressElement.style.backgroundColor = "transparent";
-                progressElement.style.width = "0%";
-                progressElement.style.backgroundColor = "rgba(23, 131, 68, 0.323)";
+                progressBar.style.backgroundColor = "transparent";
+                progressBar.style.width = "0%";
+                progressBar.style.backgroundColor = "rgba(23, 131, 68, 0.323)";
             }, 1000);
-            showSnack(`Downloaded! ${fileName}`);
+            showSnack(`Downloaded! ${name}`);
         })
     }
 }

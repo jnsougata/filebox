@@ -71,12 +71,13 @@ function uploadFile(file) {
                                 chunks.push(content.slice(offset, offset + chunkSize));
                                 offset += chunkSize;
                             }
+                            let lastPart = chunks.pop();
                             let uploadId = data["upload_id"];
                             let name = data.name;
                             let promises = [];
                             progressBar.style.width = "1%";
-                            let progressIndex = 0;
                             let totalIndex = chunks.length;
+                            let progressIndex = 0;
                             chunks.forEach((chunk, index) => {
                                 promises.push(
                                     fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${index+1}`, {
@@ -93,7 +94,7 @@ function uploadFile(file) {
                                 fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
                                     method: 'PATCH',
                                     headers: header,
-                                    body: chunks.pop()
+                                    body: lastPart
                                 })
                                 .then(response => response.json())
                                 .then(() => {

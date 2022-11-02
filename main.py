@@ -1,5 +1,5 @@
 import os
-import base64
+import gc
 import requests
 from deta import Deta
 from fastapi import FastAPI
@@ -94,13 +94,11 @@ async def chunk(skip: int, file_hash: str):
     resp = requests.get(url, headers=headers, stream=True)
     i = 0
     for data in resp.iter_content(chunk_size=chunk_size):
-        try:
-            if i == skip:
-                return Response(content=data, media_type="application/octet-stream")
-            del data
-            i += 1
-        except Exception as e:
-            return {"error": str(e)}
+        if i == skip:
+            return Response(content=data, media_type="application/octet-stream")
+        i += 1
+        del data
+        gc.collect()
 
 
 if __name__ == "__main__":
