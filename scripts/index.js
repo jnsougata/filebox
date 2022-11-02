@@ -273,11 +273,11 @@ function handleSizeUnit(size) {
     if (size < 1024) {
         return size + " B";
     } else if (size < 1024 * 1024) {
-        return (size / 1024).toFixed(2) + " KB";
+        return (size / 1024).toFixed(4) + " KB";
     } else if (size < 1024 * 1024 * 1024) {
-        return (size / 1024 / 1024).toFixed(2) + " MB";
+        return (size / 1024 / 1024).toFixed(4) + " MB";
     } else {
-        return (size / 1024 / 1024 / 1024).toFixed(2) + " GB";
+        return (size / 1024 / 1024 / 1024).toFixed(4) + " GB";
     }
 }
 
@@ -298,7 +298,9 @@ function showSnack(inner) {
     let x = document.getElementById("snackbar");
     x.className = "show";
     x.innerHTML = inner;
-    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+    setTimeout(() => {
+        x.className = x.className.replace("show", "")
+    }, 3000);
 }
 
 function shareButtonClick(file) {
