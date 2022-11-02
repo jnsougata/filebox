@@ -4,7 +4,9 @@ let fileView = document.getElementById('file-view');
 const downloadGreen = "rgba(23, 131, 68, 0.323)";
 
 function randomFileHash() {
-    return [...Array(16)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+    return [...Array(16)].map(
+        () => Math.floor(Math.random() * 16).toString(16)
+    ).join('');
 }
 
 uploadButton.addEventListener('click', () => {
