@@ -14,6 +14,7 @@ class ContentResponse(Response):
             content = f.read()
             super().__init__(content=content, **kwargs)
 
+
 app = FastAPI()
 app.db = Deta().Base("filebox_metadata")
 app.drive = Deta().Drive("filebox")
@@ -23,30 +24,37 @@ app.drive = Deta().Drive("filebox")
 def index():
     return ContentResponse("./static/index.html", media_type="text/html")
 
+
 @app.get("/download/{file_id}")
 def shared():
     return ContentResponse("./static/download.html", media_type="text/html")
+
 
 @app.get("/assets/{path}")
 def assets(path: str):
     return ContentResponse(f"./assets/{path}", media_type="image/*")
 
+
 @app.get("/styles/{path}")
 def styles(path: str):
     return ContentResponse(f"./styles/{path}", media_type="text/css")
+
 
 @app.get("/scripts/{path}")
 def scripts(path: str):
     return ContentResponse(f"./scripts/{path}", media_type="text/javascript")
 
+
 @app.get("/api/secret")
 def micro_secret():
     return PlainTextResponse(os.getenv("DETA_PROJECT_KEY"))
+
 
 @app.post("/api/metadata")
 async def metadata(request: Request):
     data = await request.json()
     return app.db.put(data, data['hash'])
+
 
 @app.get("/api/metadata")
 async def complete_meta():
@@ -70,27 +78,30 @@ async def delete_meta(request: Request):
     app.drive.delete(file_hash + '.' + extension)
     return app.db.delete(file_hash)
 
+
 @app.get("/api/shared/metadata/{file_hash}")
 async def get_meta(file_hash: str):
     return app.db.get(file_hash)
 
-@app.get("/api/chunk/{skip}/{hash}")
-async def chunk(skip: int, hash: str):
-    DETA_PROJECT_KEY = os.getenv("DETA_PROJECT_KEY")
-    DETA_PROJECT_ID = DETA_PROJECT_KEY.split("_")[0]
-    CHUNK_SIZE = 1024 * 1024 * 4
-    url = f"https://drive.deta.sh/v1/{DETA_PROJECT_ID}/filebox/files/download?name={hash}"
-    headers = {"X-Api-Key": DETA_PROJECT_KEY}
+
+@app.get("/api/chunk/{skip}/{file_hash}")
+async def chunk(skip: int, file_hash: str):
+    deta_project_key = os.getenv("DETA_PROJECT_KEY")
+    deta_project_id = deta_project_key.split("_")[0]
+    chunk_size = 1024 * 1024 * 4
+    url = f"https://drive.deta.sh/v1/{deta_project_id}/filebox/files/download?name={file_hash}"
+    headers = {"X-Api-Key": deta_project_key}
     resp = requests.get(url, headers=headers, stream=True)
     i = 0
-    for chunk in resp.iter_content(chunk_size=CHUNK_SIZE):
+    for data in resp.iter_content(chunk_size=chunk_size):
         try:
             if i == skip:
-                return Response(content=chunk, media_type="application/octet-stream")
-            del chunk
+                return Response(content=data, media_type="application/octet-stream")
+            del data
             i += 1
         except Exception as e:
             return {"error": str(e)}
+
 
 if __name__ == "__main__":
     import uvicorn

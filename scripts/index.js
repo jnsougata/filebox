@@ -1,7 +1,7 @@
 let uploadButton = document.getElementById('upload');
 let uploadInput = document.getElementById('file-input');
 let fileView = document.getElementById('file-view');
-const downlodGreen = "rgba(23, 131, 68, 0.323)";
+const downloadGreen = "rgba(23, 131, 68, 0.323)";
 
 function randomFileHash() {
     return [...Array(16)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
@@ -25,9 +25,9 @@ function uploadFile(file) {
         let fileHash = randomFileHash();
         let projectId = token.split("_")[0];
         const ROOT = 'https://drive.deta.sh/v1';
-        var reader = new FileReader();
+        let reader = new FileReader();
         reader.onload = function(e) {
-            var content = e.target.result;
+            let content = e.target.result;
             let body = {
                 "name": file.name,
                 "hash": fileHash,
@@ -46,63 +46,66 @@ function uploadFile(file) {
                     headers: header
                 })
                 .then(() => {
-                    progressBar.style.width = "100%";
-                    setTimeout(() => {
-                        progressBar.style.color = "transparent";
-                        progressBar.style.width = "0%";
-                        fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
-                    }, 1000);    
+                    fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
+                    .then(() => {
+                        progressBar.style.width = "100%";
+                        setTimeout(() => {
+                            progressBar.style.color = "transparent";
+                            progressBar.style.width = "0%";
+                        }, 500);
+                    })
                 })
             } else {
                 fetch(`${ROOT}/${projectId}/filebox/uploads?name=${qualifiedName}`, {
                     method: 'POST',
                     headers: header
                 })
-                .then(response => response.json())
-                .then(data => {
-                    let chunks = [];
-                    const chunkSize = 10485760;
-                    let offset = 0;
-                    while (offset < file.size) {
-                        chunks.push(content.slice(offset, offset + chunkSize));
-                        offset += chunkSize;
-                    }
-                    let uploadId = data.upload_id;
-                    let name = data.name;
-                    let promises = [];
-                    progressBar.style.width = "1%";
-                    let progressIndex = 0;
-                    let totalIndex = chunks.length;
-                    chunks.forEach((chunk, index) => {
-                        promises.push(
-                            fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${index+1}`, {
-                            method: 'POST',
-                            body: chunk,
-                            headers: header
-                        }).then(() => {
-                            progressIndex ++;
-                            let percent = Math.round((progressIndex / totalIndex) * 100);
-                            progressBar.style.width = `${percent}%`;
-                        }))
-                    })
-                    Promise.all(promises)
-                    .then(() => {
-                        fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
-                            method: 'PATCH',
-                            headers: header,
-                            body: chunks.pop()
+                    .then(response => response.json())
+                        .then(data => {
+                            let chunks = [];
+                            const chunkSize = 10485760;
+                            let offset = 0;
+                            while (offset < file.size) {
+                                chunks.push(content.slice(offset, offset + chunkSize));
+                                offset += chunkSize;
+                            }
+                            let uploadId = data["upload_id"];
+                            let name = data.name;
+                            let promises = [];
+                            progressBar.style.width = "1%";
+                            let progressIndex = 0;
+                            let totalIndex = chunks.length;
+                            chunks.forEach((chunk, index) => {
+                                promises.push(
+                                    fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${index+1}`, {
+                                    method: 'POST',
+                                    body: chunk,
+                                    headers: header
+                                }).then(() => {
+                                    progressIndex ++;
+                                    progressBar.style.width = `${Math.round((progressIndex / totalIndex) * 100)}%`;
+                                }))
+                            })
+                            Promise.all(promises)
+                            .then(() => {
+                                fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
+                                    method: 'PATCH',
+                                    headers: header,
+                                    body: chunks.pop()
+                                })
+                                .then(response => response.json())
+                                .then(() => {
+                                    fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
+                                        .then(() => {
+                                            progressBar.style.width = "100%";
+                                            setTimeout(() => {
+                                                progressBar.style.color = "transparent";
+                                                progressBar.style.width = "0%";
+                                            }, 1000);
+                                        })
+                                })
+                            })
                         })
-                        .then(response => response.json())
-                        .then(() => {
-                            progressBar.style.width = "100%";
-                            setTimeout(() => {
-                                progressBar.style.color = "transparent";
-                                progressBar.style.width = "0%";
-                                fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
-                            }, 1000);
-                        })
-                    })
-                })
             }
         };
         reader.readAsArrayBuffer(file);
@@ -120,7 +123,7 @@ function downloadFile(file) {
         let extension = file.name.split('.').pop();
         let qualifiedName = file.hash + "." + extension;
         let progressBar = document.getElementById(`progress-${file.hash}`);
-        progressBar.style.backgroundColor = downlodGreen;
+        progressBar.style.backgroundColor = downloadGreen;
         fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
             method: 'GET',
             headers: header
@@ -139,8 +142,7 @@ function downloadFile(file) {
                             }
                             controller.enqueue(value);
                             progress += value.length;
-                            let percent = Math.round((progress / file.size) * 100);
-                            progressBar.style.width = `${percent}%`;
+                            progressBar.style.width = `${Math.round((progress / file.size) * 100)}%`;
                             return pump();
                         });
                     }
@@ -202,13 +204,12 @@ function newFileRow(file) {
     tdSize.appendChild(tdSizeInnerH3);
     let tdDateInnerH3 = document.createElement('h3');
     let date = new Date(file.date);
-    let dateString = date.getDate() 
-    + "/" + (date.getMonth() + 1) 
-    + "/" + date.getFullYear() 
-    + " " + date.getHours() 
-    + ":" + date.getMinutes() 
-    + ":" + date.getSeconds();
-    tdDateInnerH3.innerText = dateString;
+    tdDateInnerH3.innerText = date.getDate()
+        + "/" + (date.getMonth() + 1)
+        + "/" + date.getFullYear()
+        + " " + date.getHours()
+        + ":" + date.getMinutes()
+        + ":" + date.getSeconds();
     tdDate.appendChild(tdDateInnerH3);
     sharingButton.style.backgroundColor = "rgba(37, 172, 80, 0.555)";
     sharingButton.addEventListener('click', () => {
@@ -294,7 +295,7 @@ function dragOverHandler(ev) {
 }
 
 function showSnack(inner) {
-    var x = document.getElementById("snackbar");
+    let x = document.getElementById("snackbar");
     x.className = "show";
     x.innerHTML = inner;
     setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
@@ -302,5 +303,6 @@ function showSnack(inner) {
 
 function shareButtonClick(file) {
     showSnack(`Link copied to clipboard`);
-    window.navigator.clipboard.writeText(window.location.href + "download/" + file.hash);  
+    window.navigator.clipboard.writeText(window.location.href + "download/" + file.hash)
+        .then(_ => {});
 }

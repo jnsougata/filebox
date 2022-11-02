@@ -1,5 +1,4 @@
 let fileView = document.getElementById('file-view');
-let downloaded = false;
 window.onload = function() {
     let hash = window.location.href.split("/").pop();
     fetch(`/api/shared/metadata/${hash}`)
@@ -36,13 +35,12 @@ function newFileRow(file) {
     tdSize.appendChild(tdSizeInnerH3);
     let tdDateInnerH3 = document.createElement('h3');
     let date = new Date(file.date);
-    let dateString = date.getDate() 
-    + "/" + (date.getMonth() + 1) 
-    + "/" + date.getFullYear() 
-    + " " + date.getHours() 
-    + ":" + date.getMinutes() 
-    + ":" + date.getSeconds();
-    tdDateInnerH3.innerText = dateString;
+    tdDateInnerH3.innerText = date.getDate()
+        + "/" + (date.getMonth() + 1)
+        + "/" + date.getFullYear()
+        + " " + date.getHours()
+        + ":" + date.getMinutes()
+        + ":" + date.getSeconds();
     tdDate.appendChild(tdDateInnerH3);
     let tdDownload = document.createElement('td');
     let downloadButton = document.createElement('button');
@@ -95,10 +93,10 @@ function chunkedDownload(file) {
     let fileSize = file.size;
     let fileName = file.name;
     showSnack(`Downloading ${fileName}`);
-    let fileExtention = fileName.split('.').pop();
+    let fileExtension = fileName.split('.').pop();
     const CHUNK_SIZE = 4 * 1024 * 1024
     if (fileSize < CHUNK_SIZE) {
-        fetch(`/api/chunk/0/${file.hash}.${fileExtention}`)
+        fetch(`/api/chunk/0/${file.hash}.${fileExtension}`)
         .then(response => response.blob())
         .then(blob => {
             let url = URL.createObjectURL(blob);
@@ -109,7 +107,7 @@ function chunkedDownload(file) {
         })
     } else {
         let parts = 0;
-        if (fileSize % CHUNK_SIZE == 0) {
+        if (fileSize % CHUNK_SIZE === 0) {
             parts = fileSize / CHUNK_SIZE;
         } else {
             parts = Math.floor(fileSize / CHUNK_SIZE) + 1;
@@ -118,15 +116,15 @@ function chunkedDownload(file) {
         let fetches = [];
         for (let i = 0; i < parts; i++) {
             fetches.push(
-                fetch(`/api/chunk/${i}/${file.hash}.${fileExtention}`)
-                .then(response => {
-                    progress++;
-                    progressElement.style.width = (progress / parts * 100) + "%";
-                    return response.blob();
-                })
-                .then(blob => {
-                    return blob;
-                })
+                fetch(`/api/chunk/${i}/${file.hash}.${fileExtension}`)
+                    .then(response => {
+                        progress++;
+                        progressElement.style.width = (progress / parts * 100) + "%";
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        return blob;
+                    })
             );
         }
         Promise.all(fetches)
@@ -150,8 +148,10 @@ function chunkedDownload(file) {
 }
 
 function showSnack(inner) {
-    var x = document.getElementById("snackbar");
+    let x = document.getElementById("snackbar");
     x.className = "show";
     x.innerHTML = inner;
-    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+    setTimeout(() => {
+        x.className = x.className.replace("show", "")
+    }, 3000);
 }
