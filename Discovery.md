@@ -13,10 +13,10 @@ Filebox comes with:
 - Multiple file upload (drag and drop)
 - Upload any file type and size ( < 10GB )
 - Download file from your space drive when needed
-- Share file with others ( any file type and size )
+- Share file with others ( any type and size <= 30MB )
 
 TODO:
 - File preview.
 - Folder support.
-- File Renamaing.
+- File Renaming.
 - File search and filter.

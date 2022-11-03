@@ -1,3 +1,4 @@
+import io
 import os
 import gc
 import requests
@@ -97,8 +98,6 @@ async def chunk(skip: int, file_hash: str):
         if i == skip:
             return Response(content=data, media_type="application/octet-stream")
         i += 1
-        del data
-        gc.collect()
 
 
 if __name__ == "__main__":

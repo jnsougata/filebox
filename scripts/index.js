@@ -310,6 +310,10 @@ function showSnack(inner) {
 }
 
 function shareButtonClick(file) {
+    if (file.size > 1024 * 1024 * 30) {
+        showSnack("File is too big to share");
+        return;
+    }
     showSnack(`Link copied to clipboard`);
     window.navigator.clipboard.writeText(window.location.href + "download/" + file.hash)
         .then(_ => {});

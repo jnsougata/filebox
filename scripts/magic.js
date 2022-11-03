@@ -1,10 +1,14 @@
 let fileView = document.getElementById('file-view');
+let progressBar = null;
+
+
 window.onload = function() {
     let hash = window.location.href.split("/").pop();
     fetch(`/api/shared/metadata/${hash}`)
     .then(res => res.json())
     .then(data => {
         fileView.appendChild(newFileRow(data));
+        progressBar = document.getElementById(`progress-${hash}`);
     })
 }
 
@@ -89,13 +93,12 @@ function handleSizeUnit(size) {
 }
 
 function chunkedDownload(file) {
-    let progressBar = document.getElementById(`progress-${file.hash}`);
     let size = file.size;
     let name = file.name;
     let extension = name.split('.').pop();
-    const CHUNK_SIZE = 4 * 1024 * 1024
+    const chunkSize = 1024 * 1024 * 4
     showSnack(`Downloading ${name}`);
-    if (size < CHUNK_SIZE) {
+    if (size < chunkSize) {
         fetch(`/api/chunk/0/${file.hash}.${extension}`)
         .then(response => response.blob())
         .then(blob => {
@@ -107,26 +110,28 @@ function chunkedDownload(file) {
         })
     } else {
         let skips = 0;
-        if (size % CHUNK_SIZE === 0) {
-            skips = size / CHUNK_SIZE;
+        if (size % chunkSize === 0) {
+            skips = size / chunkSize;
         } else {
-            skips = Math.floor(size / CHUNK_SIZE) + 1;
+            skips = Math.floor(size / chunkSize) + 1;
         }
+        let heads = Array.from(Array(skips-1).keys());
+        console.log(heads);
         let promises = [];
+        let progress = 0;
         for (let i = 0; i < skips; i++) {
             promises.push(
                 fetch(`/api/chunk/${i}/${file.hash}.${extension}`)
                     .then(response => {
-                        progress++;
-                        progressBar.style.width = (progress / skips * 100) + "%";
-                        return response.blob();
+                         progress++;
+                         progressBar.style.width = (progress / skips * 100) + "%";
+                         return response.blob();
                     })
                     .then(blob => {
                         return blob;
                     })
             );
         }
-        let progress = 0;
         Promise.all(promises)
         .then(blobs => {
             let blob = new Blob(blobs, {type: file.mime});
