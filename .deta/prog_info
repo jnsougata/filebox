@@ -1,0 +1,1 @@
+{"id":"082d15a8-a17d-49b1-b79d-32d17595e4e9","space":4864,"runtime":"python3.9","name":"filebox","path":"gjmhzf","project":"c0pid2se","account":"144798365827","region":"ap-southeast-1","deps":["deta","fastapi","requests"],"envs":null,"public":true,"log_level":"off","cron":""}
