@@ -86,10 +86,10 @@ body {
     outline: none;
     border-radius: 20px;
     padding: 5px;
-    outline: none;
     text-align: center;
     color: white;
     background-color: rgba(70, 71, 72, 0.548);
+    z-index: 2;
 }
 
 .middle-box > button {
@@ -149,8 +149,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    align-items: left;
-    border-right: 0.2px solid rgba(0, 0, 0, 0.271);
+    align-items: flex-start;
 }
 
 .sidebar > button {
@@ -228,7 +227,6 @@ body {
 .panel > table > tbody > tr > th {
     padding: 8px;
     height: 25px;
-    border-bottom: 0.2px solid rgba(0, 0, 0, 0.271);
     background-color: #222222;
     text-align: left;
     font-weight: 400;
@@ -247,7 +245,7 @@ body {
 .panel > table > tbody > tr > td {
     padding: 8px;
     height: 8px;
-    border-bottom: 0.2px solid rgba(0, 0, 0, 0.271);
+    border-bottom: 0 solid rgba(0, 0, 0, 0.271);
     background-color: transparent;
     text-align: left;
 }
@@ -311,7 +309,6 @@ body {
     visibility: hidden;
     min-width: 250px;
     margin-left: -125px;
-    background-color: rgba(90, 90, 91, 0.395);
     color: #fff; 
     font-size: small;
     text-align: center;

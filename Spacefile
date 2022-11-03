@@ -8,7 +8,6 @@ micros:
       public_routes:
         - "/assets/*"
         - "/download/*"
-        - "/api/chunk/*"
         - "/api/shared/*"
         - "/scripts/magic.js"
         - "/styles/style.css"

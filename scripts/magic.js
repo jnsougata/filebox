@@ -51,7 +51,7 @@ function newFileRow(file) {
     downloadButton.innerHTML = `<i class="fa-solid fa-download"></i>`;
     downloadButton.style.backgroundColor = "rgba(14, 116, 250, 0.658)";
     downloadButton.addEventListener('click', () => {
-        chunkedDownload(file);
+        downloadByChunk(file);
     });
     tdDownload.appendChild(downloadButton);
     tr.appendChild(tdName);
@@ -92,14 +92,25 @@ function handleSizeUnit(size) {
     }
 }
 
-function chunkedDownload(file) {
+function showSnack(inner) {
+    let x = document.getElementById("snackbar");
+    x.className = "show";
+    x.innerHTML = inner;
+    setTimeout(() => {
+        x.className = x.className.replace("show", "")
+    }, 3000);
+}
+
+
+function downloadByChunk(file) {
     let size = file.size;
     let name = file.name;
     let extension = name.split('.').pop();
     const chunkSize = 1024 * 1024 * 4
     showSnack(`Downloading ${name}`);
+    let hashedName = file.hash + "." + extension;
     if (size < chunkSize) {
-        fetch(`/api/chunk/0/${file.hash}.${extension}`)
+        fetch(`/api/shared/chunk/0/${hashedName}`)
         .then(response => response.blob())
         .then(blob => {
             let url = URL.createObjectURL(blob);
@@ -115,23 +126,23 @@ function chunkedDownload(file) {
         } else {
             skips = Math.floor(size / chunkSize) + 1;
         }
-        let heads = Array.from(Array(skips-1).keys());
+        let heads = Array.from(Array(skips).keys());
         console.log(heads);
         let promises = [];
         let progress = 0;
-        for (let i = 0; i < skips; i++) {
+        heads.forEach((head) => {
             promises.push(
-                fetch(`/api/chunk/${i}/${file.hash}.${extension}`)
-                    .then(response => {
-                         progress++;
-                         progressBar.style.width = (progress / skips * 100) + "%";
-                         return response.blob();
-                    })
-                    .then(blob => {
-                        return blob;
-                    })
+                fetch(`/api/shared/chunk/${head}/${hashedName}`)
+                .then(response => {
+                     progress++;
+                     progressBar.style.width = (progress / skips * 100) + "%";
+                     return response.blob();
+                })
+                .then(blob => {
+                    return blob;
+                })
             );
-        }
+        });
         Promise.all(promises)
         .then(blobs => {
             let blob = new Blob(blobs, {type: file.mime});
@@ -146,17 +157,8 @@ function chunkedDownload(file) {
                 progressBar.style.backgroundColor = "transparent";
                 progressBar.style.width = "0%";
                 progressBar.style.backgroundColor = "rgba(23, 131, 68, 0.323)";
+                showSnack(`Downloaded! ${name}`);
             }, 1000);
-            showSnack(`Downloaded! ${name}`);
         })
     }
-}
-
-function showSnack(inner) {
-    let x = document.getElementById("snackbar");
-    x.className = "show";
-    x.innerHTML = inner;
-    setTimeout(() => {
-        x.className = x.className.replace("show", "")
-    }, 3000);
 }

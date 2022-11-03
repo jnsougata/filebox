@@ -1,4 +1,6 @@
 import os
+import secrets
+import asyncio
 import requests
 from deta import Deta
 from fastapi import FastAPI
@@ -15,8 +17,9 @@ class ContentResponse(Response):
 
 
 app = FastAPI()
-app.db = Deta().Base("filebox_metadata")
+app.cached_streams = {}
 app.drive = Deta().Drive("filebox")
+app.db = Deta().Base("filebox_metadata")
 
 
 @app.get("/")
@@ -83,13 +86,13 @@ async def get_meta(file_hash: str):
     return app.db.get(file_hash)
 
 
-@app.get("/api/chunk/{skip}/{file_hash}")
-async def chunk(skip: int, file_hash: str):
+@app.get("/api/shared/chunk/{skip}/{file_hash}")
+async def get_stream(skip: int, file_hash: str):
     deta_project_key = os.getenv("DETA_PROJECT_KEY")
     deta_project_id = deta_project_key.split("_")[0]
-    chunk_size = 1024 * 1024 * 4
     url = f"https://drive.deta.sh/v1/{deta_project_id}/filebox/files/download?name={file_hash}"
     headers = {"X-Api-Key": deta_project_key}
+    chunk_size = 1024 * 1024 * 4
     resp = requests.get(url, headers=headers, stream=True)
     i = 0
     for data in resp.iter_content(chunk_size=chunk_size):
