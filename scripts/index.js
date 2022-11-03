@@ -2,8 +2,8 @@ let uploadButton = document.getElementById('upload');
 let uploadInput = document.getElementById('file-input');
 let fileView = document.getElementById('file-view');
 let snackbar = document.getElementById("snackbar");
-let snackbarGreen = "rgba(37, 172, 80, 0.555)";
-let snackbarRed = "rgba(203, 20, 70, 0.55)";
+const snackbarRed = "rgba(203, 20, 70, 0.55)";
+const snackbarGreen = "rgba(37, 172, 80, 0.555)";
 const downloadGreen = "rgba(23, 131, 68, 0.323)";
 
 function randomFileHash() {
@@ -32,89 +32,108 @@ function uploadFile(file) {
         let reader = new FileReader();
         reader.onload = (ev) => {
             let body = {
-            "hash": hash,
-            "name": file.name,
-            "size": file.size,
-            "mime": file.type,
-            "date": new Date().toISOString(),
-        }
-        let content = ev.target.result;
-        fileView.appendChild(newFileRow(body));
-        let extension = file.name.split('.').pop();
-        let qualifiedName = `${hash}.${extension}`;
-        let progressBar = document.getElementById(`progress-${hash}`);
-        if (file.size < 10 * 1024 * 1024) {
-            fetch(`${ROOT}/${projectId}/filebox/files?name=${qualifiedName}`, {
-                method: 'POST',
-                body: content,
-                headers: header
-            })
-            .then(() => {
-                fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
-                .then(() => {
-                    progressBar.style.width = "100%";
-                    setTimeout(() => {
-                        progressBar.style.color = "transparent";
-                        progressBar.style.width = "0%";
-                    }, 500);
-                })
-            })
-        } else {
-            let chunkSize = 10 * 1024 * 1024;
-            let chunks = [];
-            for (let i = 0; i < content.byteLength; i += chunkSize) {
-                chunks.push(content.slice(i, i + chunkSize));
+                "hash": hash,
+                "name": file.name,
+                "size": file.size,
+                "mime": file.type,
+                "date": new Date().toISOString(),
             }
-            fetch(`${ROOT}/${projectId}/filebox/uploads?name=${qualifiedName}`, {
-                method: 'POST',
-                headers: header
-            })
+            let content = ev.target.result;
+            fileView.appendChild(newFile(body));
+            let extension = file.name.split('.').pop();
+            let qualifiedName = `${hash}.${extension}`;
+            let progressBar = document.getElementById(`progress-${hash}`);
+            if (file.size < 10 * 1024 * 1024) {
+                fetch(`${ROOT}/${projectId}/filebox/files?name=${qualifiedName}`, {
+                    method: 'POST',
+                    body: content,
+                    headers: header
+                })
+                .then(() => {
+                    fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
+                    .then(() => {
+                        progressBar.style.width = "100%";
+                        setTimeout(() => {
+                            progressBar.style.color = "transparent";
+                            progressBar.style.width = "0%";
+                        }, 500);
+                    })
+                })
+            } else {
+                let chunkSize = 10 * 1024 * 1024;
+                let chunks = [];
+                for (let i = 0; i < content.byteLength; i += chunkSize) {
+                    chunks.push(content.slice(i, i + chunkSize));
+                }
+                fetch(`${ROOT}/${projectId}/filebox/uploads?name=${qualifiedName}`, {
+                    method: 'POST',
+                    headers: header
+                })
                 .then(response => response.json())
-                    .then(data => {
-                        let finalChunk = chunks.pop();
-                        let finalIndex = chunks.length + 1;
-                        let uploadId = data["upload_id"];
-                        let name = data.name;
-                        let promises = [];
-                        progressBar.style.width = "1%";
-                        let progressIndex = 0;
-                        chunks.forEach((chunk, index) => {
-                            promises.push(
-                                fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${index+1}`, {
-                                    method: 'POST',
-                                    body: chunk,
-                                    headers: header
-                                }).then(() => {
-                                    progressIndex ++;
-                                    progressBar.style.width = `${Math.round((progressIndex / finalIndex) * 100)}%`;
-                                })
-                            )
-                        })
-                        Promise.all(promises)
-                        .then(() => {
-                            fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${finalIndex}`, {
+                .then(data => {
+                    let finalChunk = chunks.pop();
+                    let finalIndex = chunks.length + 1;
+                    let uploadId = data["upload_id"];
+                    let name = data.name;
+                    let allOk = true;
+                    let promises = [];
+                    progressBar.style.width = "1%";
+                    let progressIndex = 0;
+                    chunks.forEach((chunk, index) => {
+                        promises.push(
+                            fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${index+1}`, {
                                 method: 'POST',
-                                body: finalChunk,
+                                body: chunk,
                                 headers: header
-                            }).then(() => {
+                            }).then(response => {
+                                if (response.status != 200) {
+                                    allOk = false;
+                                }
+                                progressIndex ++;
+                                progressBar.style.width = `${Math.round((progressIndex / finalIndex) * 100)}%`;
+                            })
+                        )
+                    })
+                    Promise.all(promises)
+                    .then(() => {
+                        fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${finalIndex}`, {
+                            method: 'POST',
+                            body: finalChunk,
+                            headers: header
+                        })
+                        .then(response => {
+                            if (response.status != 200) {
+                                allOk = false;
+                            }
+                            if (allOk) {
                                 fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
                                     method: 'PATCH',
                                     headers: header,
                                 })
-                                    .then(response => response.json())
+                                .then(response => response.json())
+                                .then(() => {
+                                    fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
                                     .then(() => {
-                                        fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
-                                            .then(() => {
-                                                progressBar.style.width = "100%";
-                                                setTimeout(() => {
-                                                    progressBar.style.color = "transparent";
-                                                    progressBar.style.width = "0%";
-                                                }, 1000);
-                                            })
+                                        progressBar.style.width = "100%";
+                                        showSnack(`File ${file.name} uploaded successfully`);
+                                        setTimeout(() => {
+                                            progressBar.style.color = "transparent";
+                                            progressBar.style.width = "0%";
+                                        }, 1000);
                                     })
-                            })
+                                })
+                            } else {
+                                showSnack(`Failed to upload ${file.name}`, snackbarRed);
+                                document.getElementById(`${hash}`).remove();
+                                fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
+                                    method: 'DELETE', 
+                                    headers: header
+                                })
+                                .then(() => {})
+                            }
                         })
                     })
+                })
             }
         };
         reader.readAsArrayBuffer(file);
@@ -176,7 +195,7 @@ function downloadFile(file) {
     })
 }
 
-function newFileRow(file) {
+function newFile(file) {
     let tr = document.createElement('tr');
     tr.id = file.hash;
     let tdName = document.createElement('td');
@@ -254,7 +273,7 @@ window.onload = () => {
     .then(response => response.json())
     .then(data => {
         data.forEach(file => {
-            let newFile = newFileRow(file);
+            let newFile = newFile(file);
             fileView.appendChild(newFile);
         })
     })
@@ -317,7 +336,7 @@ function shareButtonClick(file) {
         showSnack("File is too big to share", snackbarRed);
         return;
     }
-    showSnack(`Link copied to clipboard`);
+    showSnack(`URL copied to clipboard`);
     window.navigator.clipboard.writeText(window.location.href + "download/" + file.hash)
         .then(_ => {});
 }
