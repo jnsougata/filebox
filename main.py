@@ -1,6 +1,4 @@
-import io
 import os
-import gc
 import requests
 from deta import Deta
 from fastapi import FastAPI
