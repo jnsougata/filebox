@@ -1,5 +1,8 @@
 let fileView = document.getElementById('file-view');
 let progressBar = null;
+let snackbar = document.getElementById("snackbar");
+let snackbarGreen = "rgba(37, 172, 80, 0.555)";
+let snackbarRed = "rgba(203, 20, 70, 0.55)";
 
 
 window.onload = function() {
@@ -92,12 +95,12 @@ function handleSizeUnit(size) {
     }
 }
 
-function showSnack(inner) {
-    let x = document.getElementById("snackbar");
-    x.className = "show";
-    x.innerHTML = inner;
+function showSnack(inner, color = snackbarGreen) {
+    snackbar.style.backgroundColor = color;
+    snackbar.className = "show";
+    snackbar.innerHTML = inner;
     setTimeout(() => {
-        x.className = x.className.replace("show", "")
+        snackbar.className = snackbar.className.replace("show", "")
     }, 3000);
 }
 
@@ -107,6 +110,7 @@ function downloadByChunk(file) {
     let name = file.name;
     let extension = name.split('.').pop();
     const chunkSize = 1024 * 1024 * 4
+    snackbar.style.backgroundColor = snackbarGreen;
     showSnack(`Downloading ${name}`);
     let hashedName = file.hash + "." + extension;
     if (size < chunkSize) {
@@ -127,13 +131,17 @@ function downloadByChunk(file) {
             skips = Math.floor(size / chunkSize) + 1;
         }
         let heads = Array.from(Array(skips).keys());
-        console.log(heads);
         let promises = [];
         let progress = 0;
+        let allOk = true;
         heads.forEach((head) => {
             promises.push(
                 fetch(`/api/shared/chunk/${head}/${hashedName}`)
                 .then(response => {
+                     if (response.status === 502) {
+                         showSnack(`Server refused to deliver chunk ${head}`, snackbarRed);
+                         allOk = false;
+                     }
                      progress++;
                      progressBar.style.width = (progress / skips * 100) + "%";
                      return response.blob();
@@ -150,15 +158,22 @@ function downloadByChunk(file) {
             let a = document.createElement('a');
             a.href = url;
             a.download = name;
-            a.click();
-            progressBar.style.width = "100%";
-            progress = 0;
-            setTimeout(() => {
-                progressBar.style.backgroundColor = "transparent";
+            if (allOk) {
+                a.click();
+                progressBar.style.width = "100%";
+                progress = 0;
+                setTimeout(() => {
+                    progressBar.style.backgroundColor = "transparent";
+                    progressBar.style.width = "0%";
+                    progressBar.style.backgroundColor = "rgba(23, 131, 68, 0.323)";
+                    showSnack(`Downloaded... ${name}`);
+                }, 1000);
+            } else {
+                showSnack("File is very powerful. Please try again.", snackbarRed);
                 progressBar.style.width = "0%";
-                progressBar.style.backgroundColor = "rgba(23, 131, 68, 0.323)";
-                showSnack(`Downloaded! ${name}`);
-            }, 1000);
+                progress = 0;
+            }
+
         })
     }
 }

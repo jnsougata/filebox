@@ -1,6 +1,9 @@
 let uploadButton = document.getElementById('upload');
 let uploadInput = document.getElementById('file-input');
 let fileView = document.getElementById('file-view');
+let snackbar = document.getElementById("snackbar");
+let snackbarGreen = "rgba(37, 172, 80, 0.555)";
+let snackbarRed = "rgba(203, 20, 70, 0.55)";
 const downloadGreen = "rgba(23, 131, 68, 0.323)";
 
 function randomFileHash() {
@@ -232,7 +235,7 @@ function newFileRow(file) {
         fetch("/api/metadata", {method: "DELETE", body: JSON.stringify(file)})
         .then(response => response.json())
         .then(() => {
-            showSnack(`Deleted ${file.name}`);
+            showSnack(`Deleted ${file.name}`, snackbarRed);
             tr.remove();
         })
     });
@@ -300,18 +303,18 @@ function dragOverHandler(ev) {
     ev.preventDefault();
 }
 
-function showSnack(inner) {
-    let x = document.getElementById("snackbar");
-    x.className = "show";
-    x.innerHTML = inner;
+function showSnack(inner, color = snackbarGreen) {
+    snackbar.style.backgroundColor = color;
+    snackbar.className = "show";
+    snackbar.innerHTML = inner;
     setTimeout(() => {
-        x.className = x.className.replace("show", "")
+        snackbar.className = snackbar.className.replace("show", "")
     }, 3000);
 }
 
 function shareButtonClick(file) {
     if (file.size > 1024 * 1024 * 30) {
-        showSnack("File is too big to share");
+        showSnack("File is too big to share", snackbarRed);
         return;
     }
     showSnack(`Link copied to clipboard`);
