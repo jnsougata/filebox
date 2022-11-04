@@ -369,3 +369,13 @@ toggle.onclick = () => {
         topbar.style.display = "none";
     }
 };
+
+let search = document.getElementById("search");
+let resultPanel = document.getElementById("result-panel");
+search.onfocus = () => {
+    resultPanel.style.visibility = "visible";
+}
+
+search.onblur = () => {
+    resultPanel.style.visibility = "hidden";
+}
