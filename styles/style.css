@@ -140,7 +140,7 @@ body {
     height: 150px;
     display: flex;
     background-color: rgba(70, 71, 72, 0.548);
-    border-radius: 0px 0px 10px 10px;
+    border-radius: 0 0 10px 10px;
 }
 
 .top > input[type="text"] {
