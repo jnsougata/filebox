@@ -1,4 +1,4 @@
-let fileView = document.getElementById('view-panel');
+let fileView = document.getElementById('files');
 let snackbar = document.getElementById("snackbar");
 let progressBar = null;
 const downloadGreen = "#25a03d";
@@ -20,7 +20,7 @@ window.onload = function() {
 function newFileRow(file) {
     let card = document.createElement("div");
     card.id = `card-${file.hash}`;
-    card.className = "file-card";
+    card.className = "card";
     let icon = document.createElement("div");
     icon.className = "icon";
     let i = document.createElement("i");
@@ -43,8 +43,8 @@ function newFileRow(file) {
     details.appendChild(name);
     details.appendChild(size);
     details.appendChild(date);
-    let oprations = document.createElement("div");
-    oprations.className = "operations";
+    let operations = document.createElement("div");
+    operations.className = "operations";
     let deleteButton = document.createElement("button");
     deleteButton.innerHTML = `<i class="fa-solid fa-trash"></i>`;
     deleteButton.onclick = () => {
@@ -63,9 +63,9 @@ function newFileRow(file) {
     downloadButton.onclick = () => {
         downloadByChunk(file);
     }
-    oprations.appendChild(deleteButton);
-    oprations.appendChild(shareButton);
-    oprations.appendChild(downloadButton);
+    operations.appendChild(deleteButton);
+    operations.appendChild(shareButton);
+    operations.appendChild(downloadButton);
     let progress = document.createElement("div");
     progress.className = "progress";
     progress.id = `progress-${file.hash}`;
@@ -75,7 +75,7 @@ function newFileRow(file) {
     progress.appendChild(bar);
     card.appendChild(icon);
     card.appendChild(details);
-    card.appendChild(oprations);
+    card.appendChild(operations);
     card.appendChild(progress);
     return card;
 }

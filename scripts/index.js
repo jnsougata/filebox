@@ -1,6 +1,6 @@
 let uploadButton = document.getElementById('upload');
 let uploadInput = document.getElementById('file-input');
-let fileView = document.getElementById('view-panel');
+let fileView = document.getElementById('files');
 let snackbar = document.getElementById("snackbar");
 let hiddenState = true;
 let topbar = document.getElementById("topbar");
@@ -47,7 +47,7 @@ function uploadFile(file) {
             let extension = file.name.split('.').pop();
             let qualifiedName = `${hash}.${extension}`;
             renderBarMatrix(hash, uploadBlue);
-            let progressBar = document.getElementById(`bar-${hash}`);
+            let bar = document.getElementById(`bar-${hash}`);
             if (file.size < 10 * 1024 * 1024) {
                 fetch(`${ROOT}/${projectId}/filebox/files?name=${qualifiedName}`, {
                     method: 'POST',
@@ -57,7 +57,7 @@ function uploadFile(file) {
                 .then(() => {
                     fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
                     .then(() => {
-                        progressBar.style.width = "100%";
+                        bar.style.width = "100%";
                         setTimeout(() => {
                             hideBarMatrix(hash);
                         }, 500);
@@ -81,7 +81,7 @@ function uploadFile(file) {
                     let name = data.name;
                     let allOk = true;
                     let promises = [];
-                    progressBar.style.width = "1%";
+                    bar.style.width = "1%";
                     let progressIndex = 0;
                     chunks.forEach((chunk, index) => {
                         promises.push(
@@ -90,11 +90,11 @@ function uploadFile(file) {
                                 body: chunk,
                                 headers: header
                             }).then(response => {
-                                if (response.status != 200) {
+                                if (response.status !== 200) {
                                     allOk = false;
                                 }
                                 progressIndex ++;
-                                progressBar.style.width = `${Math.round((progressIndex / finalIndex) * 100)}%`;
+                                bar.style.width = `${Math.round((progressIndex / finalIndex) * 100)}%`;
                             })
                         )
                     })
@@ -106,7 +106,7 @@ function uploadFile(file) {
                             headers: header
                         })
                         .then(response => {
-                            if (response.status != 200) {
+                            if (response.status !== 200) {
                                 allOk = false;
                             }
                             if (allOk) {
@@ -118,7 +118,7 @@ function uploadFile(file) {
                                 .then(() => {
                                     fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
                                     .then(() => {
-                                        progressBar.style.width = "100%";
+                                        bar.style.width = "100%";
                                         showSnack(`File ${file.name} uploaded successfully`);
                                         setTimeout(() => {
                                             hideBarMatrix(hash);
@@ -154,8 +154,7 @@ function downloadFile(file) {
         let extension = file.name.split('.').pop();
         let qualifiedName = file.hash + "." + extension;
         renderBarMatrix(file.hash, downloadGreen);
-        let progressBar = document.getElementById(`bar-${file.hash}`);
-        progressBar.style.backgroundColor = downloadGreen;
+        let bar = document.getElementById(`bar-${file.hash}`);
         fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
             method: 'GET',
             headers: header
@@ -174,7 +173,7 @@ function downloadFile(file) {
                             }
                             controller.enqueue(value);
                             progress += value.length;
-                            progressBar.style.width = `${Math.round((progress / file.size) * 100)}%`;
+                            bar.style.width = `${Math.round((progress / file.size) * 100)}%`;
                             return pump();
                         });
                     }
@@ -188,7 +187,7 @@ function downloadFile(file) {
             let a = document.createElement('a');
             a.href = url;
             a.download = file.name;
-            progressBar.style.width = "100%";
+            bar.style.width = "100%";
             setTimeout(() => {
                 hideBarMatrix(file.hash);
             }, 500);
@@ -201,7 +200,7 @@ function downloadFile(file) {
 function newFile(file) {
     let card = document.createElement("div");
     card.id = `card-${file.hash}`;
-    card.className = "file-card";
+    card.className = "card";
     let icon = document.createElement("div");
     icon.className = "icon";
     let i = document.createElement("i");
@@ -224,8 +223,8 @@ function newFile(file) {
     details.appendChild(name);
     details.appendChild(size);
     details.appendChild(date);
-    let oprations = document.createElement("div");
-    oprations.className = "operations";
+    let operations = document.createElement("div");
+    operations.className = "operations";
     let deleteButton = document.createElement("button");
     deleteButton.innerHTML = `<i class="fa-solid fa-trash"></i>`;
     deleteButton.onclick = () => {
@@ -241,9 +240,9 @@ function newFile(file) {
     downloadButton.onclick = () => {
         downloadFile(file);
     }
-    oprations.appendChild(deleteButton);
-    oprations.appendChild(shareButton);
-    oprations.appendChild(downloadButton);
+    operations.appendChild(deleteButton);
+    operations.appendChild(shareButton);
+    operations.appendChild(downloadButton);
     let progress = document.createElement("div");
     progress.className = "progress";
     progress.id = `progress-${file.hash}`;
@@ -253,7 +252,7 @@ function newFile(file) {
     progress.appendChild(bar);
     card.appendChild(icon);
     card.appendChild(details);
-    card.appendChild(oprations);
+    card.appendChild(operations);
     card.appendChild(progress);
     return card;
 }
@@ -300,18 +299,19 @@ function handleSizeUnit(size) {
     }
 }
 
-function dropHandler(ev) {
-    ev.preventDefault();
-    if (ev.dataTransfer.items) {
-        [...ev.dataTransfer.items].forEach((item, _) => {
+fileView.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+});
+
+fileView.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.items) {
+        [...e.dataTransfer.items].forEach((item) => {
             uploadFile(item.getAsFile());
         })
     }
-}
-
-function dragOverHandler(ev) {
-    ev.preventDefault();
-}
+});
 
 function showSnack(inner, color = snackbarGreen) {
     snackbar.style.backgroundColor = color;

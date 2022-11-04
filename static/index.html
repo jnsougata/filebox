@@ -17,19 +17,19 @@
     <body>
         <div class="container">
             <div class="header">
-                <div class="left-box">
+                <div class="left">
                     <img src="/assets/icon.png" alt="Filebox">
                     <h3>Filebox</h3>
                 </div>
-                <div class="right-box">
+                <div class="right">
                     <button id="topbar-toggle">
                         <i class="fa-solid fa-chevron-down"></i>
                     </button>
                 </div>
             </div>
             <div class="body">
-                <div class="topbar" id="topbar">
-                    <input type="text" placeholder="search or paste url" id="search" autocomplete="off">
+                <div class="top" id="topbar">
+                    <label for="search"></label><input type="text" placeholder="search or paste url" id="search" autocomplete="off">
                     <input type="file" id="file-input" multiple style="display: none;">
                     <button>
                         <i class="fa-solid fa-folder-plus"></i>
@@ -41,7 +41,7 @@
                         <i class="fa-solid fa-cog"></i>
                     </button>
                 </div>
-                <div class="panel" id="view-panel" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
+                <div class="middle" id="files">
                 </div>
             </div>
             <div id="snackbar"></div>

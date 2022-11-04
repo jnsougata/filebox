@@ -51,7 +51,7 @@ body {
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
 }
 
-.header > .left-box {
+.header > .left {
     width: 100%;
     height: 100%;
     display: flex;
@@ -59,19 +59,19 @@ body {
     align-items: center;
 }
 
-.left-box > h3 {
+.left > h3 {
     font-size: 20px;
     font-weight: 500;
     color: white;
 }
 
-.left-box > img {
+.left > img {
     width: 35px;
     height: 35px;
     margin-left: 20px;
 }
 
-.header > .right-box {
+.header > .right {
     width: 100%;
     height: 100%;
     display: flex;
@@ -79,7 +79,7 @@ body {
     align-items: center;
 }
 
-.right-box > button {
+.right > button {
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -90,7 +90,7 @@ body {
     margin-right: 10px;
 }
 
-.right-box > button > i {
+.right > button > i {
     color: white;
     font-size: 15px;
     margin-right: 5px;
@@ -102,12 +102,13 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     background-color: #191919;
+    overflow: hidden;
 }
 
-.body > .topbar {
+.body > .top {
     width: 100%;
     height: 40px;
     padding: 10px;
@@ -117,10 +118,9 @@ body {
     align-items: center;
     top: 0;
     position: sticky;
-
 }
 
-.topbar > input[type="text"] {
+.top > input[type="text"] {
     width: 30%;
     height: 20px;
     border: none;
@@ -135,7 +135,7 @@ body {
     margin-left: 10px;
 }
 
-.topbar > button {
+.top > button {
     background-color: rgba(70, 71, 72, 0.548);
     border: none;
     outline: none;
@@ -150,24 +150,24 @@ body {
     width: 35px;
 }
 
-.topbar > button > span {
+.top > button > span {
     color: white;
     font-weight: 400;
     font-size: 15px;
     font-family: 'Prompt', sans-serif;
 }
 
-.topbar > button > i {
+.top > button > i {
     color: white;
     font-size: 15px;
 }
 
 
-.topbar > button:hover {
+.top > button:hover {
     background-color: #1549e3a7;
 }
 
-.topbar:nth-child(1) {
+.top:nth-child(1) {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -175,15 +175,15 @@ body {
 
 @media screen and (max-width: 768px) {
 
-    .topbar > input[type="text"] {
+    .top > input[type="text"] {
         width: calc(100% - 170px);
     }
     
-    .container > .header > .left-box {
+    .container > .header > .left {
         width: fit-content;
     }
 
-    .container > .header > .right-box {
+    .container > .header > .right {
         width: max-content;
     }
 }
@@ -231,9 +231,9 @@ body {
     to {bottom: 0; opacity: 0;}
 }
 
-.body > .panel {
+.body > .middle {
     width: 100%;
-    height: calc(100vh - 50px);
+    height: 100%;
     background-color: rgba(35,39,46, 1);
     display: flex;
     align-content: flex-start;
@@ -243,7 +243,7 @@ body {
     overflow-y: auto;
 }
 
-.file-card {
+.card {
     width: 150px;
     height: 150px;
     padding: 10px;
@@ -256,11 +256,11 @@ body {
     margin: 10px;
 }
 
-.file-card:hover {
+.card:hover {
     background-color: #ffffff28;
 }
 
-.file-card > .icon {
+.card > .icon {
     width: 50px;
     height: 50px;
     display: flex;
@@ -269,12 +269,12 @@ body {
     margin-bottom: 5px;
 }
 
-.file-card > .icon > i {
+.card > .icon > i {
     font-size: 40px;
     color: #1549e3;
 }
 
-.file-card > .details {
+.card > .details {
     width: 100%;
     height: 50px;
     display: flex;
@@ -285,7 +285,7 @@ body {
     margin-right: auto;
 }
 
-.file-card > .details > span {
+.card > .details > span {
     width: 100px;
     color: white;
     font-size: 11px;
@@ -295,7 +295,7 @@ body {
     overflow: hidden;
 }
 
-.file-card > .operations {
+.card > .operations {
     width: 100%;
     height: 50px;
     display: flex;
@@ -303,7 +303,7 @@ body {
     align-items: center;
 }
 
-.file-card > .operations > button {
+.card > .operations > button {
     padding: 5px 10px;
     border: none;
     outline: none;
@@ -316,12 +316,12 @@ body {
     margin: 5px;
 }
 
-.file-card > .operations > button > i {
+.card > .operations > button > i {
     color: white;
     font-size: 15px;
 }
 
-.file-card > .progress {
+.card > .progress {
     visibility: hidden;
     width: 85%;
     height: 2px;
@@ -329,7 +329,7 @@ body {
     background-color: #ffffff18;
 }
 
-.file-card > .progress > .bar {
+.card > .progress > .bar {
     width: 0;
     height: 100%;
     border-radius: 2px;
