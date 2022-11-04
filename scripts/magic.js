@@ -139,6 +139,8 @@ function downloadByChunk(file) {
             a.href = url;
             a.download = name;
             a.click();
+            showSnack(`Downloaded ${name}`);
+            hideBarMatrix(file.hash);
         })
     } else {
         let skips = 0;
@@ -188,7 +190,6 @@ function downloadByChunk(file) {
                 hideBarMatrix(file.hash);
                 progress = 0;
             }
-
         })
     }
 }
