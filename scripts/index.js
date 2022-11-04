@@ -313,6 +313,17 @@ fileView.addEventListener("drop", (e) => {
     }
 });
 
+window.addEventListener("paste", (e) => {
+    let items = e.clipboardData.items;
+    if (items) {
+        [...items].forEach((item) => {
+            if (item.kind === "file") {
+                uploadFile(item.getAsFile());
+            }
+        })
+    }
+});
+
 function showSnack(inner, color = snackbarGreen) {
     snackbar.style.backgroundColor = color;
     snackbar.className = "show";
