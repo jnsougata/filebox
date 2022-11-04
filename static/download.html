@@ -27,7 +27,7 @@
                 </div>
             </div>
             <div class="body">
-                <div class="sidebar">
+                <div class="topbar">
                     <button>
                         <span style="margin-left: 10px;">Advertisemant</span>
                     </button>
@@ -38,17 +38,8 @@
                         <span style="margin-left: 10px;">Just Kidding</span>
                     </button>
                 </div>
-                <div class="panel" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
-                    <table>
-                        <tbody id="file-view">
-                            <tr id="table-header">
-                                <th>Name</th>
-                                <th>Size</th>
-                                <th>Last Modified</th>
-                                <th>Download</th>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="panel" id="view-panel" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
+                    
                 </div>
             </div>
             <div id="snackbar"></div>

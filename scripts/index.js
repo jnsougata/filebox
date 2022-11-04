@@ -1,10 +1,14 @@
 let uploadButton = document.getElementById('upload');
 let uploadInput = document.getElementById('file-input');
-let fileView = document.getElementById('file-view');
+let fileView = document.getElementById('view-panel');
 let snackbar = document.getElementById("snackbar");
+let hiddenState = true;
+let topbar = document.getElementById("topbar");
+let toggle = document.getElementById("topbar-toggle");
 const snackbarRed = "rgba(203, 20, 70, 0.55)";
 const snackbarGreen = "rgba(37, 172, 80, 0.555)";
-const downloadGreen = "rgba(23, 131, 68, 0.323)";
+const downloadGreen = "#25a03d";
+const uploadBlue = "#1549e3";
 
 function randomFileHash() {
     return [...Array(16)].map(
@@ -42,7 +46,8 @@ function uploadFile(file) {
             fileView.appendChild(newFile(body));
             let extension = file.name.split('.').pop();
             let qualifiedName = `${hash}.${extension}`;
-            let progressBar = document.getElementById(`progress-${hash}`);
+            renderBarMatrix(hash, uploadBlue);
+            let progressBar = document.getElementById(`bar-${hash}`);
             if (file.size < 10 * 1024 * 1024) {
                 fetch(`${ROOT}/${projectId}/filebox/files?name=${qualifiedName}`, {
                     method: 'POST',
@@ -54,8 +59,7 @@ function uploadFile(file) {
                     .then(() => {
                         progressBar.style.width = "100%";
                         setTimeout(() => {
-                            progressBar.style.color = "transparent";
-                            progressBar.style.width = "0%";
+                            hideBarMatrix(hash);
                         }, 500);
                     })
                 })
@@ -117,9 +121,8 @@ function uploadFile(file) {
                                         progressBar.style.width = "100%";
                                         showSnack(`File ${file.name} uploaded successfully`);
                                         setTimeout(() => {
-                                            progressBar.style.color = "transparent";
-                                            progressBar.style.width = "0%";
-                                        }, 1000);
+                                            hideBarMatrix(hash);
+                                        }, 500);
                                     })
                                 })
                             } else {
@@ -150,7 +153,8 @@ function downloadFile(file) {
         const ROOT = 'https://drive.deta.sh/v1';
         let extension = file.name.split('.').pop();
         let qualifiedName = file.hash + "." + extension;
-        let progressBar = document.getElementById(`progress-${file.hash}`);
+        renderBarMatrix(file.hash, downloadGreen);
+        let progressBar = document.getElementById(`bar-${file.hash}`);
         progressBar.style.backgroundColor = downloadGreen;
         fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
             method: 'GET',
@@ -186,8 +190,7 @@ function downloadFile(file) {
             a.download = file.name;
             progressBar.style.width = "100%";
             setTimeout(() => {
-                progressBar.style.color = "transparent";
-                progressBar.style.width = "0%";
+                hideBarMatrix(file.hash);
             }, 500);
             a.click();
         })
@@ -196,85 +199,73 @@ function downloadFile(file) {
 }
 
 function newFile(file) {
-    let tr = document.createElement('tr');
-    tr.id = file.hash;
-    let tdName = document.createElement('td');
-    let tdSize = document.createElement('td');
-    let tdDate = document.createElement('td');
-    let tdSharing = document.createElement('td');
-    tdSharing.style.textAlign = "center";
-    let tdDownload = document.createElement('td');
-    tdDownload.style.textAlign = "center";
-    let tdDelete = document.createElement('td');
-    tdDelete.style.textAlign = "center";
-    let sharingButton = document.createElement('button');
-    sharingButton.innerHTML = `<i class="fa-solid fa-arrow-up-right-from-square"></i>`;
-    let downloadButton = document.createElement('button');
-    downloadButton.innerHTML = `<i class="fa-solid fa-download"></i>`;
-    let deleteButton = document.createElement('button');
+    let card = document.createElement("div");
+    card.id = `card-${file.hash}`;
+    card.className = "file-card";
+    let icon = document.createElement("div");
+    icon.className = "icon";
+    let i = document.createElement("i");
+    i.className = handleMimeIcon(file.mime);
+    icon.appendChild(i);
+    let details = document.createElement("div");
+    details.className = "details";
+    let name = document.createElement("span");
+    name.innerHTML = file.name;
+    let size = document.createElement("span");
+    size.innerHTML = handleSizeUnit(file.size);
+    let date = document.createElement("span");
+    let d = new Date(file.date);
+    date.innerText = d.getDate()
+        + "/" + (d.getMonth() + 1)
+        + "/" + d.getFullYear()
+        + " " + d.getHours()
+        + ":" + d.getMinutes()
+        + ":" + d.getSeconds();
+    details.appendChild(name);
+    details.appendChild(size);
+    details.appendChild(date);
+    let oprations = document.createElement("div");
+    oprations.className = "operations";
+    let deleteButton = document.createElement("button");
     deleteButton.innerHTML = `<i class="fa-solid fa-trash"></i>`;
-    let tdNameInnerDiv = document.createElement('div');
-    tdNameInnerDiv.className = "name";
-    let tdNameInnerDivProgress = document.createElement('div');
-    tdNameInnerDivProgress.className = "progress";
-    tdNameInnerDivProgress.style.width = "0%";
-    tdNameInnerDivProgress.id = `progress-${file.hash}`;
-    let tdNameInnerI = document.createElement('i');
-    tdNameInnerI.className = handleMimeIcon(file.mime);
-    let tdNameInnerH3 = document.createElement('h3');
-    tdNameInnerH3.innerText = file.name;
-    tdNameInnerDiv.appendChild(tdNameInnerDivProgress);
-    tdNameInnerDiv.appendChild(tdNameInnerI);
-    tdNameInnerDiv.appendChild(tdNameInnerH3);
-    tdName.appendChild(tdNameInnerDiv);
-    let tdSizeInnerH3 = document.createElement('h3');
-    tdSizeInnerH3.innerText = handleSizeUnit(file.size);
-    tdSize.appendChild(tdSizeInnerH3);
-    let tdDateInnerH3 = document.createElement('h3');
-    let date = new Date(file.date);
-    tdDateInnerH3.innerText = date.getDate()
-        + "/" + (date.getMonth() + 1)
-        + "/" + date.getFullYear()
-        + " " + date.getHours()
-        + ":" + date.getMinutes()
-        + ":" + date.getSeconds();
-    tdDate.appendChild(tdDateInnerH3);
-    sharingButton.style.backgroundColor = "rgba(37, 172, 80, 0.555)";
-    sharingButton.addEventListener('click', () => {
+    deleteButton.onclick = () => {
+        deleteFile(file);
+    }
+    let shareButton = document.createElement("button");
+    shareButton.innerHTML = `<i class="fa-solid fa-share"></i>`;
+    shareButton.onclick = () => {
         shareButtonClick(file);
-    });
-    tdSharing.appendChild(sharingButton);
-    downloadButton.style.backgroundColor = "rgba(14, 116, 250, 0.658)";
-    downloadButton.addEventListener('click', () => {
+    }
+    let downloadButton = document.createElement("button");
+    downloadButton.innerHTML = `<i class="fa-solid fa-download"></i>`;
+    downloadButton.onclick = () => {
         downloadFile(file);
-    });
-    tdDownload.appendChild(downloadButton);
-    deleteButton.style.backgroundColor = "rgba(224, 12, 48, 0.682)";
-    deleteButton.addEventListener('click', () => {
-        fetch("/api/metadata", {method: "DELETE", body: JSON.stringify(file)})
-        .then(response => response.json())
-        .then(() => {
-            showSnack(`Deleted ${file.name}`, snackbarRed);
-            tr.remove();
-        })
-    });
-    tdDelete.appendChild(deleteButton);
-    tr.appendChild(tdName);
-    tr.appendChild(tdSize);
-    tr.appendChild(tdDate);
-    tr.appendChild(tdSharing);
-    tr.appendChild(tdDelete);
-    tr.appendChild(tdDownload);
-    return tr;
+    }
+    oprations.appendChild(deleteButton);
+    oprations.appendChild(shareButton);
+    oprations.appendChild(downloadButton);
+    let progress = document.createElement("div");
+    progress.className = "progress";
+    progress.id = `progress-${file.hash}`;
+    let bar = document.createElement("div");
+    bar.className = "bar";
+    bar.id = `bar-${file.hash}`;
+    progress.appendChild(bar);
+    card.appendChild(icon);
+    card.appendChild(details);
+    card.appendChild(oprations);
+    card.appendChild(progress);
+    return card;
 }
 
 window.onload = () => {
+    hiddenState = true;
+    topbar.style.display = "none";
     fetch("/api/metadata")
     .then(response => response.json())
     .then(data => {
         data.forEach(file => {
-            let newFile = newFile(file);
-            fileView.appendChild(newFile);
+            fileView.appendChild(newFile(file));
         })
     })
 }
@@ -340,3 +331,41 @@ function shareButtonClick(file) {
     window.navigator.clipboard.writeText(window.location.href + "download/" + file.hash)
         .then(_ => {});
 }
+
+function deleteFile(file) {
+    fetch(`/api/metadata`, {
+        method: "DELETE",
+        body: JSON.stringify(file),
+    })
+    .then(() => {
+        showSnack(`File ${file.name} deleted`, snackbarRed);
+        document.getElementById(`card-${file.hash}`).remove();
+    })
+}
+
+function renderBarMatrix(hash, color) {
+    let progressBar = document.getElementById(`progress-${hash}`);
+    progressBar.style.visibility = "visible";
+    let bar = document.getElementById(`bar-${hash}`);
+    bar.style.backgroundColor = color;
+
+}
+
+function hideBarMatrix(hash) {
+    let progressBar = document.getElementById(`progress-${hash}`);
+    progressBar.style.visibility = "hidden";
+    let bar = document.getElementById(`bar-${hash}`);
+    bar.style.width = "0%";
+}
+
+toggle.onclick = () => {
+    if (hiddenState) {
+        toggle.innerHTML = `<i class="fa-solid fa-chevron-up"></i>`;
+        hiddenState = false;
+        topbar.style.display = "flex";
+    } else {
+        toggle.innerHTML = `<i class="fa-solid fa-chevron-down"></i>`;
+        hiddenState = true;
+        topbar.style.display = "none";
+    }
+};

@@ -21,48 +21,30 @@
                     <img src="/assets/icon.png" alt="Filebox">
                     <h3>Filebox</h3>
                 </div>
-                <div class="middle-box">
-                    <input type="text" placeholder="search or paste an url" id="search" autocomplete="off">
-                    <button>
-                        <i class="fa-sharp fa-solid fa-magnifying-glass"></i>
-                    </button>
-                    
-                </div>
                 <div class="right-box">
-                    <button>
-                        <i class="fa-solid fa-gear"></i>
+                    <button id="topbar-toggle">
+                        <i class="fa-solid fa-chevron-down"></i>
                     </button>
                 </div>
             </div>
             <div class="body">
-                <div class="sidebar">
-                    <button id="upload">
-                        <i class="fa-solid fa-file-arrow-up"></i> 
-                        <span>New</span>
-                    </button>
+                <div class="topbar" id="topbar">
+                    <input type="text" placeholder="search or paste url" id="search" autocomplete="off">
                     <input type="file" id="file-input" multiple style="display: none;">
                     <button>
-                        <i class="fa-solid fa-trash"></i>
-                        <span>Trash</span>
+                        <i class="fa-solid fa-folder-plus"></i>
+                    </button>
+                    <button id="upload">
+                        <i class="fa-solid fa-file-arrow-up"></i> 
+                    </button>
+                    <button id="settings">
+                        <i class="fa-solid fa-cog"></i>
                     </button>
                 </div>
-                <div class="panel" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
-                    <table>
-                        <tbody id="file-view">
-                            <tr id="table-header">
-                                <th>Name</th>
-                                <th>Size</th>
-                                <th>Last Modified</th>
-                                <th style="text-align: center;">Share</th>
-                                <th style="text-align: center;">Delete</th>
-                                <th style="text-align: center;">Download</th>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="panel" id="view-panel" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
                 </div>
             </div>
             <div id="snackbar"></div>
-            <div id="search-results"></div>
         </div>
         <script src="/scripts/index.js"></script>
     </body>

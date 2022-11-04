@@ -1,8 +1,9 @@
-let fileView = document.getElementById('file-view');
-let progressBar = null;
+let fileView = document.getElementById('view-panel');
 let snackbar = document.getElementById("snackbar");
-let snackbarGreen = "rgba(37, 172, 80, 0.555)";
-let snackbarRed = "rgba(203, 20, 70, 0.55)";
+let progressBar = null;
+const downloadGreen = "#25a03d";
+const snackbarGreen = "rgba(37, 172, 80, 0.555)";
+const snackbarRed = "rgba(203, 20, 70, 0.55)";
 
 
 window.onload = function() {
@@ -11,57 +12,72 @@ window.onload = function() {
     .then(res => res.json())
     .then(data => {
         fileView.appendChild(newFileRow(data));
-        progressBar = document.getElementById(`progress-${hash}`);
+        progressBar = document.getElementById(`bar-${hash}`);
     })
 }
 
 
 function newFileRow(file) {
-    let tr = document.createElement('tr');
-    tr.id = file.hash;
-    let tdName = document.createElement('td');
-    let tdSize = document.createElement('td');
-    let tdDate = document.createElement('td')
-    let tdNameInnerDiv = document.createElement('div');
-    tdNameInnerDiv.className = "name";
-    let tdNameInnerDivProgress = document.createElement('div');
-    tdNameInnerDivProgress.style.backgroundColor = "rgba(23, 131, 68, 0.323)";
-    tdNameInnerDivProgress.className = "progress";
-    tdNameInnerDivProgress.style.width = "0%";
-    tdNameInnerDivProgress.id = `progress-${file.hash}`;
-    let tdNameInnerI = document.createElement('i');
-    tdNameInnerI.className = handleMimeIcon(file.mime);
-    let tdNameInnerH3 = document.createElement('h3');
-    tdNameInnerH3.innerText = file.name;
-    tdNameInnerDiv.appendChild(tdNameInnerDivProgress);
-    tdNameInnerDiv.appendChild(tdNameInnerI);
-    tdNameInnerDiv.appendChild(tdNameInnerH3);
-    tdName.appendChild(tdNameInnerDiv);
-    let tdSizeInnerH3 = document.createElement('h3');
-    tdSizeInnerH3.innerText = handleSizeUnit(file.size);
-    tdSize.appendChild(tdSizeInnerH3);
-    let tdDateInnerH3 = document.createElement('h3');
-    let date = new Date(file.date);
-    tdDateInnerH3.innerText = date.getDate()
-        + "/" + (date.getMonth() + 1)
-        + "/" + date.getFullYear()
-        + " " + date.getHours()
-        + ":" + date.getMinutes()
-        + ":" + date.getSeconds();
-    tdDate.appendChild(tdDateInnerH3);
-    let tdDownload = document.createElement('td');
-    let downloadButton = document.createElement('button');
+    let card = document.createElement("div");
+    card.id = `card-${file.hash}`;
+    card.className = "file-card";
+    let icon = document.createElement("div");
+    icon.className = "icon";
+    let i = document.createElement("i");
+    i.className = handleMimeIcon(file.mime);
+    icon.appendChild(i);
+    let details = document.createElement("div");
+    details.className = "details";
+    let name = document.createElement("span");
+    name.innerHTML = file.name;
+    let size = document.createElement("span");
+    size.innerHTML = handleSizeUnit(file.size);
+    let date = document.createElement("span");
+    let d = new Date(file.date);
+    date.innerText = d.getDate()
+        + "/" + (d.getMonth() + 1)
+        + "/" + d.getFullYear()
+        + " " + d.getHours()
+        + ":" + d.getMinutes()
+        + ":" + d.getSeconds();
+    details.appendChild(name);
+    details.appendChild(size);
+    details.appendChild(date);
+    let oprations = document.createElement("div");
+    oprations.className = "operations";
+    let deleteButton = document.createElement("button");
+    deleteButton.innerHTML = `<i class="fa-solid fa-trash"></i>`;
+    deleteButton.onclick = () => {
+        showSnack("Shared file cannot be deleted...", snackbarRed);
+    }
+    let shareButton = document.createElement("button");
+    shareButton.innerHTML = `<i class="fa-solid fa-share"></i>`;
+    shareButton.onclick = () => {
+        navigator.clipboard.writeText(window.location.href)
+        .then(() => {
+            showSnack("URL copied to clipboard...");
+        })
+    }
+    let downloadButton = document.createElement("button");
     downloadButton.innerHTML = `<i class="fa-solid fa-download"></i>`;
-    downloadButton.style.backgroundColor = "rgba(14, 116, 250, 0.658)";
-    downloadButton.addEventListener('click', () => {
+    downloadButton.onclick = () => {
         downloadByChunk(file);
-    });
-    tdDownload.appendChild(downloadButton);
-    tr.appendChild(tdName);
-    tr.appendChild(tdSize);
-    tr.appendChild(tdDate);
-    tr.appendChild(tdDownload);
-    return tr;
+    }
+    oprations.appendChild(deleteButton);
+    oprations.appendChild(shareButton);
+    oprations.appendChild(downloadButton);
+    let progress = document.createElement("div");
+    progress.className = "progress";
+    progress.id = `progress-${file.hash}`;
+    let bar = document.createElement("div");
+    bar.className = "bar";
+    bar.id = `bar-${file.hash}`;
+    progress.appendChild(bar);
+    card.appendChild(icon);
+    card.appendChild(details);
+    card.appendChild(oprations);
+    card.appendChild(progress);
+    return card;
 }
 
 
@@ -113,6 +129,7 @@ function downloadByChunk(file) {
     snackbar.style.backgroundColor = snackbarGreen;
     showSnack(`Downloading ${name}`);
     let hashedName = file.hash + "." + extension;
+    renderBarMatrix(file.hash, downloadGreen);
     if (size < chunkSize) {
         fetch(`/api/shared/chunk/0/${hashedName}`)
         .then(response => response.blob())
@@ -163,17 +180,29 @@ function downloadByChunk(file) {
                 progressBar.style.width = "100%";
                 progress = 0;
                 setTimeout(() => {
-                    progressBar.style.backgroundColor = "transparent";
-                    progressBar.style.width = "0%";
-                    progressBar.style.backgroundColor = "rgba(23, 131, 68, 0.323)";
+                    hideBarMatrix(file.hash);
                     showSnack(`Downloaded... ${name}`);
-                }, 1000);
+                }, 500);
             } else {
                 showSnack("File is very powerful. Please try again.", snackbarRed);
-                progressBar.style.width = "0%";
+                hideBarMatrix(file.hash);
                 progress = 0;
             }
 
         })
     }
+}
+
+function renderBarMatrix(hash, color) {
+    let progressBar = document.getElementById(`progress-${hash}`);
+    progressBar.style.visibility = "visible";
+    let bar = document.getElementById(`bar-${hash}`);
+    bar.style.backgroundColor = color;
+}
+
+function hideBarMatrix(hash) {
+    let progressBar = document.getElementById(`progress-${hash}`);
+    progressBar.style.visibility = "hidden";
+    let bar = document.getElementById(`bar-${hash}`);
+    bar.style.width = "0%";
 }
