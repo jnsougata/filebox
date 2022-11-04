@@ -29,21 +29,23 @@
             </div>
             <div class="body">
                 <div class="top" id="topbar">
-                    <div class="results" id="result-panel">
-                        <div class="result">
+                    <div class="inner">
+                        <div class="results" id="result-panel">
+                            <div class="result">
+                            </div>
                         </div>
+                        <label for="search"></label><input type="text" placeholder="search or paste url" id="search" autocomplete="off">
+                        <input type="file" id="file-input" multiple style="display: none;">
+                        <button>
+                            <i class="fa-solid fa-folder-plus"></i>
+                        </button>
+                        <button id="upload">
+                            <i class="fa-solid fa-file-arrow-up"></i>
+                        </button>
+                        <button id="settings">
+                            <i class="fa-solid fa-cog"></i>
+                        </button>
                     </div>
-                    <label for="search"></label><input type="text" placeholder="search or paste url" id="search" autocomplete="off">
-                    <input type="file" id="file-input" multiple style="display: none;">
-                    <button>
-                        <i class="fa-solid fa-folder-plus"></i>
-                    </button>
-                    <button id="upload">
-                        <i class="fa-solid fa-file-arrow-up"></i> 
-                    </button>
-                    <button id="settings">
-                        <i class="fa-solid fa-cog"></i>
-                    </button>
                 </div>
                 <div class="middle" id="files">
                 </div>
