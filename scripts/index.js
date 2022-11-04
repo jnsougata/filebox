@@ -257,6 +257,37 @@ function newFile(file) {
     return card;
 }
 
+function newFolder(data) {
+    let card = document.createElement("div");
+    card.id = `folder-${data.hash}`;
+    card.className = "card";
+    let icon = document.createElement("div");
+    icon.className = "icon";
+    let i = document.createElement("i");
+    i.className = "fa-solid fa-folder";
+    icon.appendChild(i);
+    let details = document.createElement("div");
+    details.className = "details";
+    let name = document.createElement("span");
+    name.innerHTML = data.name;
+    let date = document.createElement("span");
+    let d = new Date(data.date);
+    date.innerText = d.getDate()
+        + "/" + (d.getMonth() + 1)
+        + "/" + d.getFullYear()
+        + " " + d.getHours()
+        + ":" + d.getMinutes()
+        + ":" + d.getSeconds();
+    details.appendChild(name);
+    details.appendChild(date);
+    card.appendChild(icon);
+    card.appendChild(details);
+    card.onclick = () => {
+        folderClick(data.name);
+    };
+    return card;
+}
+
 window.onload = () => {
     hiddenState = true;
     topbar.style.display = "none";
@@ -282,6 +313,10 @@ function handleMimeIcon(mime) {
         return "fa-solid fa-file-pdf";
     } else if (mime.startsWith("application/zip")) {
         return "fa-solid fa-file-zipper";
+    } else if (mime.startsWith("application/x-rar-compressed")) {
+        return "fa-solid fa-file-zipper";
+    } else if (mime.startsWith("font")) {
+        return "fa-solid fa-font";
     } else {
         return "fa-solid fa-file";
     }
@@ -389,4 +424,23 @@ search.onfocus = () => {
 
 search.onblur = () => {
     resultPanel.style.visibility = "hidden";
+}
+
+let newFolderButton = document.getElementById("new-folder");
+newFolderButton.onclick = () => {
+    let folderName = prompt("Enter folder name");
+    if (folderName) {
+        fileView.appendChild(newFolder({
+            name: folderName, 
+            hash: folderName, 
+            date: new Date().toISOString(),
+        }));
+        showSnack(`Folder ${folderName} created!`);
+    }
+};
+
+function folderClick(folder) {
+    let folderName = folder.name;
+    url = `${window.location.href}folder/${folderName}/`;
+    window.open(url, "_blank");
 }

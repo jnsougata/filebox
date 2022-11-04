@@ -1,6 +1,4 @@
 import os
-import secrets
-import asyncio
 import requests
 from deta import Deta
 from fastapi import FastAPI
@@ -17,13 +15,16 @@ class ContentResponse(Response):
 
 
 app = FastAPI()
-app.cached_streams = {}
 app.drive = Deta().Drive("filebox")
 app.db = Deta().Base("filebox_metadata")
 
 
 @app.get("/")
 def index():
+    return ContentResponse("./static/index.html", media_type="text/html")
+
+@app.get("/folder/{folder_name}")
+def folder():
     return ContentResponse("./static/index.html", media_type="text/html")
 
 
