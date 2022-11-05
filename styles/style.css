@@ -60,9 +60,10 @@ body {
 }
 
 .left > h3 {
-    font-size: 20px;
+    font-size: 25px;
     font-weight: 500;
     color: white;
+    margin-left: 5px;
 }
 
 .left > img {
