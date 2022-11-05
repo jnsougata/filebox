@@ -2,8 +2,8 @@ let fileView = document.getElementById('files');
 let snackbar = document.getElementById("snackbar");
 let progressBar = null;
 const downloadGreen = "#25a03d";
-const snackbarGreen = "rgba(37, 172, 80, 0.555)";
-const snackbarRed = "rgba(203, 20, 70, 0.55)";
+const snackbarGreen = "rgba(37, 172, 80)";
+const snackbarRed = "rgba(203, 20, 70)";
 
 
 window.onload = function() {
@@ -48,14 +48,14 @@ function newFileRow(file) {
     let deleteButton = document.createElement("button");
     deleteButton.innerHTML = `<i class="fa-solid fa-trash"></i>`;
     deleteButton.onclick = () => {
-        showSnack("Shared file cannot be deleted...", snackbarRed);
+        showSnack("Shared file cannot be deleted", snackbarRed);
     }
     let shareButton = document.createElement("button");
     shareButton.innerHTML = `<i class="fa-solid fa-share"></i>`;
     shareButton.onclick = () => {
         navigator.clipboard.writeText(window.location.href)
         .then(() => {
-            showSnack("URL copied to clipboard...");
+            showSnack("URL copied to clipboard");
         })
     }
     let downloadButton = document.createElement("button");
@@ -113,10 +113,10 @@ function handleSizeUnit(size) {
 
 function showSnack(inner, color = snackbarGreen) {
     snackbar.style.backgroundColor = color;
-    snackbar.className = "show";
     snackbar.innerHTML = inner;
+    snackbar.style.visibility = "visible";
     setTimeout(() => {
-        snackbar.className = snackbar.className.replace("show", "")
+        snackbar.style.visibility = "hidden";
     }, 3000);
 }
 

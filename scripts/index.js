@@ -2,8 +2,8 @@ let uploadButton = document.getElementById('upload');
 let uploadInput = document.getElementById('file-input');
 let fileView = document.getElementById('files');
 let snackbar = document.getElementById("snackbar");
-const snackbarRed = "rgba(203, 20, 70, 0.55)";
-const snackbarGreen = "rgba(37, 172, 80, 0.555)";
+const snackbarRed = "rgb(203, 20, 70)";
+const snackbarGreen = "rgb(37, 172, 80)";
 const downloadGreen = "#25a03d";
 const uploadBlue = "#1549e3";
 let hiddenState = true;
@@ -375,11 +375,11 @@ window.addEventListener("paste", (e) => {
 });
 
 function showSnack(inner, color = snackbarGreen) {
-    snackbar.style.backgroundColor = color;
-    snackbar.className = "show";
     snackbar.innerHTML = inner;
+    snackbar.style.backgroundColor = color;
+    snackbar.style.visibility = "visible";
     setTimeout(() => {
-        snackbar.className = snackbar.className.replace("show", "")
+        snackbar.style.visibility = "hidden";
     }, 3000);
 }
 
@@ -388,9 +388,10 @@ function shareButtonClick(file) {
         showSnack("File is too big to share", snackbarRed);
         return;
     }
-    showSnack(`URL copied to clipboard`);
     window.navigator.clipboard.writeText(window.location.href + "download/" + file.hash)
-        .then(_ => {});
+        .then(() => {
+            showSnack(`URL copied to clipboard`);
+        });
 }
 
 function deleteFile(file) {
