@@ -2,11 +2,12 @@ let uploadButton = document.getElementById('upload');
 let uploadInput = document.getElementById('file-input');
 let fileView = document.getElementById('files');
 let snackbar = document.getElementById("snackbar");
+let hiddenState = true;
 const snackbarRed = "rgba(203, 20, 70, 0.55)";
 const snackbarGreen = "rgba(37, 172, 80, 0.555)";
 const downloadGreen = "#25a03d";
 const uploadBlue = "#1549e3";
-let hiddenState = true;
+let parent = null;
 
 function randomFileHash() {
     return [...Array(16)].map(
@@ -42,6 +43,7 @@ function uploadFile(file) {
                 "size": file.size,
                 "mime": file.type,
                 "date": new Date().toISOString(),
+                "parent": parent
             }
             let content = ev.target.result;
             fileView.appendChild(newFile(body));
@@ -131,7 +133,7 @@ function uploadFile(file) {
                                 showSnack(`Failed to upload ${file.name}`, snackbarRed);
                                 document.getElementById(`${hash}`).remove();
                                 fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
-                                    method: 'DELETE', 
+                                    method: 'DELETE',
                                     headers: header
                                 })
                                 .then(() => {})
@@ -260,41 +262,11 @@ function newFile(file) {
     return card;
 }
 
-function newFolder(data) {
-    let card = document.createElement("div");
-    card.id = `folder-${data.hash}`;
-    card.className = "card";
-    let icon = document.createElement("div");
-    icon.className = "icon";
-    let i = document.createElement("i");
-    i.className = "fa-solid fa-folder";
-    icon.appendChild(i);
-    let details = document.createElement("div");
-    details.className = "details";
-    let name = document.createElement("span");
-    name.innerHTML = data.name;
-    let date = document.createElement("span");
-    let d = new Date(data.date);
-    date.innerText = d.getDate()
-        + "/" + (d.getMonth() + 1)
-        + "/" + d.getFullYear()
-        + " " + d.getHours()
-        + ":" + d.getMinutes()
-        + ":" + d.getSeconds();
-    details.appendChild(name);
-    details.appendChild(date);
-    card.appendChild(icon);
-    card.appendChild(details);
-    card.onclick = () => {
-        folderClick(data);
-    };
-    return card;
-}
-
 window.onload = () => {
     hiddenState = true;
     searchBar.style.display = "none";
-    fetch("/api/metadata")
+    parent = window.location.href.split("/dir/")[1];
+    fetch(`/api/folder/${parent}`)
     .then(response => response.json())
     .then(data => {
         let folders = [];
@@ -446,7 +418,7 @@ search.oninput = (ev) => {
         if (ev.target.value.length > 0) {
             fetch(`/api/query`, {
                 method: "POST",
-                body: JSON.stringify({"name?contains": ev.target.value}),
+                body: JSON.stringify({"name?contains": ev.target.value, "parent": parent}),
             })
             .then(response => response.json())
             .then(data => {
@@ -477,6 +449,37 @@ search.oninput = (ev) => {
     }, 2000);
 };
 
+function newFolder(data) {
+    let card = document.createElement("div");
+    card.id = `folder-${data.hash}`;
+    card.className = "card";
+    let icon = document.createElement("div");
+    icon.className = "icon";
+    let i = document.createElement("i");
+    i.className = "fa-solid fa-folder";
+    icon.appendChild(i);
+    let details = document.createElement("div");
+    details.className = "details";
+    let name = document.createElement("span");
+    name.innerHTML = data.name;
+    let date = document.createElement("span");
+    let d = new Date(data.date);
+    date.innerText = d.getDate()
+        + "/" + (d.getMonth() + 1)
+        + "/" + d.getFullYear()
+        + " " + d.getHours()
+        + ":" + d.getMinutes()
+        + ":" + d.getSeconds();
+    details.appendChild(name);
+    details.appendChild(date);
+    card.appendChild(icon);
+    card.appendChild(details);
+    card.onclick = () => {
+        folderClick(data.name);
+    };
+    return card;
+}
+
 let newFolderButton = document.getElementById("new-folder");
 newFolderButton.onclick = () => {
     let folderName = prompt("Enter folder name");
@@ -486,6 +489,7 @@ newFolderButton.onclick = () => {
             hash: randomFileHash(),
             date: new Date().toISOString(),
             type: "folder",
+            parent: parent,
         }
         fileView.appendChild(newFolder(folderData));
         fetch(`/api/metadata`, {
@@ -497,10 +501,6 @@ newFolderButton.onclick = () => {
     }
 };
 
-function folderClick(data) {
-    if (data.parent) {
-        window.location.href = `${window.location.href}dir/${data.parent}/${data.name}`;
-    } else {
-        window.location.href = `${window.location.href}dir/${data.name}`;
-    }
+function folderClick(name) {
+    window.location.href = `${window.location.protocol}//${window.location.host}/dir/${parent}/${name}`;
 }

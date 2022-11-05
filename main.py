@@ -3,7 +3,7 @@ import requests
 from deta import Deta
 from fastapi import FastAPI
 from fastapi import Request
-from fastapi.responses import Response, PlainTextResponse
+from fastapi.responses import Response, PlainTextResponse, RedirectResponse
 
 
 class ContentResponse(Response):
@@ -14,7 +14,7 @@ class ContentResponse(Response):
             super().__init__(content=content, **kwargs)
 
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None)
 app.drive = Deta().Drive("filebox")
 app.db = Deta().Base("filebox_metadata")
 
@@ -23,9 +23,12 @@ app.db = Deta().Base("filebox_metadata")
 def index():
     return ContentResponse("./static/index.html", media_type="text/html")
 
-@app.get("/folder/{folder_name}")
-def folder():
-    return ContentResponse("./static/index.html", media_type="text/html")
+
+@app.get("/dir/{name:path}")
+def folder(name: str):
+    if name:
+        return ContentResponse("./static/folder.html", media_type="text/html")
+    return RedirectResponse("/")
 
 
 @app.get("/download/{file_id}")
@@ -53,6 +56,17 @@ def micro_secret():
     return PlainTextResponse(os.getenv("DETA_PROJECT_KEY"))
 
 
+@app.post("/api/query")
+async def query(request: Request):
+    q = await request.json()
+    resp = app.db.fetch(q)
+    items = resp.items
+    while resp.last:
+        resp = app.db.fetch(q, last=resp.last)
+        items += resp.items
+    return items
+
+
 @app.post("/api/metadata")
 async def metadata(request: Request):
     data = await request.json()
@@ -61,15 +75,22 @@ async def metadata(request: Request):
 
 @app.get("/api/metadata")
 async def complete_meta():
-    try:
-        resp = app.db.fetch()
-        items = resp.items
-        while resp.last:
-            resp = app.db.fetch(last=resp.last)
-            items += resp.items
-        return items
-    except Exception as e:
-        return {"error": str(e)}
+    resp = app.db.fetch()
+    items = resp.items
+    while resp.last:
+        resp = app.db.fetch(last=resp.last)
+        items += resp.items
+    return [item for item in items if not item.get('parent')]
+
+
+@app.get("/api/folder/{name:path}")
+async def folder_items(name: str):
+    res = app.db.fetch({"parent": name})
+    items = res.items
+    while res.last:
+        res = app.db.fetch(last=res.last)
+        items += res.items
+    return items
 
 
 @app.delete("/api/metadata")

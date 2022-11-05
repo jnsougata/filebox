@@ -17,6 +17,4 @@ Filebox comes with:
 
 TODO:
 - File preview.
-- Folder support.
 - File Renaming.
-- File search and filter.
