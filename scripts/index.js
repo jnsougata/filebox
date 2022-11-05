@@ -480,6 +480,10 @@ search.oninput = (ev) => {
 let newFolderButton = document.getElementById("new-folder");
 newFolderButton.onclick = () => {
     let folderName = prompt("Enter folder name");
+    if (folderName === "dir") {
+        showSnack("`dir` is a reserved word", snackbarRed)
+        return
+    }
     if (folderName) {
         let folderData = {
             name: folderName,
