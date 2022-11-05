@@ -1,4 +1,5 @@
-let fileView = document.getElementById('files');
+let fileView = document.getElementById('file-view');
+let cardView = document.getElementById('card-view');
 let snackbar = document.getElementById("snackbar");
 let progressBar = null;
 const downloadGreen = "#25a03d";
@@ -11,7 +12,7 @@ window.onload = function() {
     fetch(`/api/shared/metadata/${hash}`)
     .then(res => res.json())
     .then(data => {
-        fileView.appendChild(newFileRow(data));
+        cardView.appendChild(newFileRow(data));
         progressBar = document.getElementById(`bar-${hash}`);
     })
 }

@@ -1,6 +1,7 @@
 let uploadButton = document.getElementById('upload');
 let uploadInput = document.getElementById('file-input');
-let fileView = document.getElementById('files');
+let fileView = document.getElementById('file-view');
+let cardView = document.getElementById('card-view');
 let snackbar = document.getElementById("snackbar");
 let hiddenState = true;
 const snackbarRed = "rgba(203, 20, 70)";
@@ -46,7 +47,7 @@ function uploadFile(file) {
                 "parent": parent
             }
             let content = ev.target.result;
-            fileView.appendChild(newFile(body));
+            cardView.appendChild(newFile(body));
             let extension = file.name.split('.').pop();
             let qualifiedName = `${hash}.${extension}`;
             renderBarMatrix(hash, uploadBlue);
@@ -279,10 +280,10 @@ window.onload = () => {
             }
         });
         files.forEach(file => {
-            fileView.appendChild(newFile(file));
+            cardView.appendChild(newFile(file));
         });
         folders.forEach(folder => {
-            fileView.appendChild(newFolder(folder));
+            cardView.appendChild(newFolder(folder));
         });
     })
 }
@@ -496,7 +497,7 @@ newFolderButton.onclick = () => {
             type: "folder",
             parent: parent,
         }
-        fileView.appendChild(newFolder(folderData));
+        cardView.appendChild(newFolder(folderData));
         fetch(`/api/metadata`, {
             method: "POST",
             body: JSON.stringify(folderData),
