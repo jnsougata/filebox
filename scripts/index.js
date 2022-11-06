@@ -203,7 +203,7 @@ function downloadFile(file) {
 
 function newFile(file) {
     let card = document.createElement("div");
-    card.id = `card-${file.hash}`;
+    card.id = `file-${file.hash}`;
     card.className = "card";
     let icon = document.createElement("div");
     icon.className = "icon";
@@ -402,7 +402,7 @@ function deleteFile(file) {
     })
     .then(() => {
         showSnack(`Deleted ${file.name}`, snackbarRed);
-        document.getElementById(`card-${file.hash}`).remove();
+        document.getElementById(`file-${file.hash}`).remove();
     })
 }
 
@@ -492,6 +492,7 @@ newFolderButton.onclick = () => {
             hash: randomFileHash(),
             date: new Date().toISOString(),
             type: "folder",
+            parent: ""
         }
         cardView.appendChild(newFolder(folderData));
         fetch(`/api/metadata`, {
