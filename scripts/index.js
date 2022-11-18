@@ -46,6 +46,7 @@ function uploadFile(file) {
                 "mime": file.type,
                 "date": new Date().toISOString(),
             }
+            metadata[hash] = body;
             let content = ev.target.result;
             cardView.appendChild(newFileChild(body));
             let extension = file.name.split('.').pop();
