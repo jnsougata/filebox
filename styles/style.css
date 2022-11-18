@@ -122,7 +122,7 @@ body {
     overflow: hidden;
 }
 
-.body > .top {
+.body > .search {
     width: 100%;
     height: auto;
     padding: 10px;
@@ -134,7 +134,7 @@ body {
     position: sticky;
 }
 
-.top > .inner {
+.search > .inner {
     width: 100%;
     height: 100%;
     display: flex;
@@ -206,7 +206,7 @@ body {
     }
 }
 
-.body > .middle {
+.body > .content {
     width: 100%;
     height: 100%;
     background-color: var(--black-main);
@@ -215,7 +215,7 @@ body {
     justify-content: space-around;
 }
 
-.body > .middle > .cards {
+.body > .content > .cards {
     width: 100%;
     height: calc(100% - 10px);
     display: flex;
@@ -226,7 +226,7 @@ body {
     overflow-x: hidden;
 }
 
-.file {
+.card {
     margin-top: 10px;
     width: calc(100% - 20px);
     height: 70px;
@@ -238,7 +238,7 @@ body {
     align-items: center;
 }
 
-.file > .icon {
+.card > .icon {
     width: 50px;
     height: 50px;
     display: flex;
@@ -248,17 +248,17 @@ body {
     margin-right: 5px;
 }
 
-.file > .icon > i {
+.card > .icon > i {
     font-size: 30px;
     color: #1549e3;
     
 }
 
-.file:hover {
+.card:hover {
     background-color: #ffffff1a;
 }
 
-.file > .details {
+.card > .details {
     width: 100%;
     height: 100%;
     display: flex;
@@ -268,7 +268,7 @@ body {
     margin-left: 10px;
 }
 
-.file > .details > p {
+.card > .details > p {
     font-size: 12px;
     color: white;
     margin-bottom: 3px;
@@ -278,13 +278,13 @@ body {
     white-space: nowrap;
 }
 
-.file > .details > p > i {
+.card > .details > p > i {
     font-size: 10px;
     color: #1549e3;
     margin-left: 10px;
 }
 
-.file > .details > .progress {
+.card > .details > .progress {
     width: calc(100% - 10px);
     height: 3px;
     background-color: rgba(255, 255, 255, 0.158);
@@ -294,92 +294,120 @@ body {
     align-items: center;
 }
 
-.file > .details > .progress > .bar {
-    width: 100%;
+.card > .details > .progress > .bar {
+    width: 0;
     height: 100%;
     background-color: #1549e3;
     border-radius: 10px;
 }
 
-.file > .option {
-    width: 30px;
-    height: 50px;
-    margin-left: 5px;
-    margin-right: 5px;
-    flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-.file > .option > button {
-    border: none;
-    outline: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: 0.3s;
-    border-radius: 50%;
-    background-color: transparent;
-}
-
-.file > .option > button > i {
-    font-size: 15px;
-    color: white;
-}
-
 @media screen and (min-width: 768px) {
-    .file {
+    .card {
         width: 50%;
         height: 70px;
         margin-top: 20px;
     }
-    .file > .details > p {
+    .card > .details > p {
         max-width: 500px;
         font-size: 13px;
     }
 
-    .file > .details > p > i {
+    .card > .details > p > i {
         font-size: 15px;
     }
 }
 
-.body > .middle > .side {
-    width: 65%;
-    height: 100%;
-    background-color: rgb(61, 61, 65);
-    position: absolute;
+.body > .content > .side {
     right: 0;
+    width: 300px;
+    height: 100%;
+    background-color: var(--black-secondary);
+    position: absolute;
     display: none;
     align-items: center;
-    transition: 1s;
+    transition: 0.5s;
 }
 
-.body > .middle > .side > button {
+.body > .content > .side > button {
     border: none;
     outline: none;
-    background-color: transparent;
     cursor: pointer;
-    transition: 0.3s;
     height: 50px;
     width: 50px;
     position: absolute;
-    margin-left: 40px;
-    background-color: #e31526;
+    background-color: #ec1f30;
     border-radius: 50%;
     transition: 1s;
     margin-left: -25px;
 }
 
-.body > .middle > .side > button > i {
+.body > .content > .side > button > i {
     font-size: 23px;
     color: white;
+    transition: 0.3s;
+    animation: rotate 1s infinite;
+}
+
+.body > .content > .side > .inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--black-secondary);
+}
+
+.body > .content > .side > .inner > * {
+    margin-bottom: 10px;
+}
+
+.body > .content > .side > .inner > .details {
+    width: calc(100% - 20px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.body > .content > .side > .inner > .details > p {
+    font-size: 15px;
+    color: white;
+    text-align: center;
+    overflow-wrap: break-word;
+}
+
+.body > .content > .side > .inner > i {
+    font-size: 50px;
+    padding: 20px;
+    background-color: #faf5f623;
+    color: #1549e3;
+    border-radius: 10px;
+}
+
+.body > .content > .side > .inner > .group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    width: 100%;
+}
+
+.body > .content > .side > .inner > .group > span {
+    font-size: 25px;
+    color: whitesmoke;
+    margin-left: 10px;
+    margin-right: 10px;
+    padding: 6px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+    background-color: #ffffff13;
 }
 
 @media screen and (min-width: 768px) {
-    .body > .middle > .side {
+    .body > .content > .side {
         width: 20%;
+        min-width: 350px;
     }
 }

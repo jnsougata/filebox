@@ -1,6 +1,6 @@
 let uploadButton = document.getElementById('upload');
 let uploadInput = document.getElementById('file-input');
-let fileView = document.querySelector('.middle');
+let fileView = document.querySelector('.content');
 let cardView = document.querySelector('.cards');
 let snackbar = document.getElementById("snackbar");
 const snackbarRed = "rgb(203, 20, 70)";
@@ -8,6 +8,8 @@ const snackbarGreen = "rgb(37, 172, 80)";
 const downloadGreen = "#25a03d";
 const uploadBlue = "#1549e3";
 let hiddenState = true;
+let metadata = null;
+let contextFile = null;
 
 function randomFileHash() {
     return [...Array(16)].map(
@@ -203,23 +205,23 @@ function downloadFile(file) {
 
 window.onload = () => {
     hiddenState = true;
-    searchBar.style.display = "none";
+    document.querySelector(".search").display = "none";
     fetch("/api/metadata")
     .then(response => response.json())
     .then(data => {
+        metadata = {};
         let folders = [];
         let files = [];
         data.forEach(file => {
+            metadata[file.hash] = file;
             if (file.type === "folder") {
                 folders.push(file);
             } else {
                 files.push(file);
             }
         });
-        folders.forEach(folder => {
-            cardView.appendChild(newFileChild(folder));
-        });
-        files.forEach(file => {
+        let items = folders.concat(files);
+        items.forEach(file => {
             cardView.appendChild(newFileChild(file));
         });
     })
@@ -320,20 +322,19 @@ function deleteFile(file) {
 
 function renderBarMatrix(hash, color) {
     let progressBar = document.getElementById(`progress-${hash}`);
-    progressBar.style.visibility = "visible";
+    progressBar.style.display = "flex";
     let bar = document.getElementById(`bar-${hash}`);
     bar.style.backgroundColor = color;
-
 }
 
 function hideBarMatrix(hash) {
     let progressBar = document.getElementById(`progress-${hash}`);
-    progressBar.style.visibility = "hidden";
+    progressBar.style.display = "none";
     let bar = document.getElementById(`bar-${hash}`);
     bar.style.width = "0%";
 }
 
-let searchBar = document.querySelector(".top");
+let searchBar = document.querySelector(".search");
 let toggle = document.querySelector("#toggle");
 toggle.onclick = () => {
     if (hiddenState) {
@@ -350,7 +351,7 @@ toggle.onclick = () => {
 };
 
 let search = document.getElementById("search");
-let resultPanel = document.getElementById("result-panel");
+let resultPanel = document.getElementById("results");
 let inputTimer = null;
 search.oninput = (ev) => {
     if (inputTimer) {
@@ -364,27 +365,13 @@ search.oninput = (ev) => {
             })
             .then(response => response.json())
             .then(data => {
-                let folders = [];
-                let files = [];
-                data.forEach(file => {
-                    if (file.type === "folder") {
-                        folders.push(file);
-                    } else {
-                        files.push(file);
-                    }
-                });
-                if (files.length || folders.length) {
-                    resultPanel.innerHTML = "";
-                    resultPanel.style.justifyContent = "flex-start";
-                    files.forEach(file => {
-                        resultPanel.appendChild(newFile(file));
-                    });
-                    folders.forEach(folder => {
-                        resultPanel.appendChild(newFolder(folder));
-                    });
-                } else {
+                if (data.length > 0) {
                     resultPanel.style.justifyContent = "center";
                     resultPanel.innerHTML = `👀 No results found . . .`;
+                } else {
+                    data.forEach(file => {
+                        resultPanel.appendChild(newFileChild(file));
+                    });
                 }
             })
         }
@@ -406,7 +393,7 @@ newFolderButton.onclick = () => {
             type: "folder",
             parent: ""
         }
-        cardView.appendChild(newFolder(folderData));
+        cardView.appendChild(newFileChild(folderData));
         fetch(`/api/metadata`, {
             method: "POST",
             body: JSON.stringify(folderData),
@@ -416,22 +403,22 @@ newFolderButton.onclick = () => {
     }
 };
 
-function folderClick(data) {
-    if (data.parent) {
-        window.location.href = `${window.location.href}dir/${data.parent}/${data.name}`;
+function folderClick(folder) {
+    if (folder.parent) {
+        window.location.href = `${window.location.href}dir/${folder.parent}/${folder.name}`;
     } else {
-        window.location.href = `${window.location.href}dir/${data.name}`;
+        window.location.href = `${window.location.href}dir/${folder.name}`;
     }
 }
 
 function newFileChild(file) {
     let fileDiv = document.createElement("div");
     fileDiv.id = `file-${file.hash}`;
-    fileDiv.className = "file";
+    fileDiv.className = "card";
     let iconDiv = document.createElement("div");
     iconDiv.className = "icon";
     let icon = document.createElement("i");
-    if (file.type == "folder") {
+    if (file.type === "folder") {
         icon.className = "fa-solid fa-folder";
     } else {
         icon.className = handleMimeIcon(file.mime);
@@ -464,27 +451,64 @@ function newFileChild(file) {
     detailsDiv.appendChild(fileName);
     detailsDiv.appendChild(fileDetails);
     detailsDiv.appendChild(progressBar);
-    let optionDiv = document.createElement("div");
-    optionDiv.className = "option";
-    let optionButton = document.createElement("button");
-    optionButton.innerHTML = `<i class="fa-solid fa-ellipsis-v"></i>`;
-    optionButton.onclick = () => {
-        optionClick(file.hash);
-    };
-    optionDiv.appendChild(optionButton);
     fileDiv.appendChild(iconDiv);
     fileDiv.appendChild(detailsDiv);
-    fileDiv.appendChild(optionDiv);
-    fileDiv.onclick = () => {};
+    fileDiv.onclick = () => {
+        optionClick(file.hash);
+    };
     return fileDiv;
 }
 
 let sidebar = document.querySelector(".side");
+let crossButton = document.querySelector("#cross");
+let navTitle = document.querySelector("#sidenav_title");
+let navFileSize = document.querySelector("#sidenav_size");
+let navFileDate = document.querySelector("#sidenav_date");
+let navFileHash = document.querySelector("#sidenav_hash");
+let navFileMime = document.querySelector("#sidenav_mime");
+let navFileParent = document.querySelector("#sidenav_parent");
+let navIcon = document.querySelector("#sidenav_icon");
+let navDownloadButton = document.querySelector("#sidenav_download");
+let navDeleteButton = document.querySelector("#sidenav_delete");
+let navCopyButton = document.querySelector("#sidenav_copy");
+
+
 function optionClick(hash) {
-    sidebar.style.display = "flex";
+    contextFile = metadata[hash];
+    if (contextFile.type !== "folder") {
+        navTitle.innerHTML = contextFile.name;
+        navFileSize.innerHTML = handleSizeUnit(contextFile.size);
+        let d = new Date(contextFile.date);
+        navFileDate.innerHTML = d.getDate()
+            + "/" + (d.getMonth() + 1)
+            + "/" + d.getFullYear()
+            + " " + d.getHours()
+            + ":" + d.getMinutes()
+            + ":" + d.getSeconds();
+        navFileHash.innerHTML = contextFile.hash;
+        if (contextFile.parent) {
+            navFileParent.innerHTML = contextFile.parent;
+        }
+        navFileMime.innerHTML = contextFile.mime;
+        navIcon.className = handleMimeIcon(contextFile.mime);
+        sidebar.style.display = "flex";
+    } else {
+        folderClick(contextFile);
+    }
 }
 
-let crossButton = document.querySelector("#cross");
 crossButton.onclick = () => {
+    sidebar.style.display = "none";
+};
+navDownloadButton.onclick = () => {
+    downloadFile(contextFile);
+    sidebar.style.display = "none";
+};
+navDeleteButton.onclick = () => {
+    deleteFile(contextFile);
+    sidebar.style.display = "none";
+};
+navCopyButton.onclick = () => {
+    shareButtonClick(contextFile);
     sidebar.style.display = "none";
 };
