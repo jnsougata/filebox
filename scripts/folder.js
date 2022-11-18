@@ -305,10 +305,10 @@ function shareButtonClick(file) {
         showSnack("File is too big to share", snackbarRed);
         return;
     }
-    window.navigator.clipboard.writeText(window.location.href + "download/" + file.hash)
-        .then(() => {
-            showSnack(`URL copied to clipboard`);
-        });
+    window.navigator.clipboard.writeText(`${window.location.protocol}//${window.location.host}/download/${file.hash}`)
+    .then(() => {
+        showSnack(`URL copied to clipboard`);
+    });
 }
 
 function deleteFile(file) {
