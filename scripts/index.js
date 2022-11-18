@@ -1,7 +1,7 @@
 let uploadButton = document.getElementById('upload');
 let uploadInput = document.getElementById('file-input');
-let fileView = document.getElementById('file-view');
-let cardView = document.getElementById('card-view');
+let fileView = document.querySelector('.middle');
+let cardView = document.querySelector('.cards');
 let snackbar = document.getElementById("snackbar");
 const snackbarRed = "rgb(203, 20, 70)";
 const snackbarGreen = "rgb(37, 172, 80)";
@@ -45,7 +45,7 @@ function uploadFile(file) {
                 "date": new Date().toISOString(),
             }
             let content = ev.target.result;
-            cardView.appendChild(newFile(body));
+            cardView.appendChild(newFileChild(body));
             let extension = file.name.split('.').pop();
             let qualifiedName = `${hash}.${extension}`;
             renderBarMatrix(hash, uploadBlue);
@@ -201,97 +201,6 @@ function downloadFile(file) {
     })
 }
 
-function newFile(file) {
-    let card = document.createElement("div");
-    card.id = `file-${file.hash}`;
-    card.className = "card";
-    let icon = document.createElement("div");
-    icon.className = "icon";
-    let i = document.createElement("i");
-    i.className = handleMimeIcon(file.mime);
-    icon.appendChild(i);
-    let details = document.createElement("div");
-    details.className = "details";
-    let name = document.createElement("span");
-    name.innerHTML = file.name;
-    let size = document.createElement("span");
-    size.innerHTML = handleSizeUnit(file.size);
-    let date = document.createElement("span");
-    let d = new Date(file.date);
-    date.innerText = d.getDate()
-        + "/" + (d.getMonth() + 1)
-        + "/" + d.getFullYear()
-        + " " + d.getHours()
-        + ":" + d.getMinutes()
-        + ":" + d.getSeconds();
-    details.appendChild(name);
-    details.appendChild(size);
-    details.appendChild(date);
-    let operations = document.createElement("div");
-    operations.className = "operations";
-    let deleteButton = document.createElement("button");
-    deleteButton.innerHTML = `<i class="fa-solid fa-trash"></i>`;
-    deleteButton.onclick = () => {
-        deleteFile(file);
-    }
-    let shareButton = document.createElement("button");
-    shareButton.innerHTML = `<i class="fa-solid fa-share"></i>`;
-    shareButton.onclick = () => {
-        shareButtonClick(file);
-    }
-    let downloadButton = document.createElement("button");
-    downloadButton.innerHTML = `<i class="fa-solid fa-download"></i>`;
-    downloadButton.onclick = () => {
-        downloadFile(file);
-    }
-    operations.appendChild(deleteButton);
-    operations.appendChild(shareButton);
-    operations.appendChild(downloadButton);
-    let progress = document.createElement("div");
-    progress.className = "progress";
-    progress.id = `progress-${file.hash}`;
-    let bar = document.createElement("div");
-    bar.className = "bar";
-    bar.id = `bar-${file.hash}`;
-    progress.appendChild(bar);
-    card.appendChild(icon);
-    card.appendChild(details);
-    card.appendChild(operations);
-    card.appendChild(progress);
-    return card;
-}
-
-function newFolder(data) {
-    let card = document.createElement("div");
-    card.id = `folder-${data.hash}`;
-    card.className = "card";
-    let icon = document.createElement("div");
-    icon.className = "icon";
-    let i = document.createElement("i");
-    i.className = "fa-solid fa-folder";
-    icon.appendChild(i);
-    let details = document.createElement("div");
-    details.className = "details";
-    let name = document.createElement("span");
-    name.innerHTML = data.name;
-    let date = document.createElement("span");
-    let d = new Date(data.date);
-    date.innerText = d.getDate()
-        + "/" + (d.getMonth() + 1)
-        + "/" + d.getFullYear()
-        + " " + d.getHours()
-        + ":" + d.getMinutes()
-        + ":" + d.getSeconds();
-    details.appendChild(name);
-    details.appendChild(date);
-    card.appendChild(icon);
-    card.appendChild(details);
-    card.onclick = () => {
-        folderClick(data);
-    };
-    return card;
-}
-
 window.onload = () => {
     hiddenState = true;
     searchBar.style.display = "none";
@@ -307,11 +216,11 @@ window.onload = () => {
                 files.push(file);
             }
         });
-        files.forEach(file => {
-            cardView.appendChild(newFile(file));
-        });
         folders.forEach(folder => {
-            cardView.appendChild(newFolder(folder));
+            cardView.appendChild(newFileChild(folder));
+        });
+        files.forEach(file => {
+            cardView.appendChild(newFileChild(file));
         });
     })
 }
@@ -339,6 +248,9 @@ function handleMimeIcon(mime) {
 }
 
 function handleSizeUnit(size) {
+    if (size === undefined) {
+        return "n/a";
+    }
     if (size < 1024) {
         return size + " B";
     } else if (size < 1024 * 1024) {
@@ -350,12 +262,12 @@ function handleSizeUnit(size) {
     }
 }
 
-fileView.addEventListener("dragover", (e) => {
+cardView.addEventListener("dragover", (e) => {
     e.preventDefault();
     e.stopPropagation();
 });
 
-fileView.addEventListener("drop", (e) => {
+cardView.addEventListener("drop", (e) => {
     e.preventDefault();
     if (e.dataTransfer.items) {
         [...e.dataTransfer.items].forEach((item) => {
@@ -421,8 +333,8 @@ function hideBarMatrix(hash) {
     bar.style.width = "0%";
 }
 
-let searchBar = document.getElementById("search-bar");
-let toggle = document.getElementById("search-toggle");
+let searchBar = document.querySelector(".top");
+let toggle = document.querySelector("#toggle");
 toggle.onclick = () => {
     if (hiddenState) {
         toggle.innerHTML = `<i class="fa-solid fa-chevron-up"></i>`;
@@ -479,7 +391,7 @@ search.oninput = (ev) => {
     }, 2000);
 };
 
-let newFolderButton = document.getElementById("new-folder");
+let newFolderButton = document.getElementById("folder");
 newFolderButton.onclick = () => {
     let folderName = prompt("Enter folder name");
     if (folderName === "dir") {
@@ -511,3 +423,68 @@ function folderClick(data) {
         window.location.href = `${window.location.href}dir/${data.name}`;
     }
 }
+
+function newFileChild(file) {
+    let fileDiv = document.createElement("div");
+    fileDiv.id = `file-${file.hash}`;
+    fileDiv.className = "file";
+    let iconDiv = document.createElement("div");
+    iconDiv.className = "icon";
+    let icon = document.createElement("i");
+    if (file.type == "folder") {
+        icon.className = "fa-solid fa-folder";
+    } else {
+        icon.className = handleMimeIcon(file.mime);
+    }
+    iconDiv.appendChild(icon);
+    let detailsDiv = document.createElement("div");
+    detailsDiv.className = "details";
+    let fileName = document.createElement("p");
+    fileName.innerHTML = file.name;
+    let fileDetails = document.createElement("p");
+    let d = new Date(file.date);
+    let date = d.getDate()
+        + "/" + (d.getMonth() + 1)
+        + "/" + d.getFullYear()
+        + " " + d.getHours()
+        + ":" + d.getMinutes()
+        + ":" + d.getSeconds();
+    fileDetails.innerHTML = `
+    <i class="fa-solid fa-database" style="margin-left: 0"></i> ${handleSizeUnit(file.size)}
+    <i class="fa-solid fa-calendar"></i> ${date}
+    `;
+    let progressBar = document.createElement("div");
+    progressBar.id = `progress-${file.hash}`;
+    progressBar.className = "progress";
+    let bar = document.createElement("div");
+    bar.id = `bar-${file.hash}`;
+    bar.className = "bar";
+    progressBar.appendChild(bar);
+    progressBar.style.display = "none";
+    detailsDiv.appendChild(fileName);
+    detailsDiv.appendChild(fileDetails);
+    detailsDiv.appendChild(progressBar);
+    let optionDiv = document.createElement("div");
+    optionDiv.className = "option";
+    let optionButton = document.createElement("button");
+    optionButton.innerHTML = `<i class="fa-solid fa-ellipsis-v"></i>`;
+    optionButton.onclick = () => {
+        optionClick(file.hash);
+    };
+    optionDiv.appendChild(optionButton);
+    fileDiv.appendChild(iconDiv);
+    fileDiv.appendChild(detailsDiv);
+    fileDiv.appendChild(optionDiv);
+    fileDiv.onclick = () => {};
+    return fileDiv;
+}
+
+let sidebar = document.querySelector(".side");
+function optionClick(hash) {
+    sidebar.style.display = "flex";
+}
+
+let crossButton = document.querySelector("#cross");
+crossButton.onclick = () => {
+    sidebar.style.display = "none";
+};

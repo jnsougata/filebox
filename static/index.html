@@ -22,7 +22,7 @@
                     <h3>Filebox</h3>
                 </div>
                 <div class="right">
-                    <button id="new-folder">
+                    <button id="folder">
                         <i class="fa-solid fa-folder-plus"></i>
                     </button>
                     <button id="upload">
@@ -32,13 +32,13 @@
                     <button id="settings">
                         <i class="fa-solid fa-cog"></i>
                     </button>
-                    <button id="search-toggle">
+                    <button id="toggle">
                         <i class="fa-solid fa-search"></i>
                     </button>
                 </div>
             </div>
             <div class="body">
-                <div class="top" id="search-bar">
+                <div class="top">
                     <div class="inner">
                         <label for="search"></label>
                         <input type="text" placeholder="search or paste url" id="search" autocomplete="off">
@@ -46,14 +46,16 @@
                         </div>
                     </div>
                 </div>
-                <div class="middle" id="file-view">
-                    <div class="cards" id="card-view">
+                <div class="middle">
+                    <div class="cards"></div>
+                    <div class="side">
+                        <button id="cross">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
                     </div>
                 </div>
             </div>
             <div class="snackbar" id="snackbar"></div>
-            <div class="modal">
-            </div>
         </div>
         <script src="/scripts/index.js"></script>
     </body>

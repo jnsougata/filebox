@@ -3,6 +3,11 @@
     padding: 0;
 }
 
+:root {
+    --black-main: #1d1b22;
+    --black-secondary: #26262e;
+}
+
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -21,24 +26,24 @@
 body {
     font-family: 'Prompt', sans-serif;
     overflow: hidden;
+    height: 100vh;
 }
-
 
 .container {
     width: 100%;
-    height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    background-color: #35363a;
+    background-color: var(--black-main);
     overflow: hidden;
 }
 
 .container > .header {
     top: 0;
     position: fixed;
-    background-color: #151f22;
+    background-color: var(--black-secondary);
     color: white;
     padding: 10px;
     width: 100%;
@@ -204,7 +209,7 @@ body {
 .body > .middle {
     width: 100%;
     height: 100%;
-    background-color: rgba(35,39,46, 1);
+    background-color: var(--black-main);
     display: flex;
     overflow: hidden;
     justify-content: space-around;
@@ -212,126 +217,169 @@ body {
 
 .body > .middle > .cards {
     width: 100%;
-    height: 100%;
-    display: grid;
-    overflow-y: auto;
-    place-items: start;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-}
-
-@media screen and (max-width: 768px) {
-
-    .body > .middle > .cards {
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(auto-fill, minmax(180px, 1fr));
-    }
-}
-
-.card {
-    width: 150px;
-    min-width: 150px;
-    height: 150px;
-    padding: 10px;
-    background-color: #ffffff1d;
-    border-radius: 10px;
+    height: calc(100% - 10px);
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    margin: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
-.card:hover {
-    background-color: #ffffff28;
+.file {
+    margin-top: 10px;
+    width: calc(100% - 20px);
+    height: 70px;
+    flex-shrink: 0;
+    background-color: var(--black-secondary);
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
 }
 
-.card > .icon {
+.file > .icon {
     width: 50px;
     height: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 5px;
+    margin-left: 15px;
+    margin-right: 5px;
 }
 
-.card > .icon > i {
-    font-size: 40px;
+.file > .icon > i {
+    font-size: 30px;
     color: #1549e3;
+    
 }
 
-.card > .details {
+.file:hover {
+    background-color: #ffffff1a;
+}
+
+.file > .details {
     width: 100%;
-    height: 50px;
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
-    margin-left: auto;
-    margin-right: auto;
+    align-items: flex-start;
+    margin-left: 10px;
 }
 
-.card > .details > span {
-    width: 100px;
+.file > .details > p {
+    font-size: 12px;
     color: white;
-    font-size: 11px;
-    font-weight: 400;
+    margin-bottom: 3px;
+    max-width: 250px;
+    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    overflow: hidden;
 }
 
-.card > .operations {
+.file > .details > p > i {
+    font-size: 10px;
+    color: #1549e3;
+    margin-left: 10px;
+}
+
+.file > .details > .progress {
+    width: calc(100% - 10px);
+    height: 3px;
+    background-color: rgba(255, 255, 255, 0.158);
+    border-radius: 10px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.file > .details > .progress > .bar {
     width: 100%;
+    height: 100%;
+    background-color: #1549e3;
+    border-radius: 10px;
+}
+
+.file > .option {
+    width: 30px;
     height: 50px;
+    margin-left: 5px;
+    margin-right: 5px;
+    flex-shrink: 0;
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
 }
 
-.card > .operations > button {
-    padding: 5px 10px;
+.file > .option > button {
     border: none;
     outline: none;
-    background-color: #ffffff18;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s;
-    font-size: 13px;
-    margin: 5px;
-}
-
-.card > .operations > button > i {
-    color: white;
-    font-size: 15px;
-}
-
-.card > .progress {
-    visibility: hidden;
-    width: 85%;
-    height: 2px;
-    border-radius: 2px;
-    background-color: #ffffff18;
-}
-
-.card > .progress > .bar {
-    width: 0;
-    height: 100%;
-    border-radius: 2px;
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
-    margin-left: auto;
-    margin-right: auto;
+    display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 50%;
+    background-color: transparent;
+}
+
+.file > .option > button > i {
+    font-size: 15px;
+    color: white;
+}
+
+@media screen and (min-width: 768px) {
+    .file {
+        width: 50%;
+        height: 70px;
+        margin-top: 20px;
+    }
+    .file > .details > p {
+        max-width: 500px;
+        font-size: 13px;
+    }
+
+    .file > .details > p > i {
+        font-size: 15px;
+    }
+}
+
+.body > .middle > .side {
+    width: 65%;
+    height: 100%;
+    background-color: rgb(61, 61, 65);
+    position: absolute;
+    right: 0;
+    display: none;
+    align-items: center;
+    transition: 1s;
+}
+
+.body > .middle > .side > button {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    cursor: pointer;
+    transition: 0.3s;
+    height: 50px;
+    width: 50px;
+    position: absolute;
+    margin-left: 40px;
+    background-color: #e31526;
+    border-radius: 50%;
+    transition: 1s;
+    margin-left: -25px;
+}
+
+.body > .middle > .side > button > i {
+    font-size: 23px;
+    color: white;
+}
+
+@media screen and (min-width: 768px) {
+    .body > .middle > .side {
+        width: 20%;
+    }
 }
