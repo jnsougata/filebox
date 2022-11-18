@@ -365,10 +365,10 @@ search.oninput = (ev) => {
             })
             .then(response => response.json())
             .then(data => {
-                if (data.length > 0) {
-                    resultPanel.style.justifyContent = "center";
-                    resultPanel.innerHTML = `👀 No results found . . .`;
+                if (data.length === 0) {
+                    resultPanel.innerHTML = `<div class="no-result" style="color: #ef5151; font-size: 15px; margin-top: 15px;">👀 No results found</div>`;
                 } else {
+                    resultPanel.innerHTML = "";
                     data.forEach(file => {
                         resultPanel.appendChild(newFileChild(file));
                     });
@@ -454,7 +454,7 @@ function newFileChild(file) {
     fileDiv.appendChild(iconDiv);
     fileDiv.appendChild(detailsDiv);
     fileDiv.onclick = () => {
-        optionClick(file.hash);
+        cardClick(file.hash);
     };
     return fileDiv;
 }
@@ -473,7 +473,7 @@ let navDeleteButton = document.querySelector("#sidenav_delete");
 let navCopyButton = document.querySelector("#sidenav_copy");
 
 
-function optionClick(hash) {
+function cardClick(hash) {
     contextFile = metadata[hash];
     if (contextFile.type !== "folder") {
         navTitle.innerHTML = contextFile.name;

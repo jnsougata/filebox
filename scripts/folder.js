@@ -152,81 +152,80 @@ function uploadFile(file) {
 
 function downloadFile(file) {
     fetch("/api/secret")
-        .then(response => response.text())
-        .then(data => {
-            showSnack(`Downloading ${file.name}`);
-            let header = {"X-Api-Key": data}
-            let projectId = data.split("_")[0];
-            const ROOT = 'https://drive.deta.sh/v1';
-            let extension = file.name.split('.').pop();
-            let qualifiedName = file.hash + "." + extension;
-            renderBarMatrix(file.hash, downloadGreen);
-            let bar = document.getElementById(`bar-${file.hash}`);
-            fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
-                method: 'GET',
-                headers: header
-            })
-                .then((response) => {
-                    let progress = 0;
-                    const reader = response.body.getReader();
-                    return new ReadableStream({
-                        start(controller) {
-                            return pump();
-                            function pump() {
-                                return reader.read().then(({ done, value }) => {
-                                    if (done) {
-                                        controller.close();
-                                        return;
-                                    }
-                                    controller.enqueue(value);
-                                    progress += value.length;
-                                    bar.style.width = `${Math.round((progress / file.size) * 100)}%`;
-                                    return pump();
-                                });
-                            }
-                        }
-                    })
-                })
-                .then((stream) => new Response(stream))
-                .then((response) => response.blob())
-                .then((blob) => URL.createObjectURL(blob))
-                .then((url) => {
-                    let a = document.createElement('a');
-                    a.href = url;
-                    a.download = file.name;
-                    bar.style.width = "100%";
-                    setTimeout(() => {
-                        showSnack(`Downloaded ${file.name}`);
-                        hideBarMatrix(file.hash);
-                    }, 500);
-                    a.click();
-                })
-                .catch((err) => console.error(err));
+    .then(response => response.text())
+    .then(data => {
+        showSnack(`Downloading ${file.name}`);
+        let header = {"X-Api-Key": data}
+        let projectId = data.split("_")[0];
+        const ROOT = 'https://drive.deta.sh/v1';
+        let extension = file.name.split('.').pop();
+        let qualifiedName = file.hash + "." + extension;
+        renderBarMatrix(file.hash, downloadGreen);
+        let bar = document.getElementById(`bar-${file.hash}`);
+        fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
+            method: 'GET',
+            headers: header
         })
+        .then((response) => {
+            let progress = 0;
+            const reader = response.body.getReader();
+            return new ReadableStream({
+                start(controller) {
+                    return pump();
+                    function pump() {
+                        return reader.read().then(({ done, value }) => {
+                            if (done) {
+                                controller.close();
+                                return;
+                            }
+                            controller.enqueue(value);
+                            progress += value.length;
+                            bar.style.width = `${Math.round((progress / file.size) * 100)}%`;
+                            return pump();
+                        });
+                    }
+                }
+            })
+        })
+        .then((stream) => new Response(stream))
+        .then((response) => response.blob())
+        .then((blob) => URL.createObjectURL(blob))
+        .then((url) => {
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            bar.style.width = "100%";
+            setTimeout(() => {
+                showSnack(`Downloaded ${file.name}`);
+                hideBarMatrix(file.hash);
+            }, 500);
+            a.click();
+        })
+        .catch((err) => console.error(err));
+    })
 }
 
 window.onload = () => {
-    searchBar.style.display = "none";
     parent = window.location.href.split("/dir/")[1];
     fetch(`/api/folder/${parent}`)
-        .then(response => response.json())
-        .then(data => {
-            metadata = {};
-            let folders = [];
-            let files = [];
-            data.forEach(file => {
-                metadata[file.hash] = file;
-                if (file.type === "folder") {
-                    folders.push(file);
-                } else {
-                    files.push(file);
-                }
-            });
-            let items = folders.concat(files);
-            items.forEach(file => {
-                cardView.appendChild(newFileChild(file));
-            });
-        })
+    .then(response => response.json())
+    .then(data => {
+        metadata = {};
+        let folders = [];
+        let files = [];
+        data.forEach(file => {
+            metadata[file.hash] = file;
+            if (file.type === "folder") {
+                folders.push(file);
+            } else {
+                files.push(file);
+            }
+        });
+        let items = folders.concat(files);
+        items.forEach(file => {
+            cardView.appendChild(newFileChild(file));
+        });
+    })
 }
 
 function handleMimeIcon(mime) {
@@ -353,7 +352,7 @@ toggle.onclick = () => {
 };
 
 let search = document.getElementById("search");
-let resultPanel = document.getElementById("result-panel");
+let resultPanel = document.getElementById("results");
 let inputTimer = null;
 search.oninput = (ev) => {
     if (inputTimer) {
@@ -363,31 +362,17 @@ search.oninput = (ev) => {
         if (ev.target.value.length > 0) {
             fetch(`/api/query`, {
                 method: "POST",
-                body: JSON.stringify({"name?contains": ev.target.value}),
+                body: JSON.stringify({"name?contains": ev.target.value, "parent": parent}),
             })
                 .then(response => response.json())
                 .then(data => {
-                    let folders = [];
-                    let files = [];
-                    data.forEach(file => {
-                        if (file.type === "folder") {
-                            folders.push(file);
-                        } else {
-                            files.push(file);
-                        }
-                    });
-                    if (files.length || folders.length) {
+                    if (data.length === 0) {
+                        resultPanel.innerHTML = `<div class="no-result" style="color: #ef5151; font-size: 15px; margin-top: 15px;">👀 No results found</div>`;
+                    } else {
                         resultPanel.innerHTML = "";
-                        resultPanel.style.justifyContent = "flex-start";
-                        files.forEach(file => {
+                        data.forEach(file => {
                             resultPanel.appendChild(newFileChild(file));
                         });
-                        folders.forEach(folder => {
-                            resultPanel.appendChild(newFileChild(folder));
-                        });
-                    } else {
-                        resultPanel.style.justifyContent = "center";
-                        resultPanel.innerHTML = `👀 No results found . . .`;
                     }
                 })
         }
@@ -407,9 +392,9 @@ newFolderButton.onclick = () => {
             hash: randomFileHash(),
             date: new Date().toISOString(),
             type: "folder",
-            parent: ""
+            parent: parent,
         }
-        cardView.appendChild(newFolder(folderData));
+        cardView.appendChild(newFileChild(folderData));
         fetch(`/api/metadata`, {
             method: "POST",
             body: JSON.stringify(folderData),
@@ -419,12 +404,8 @@ newFolderButton.onclick = () => {
     }
 };
 
-function folderClick(data) {
-    if (data.parent) {
-        window.location.href = `${window.location.href}dir/${data.parent}/${data.name}`;
-    } else {
-        window.location.href = `${window.location.href}dir/${data.name}`;
-    }
+function folderClick(folder) {
+    window.location.href = `${window.location.href}/${folder.name}`;
 }
 
 function newFileChild(file) {
@@ -470,7 +451,7 @@ function newFileChild(file) {
     fileDiv.appendChild(iconDiv);
     fileDiv.appendChild(detailsDiv);
     fileDiv.onclick = () => {
-        optionClick(file.hash);
+        cardClick(file.hash);
     };
     return fileDiv;
 }
@@ -489,7 +470,7 @@ let navDeleteButton = document.querySelector("#sidenav_delete");
 let navCopyButton = document.querySelector("#sidenav_copy");
 
 
-function optionClick(hash) {
+function cardClick(hash) {
     contextFile = metadata[hash];
     if (contextFile.type !== "folder") {
         navTitle.innerHTML = contextFile.name;
