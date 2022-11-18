@@ -370,6 +370,7 @@ search.oninput = (ev) => {
                 } else {
                     resultPanel.innerHTML = "";
                     data.forEach(file => {
+                        metadata[file.hash] = file;
                         resultPanel.appendChild(newFileChild(file));
                     });
                 }
