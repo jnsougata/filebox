@@ -35,6 +35,16 @@ def folder(name: str):
 def shared():
     return ContentResponse("./static/download.html", media_type="text/html")
 
+@app.get("/embed/{file_id}")
+def shared(file_id: str):
+    try:
+        info = app.db.get(file_id)
+        if info and info['size'] <= 4 * 1024 * 1024:
+            extension = info['name'].split('.')[-1]
+            content = app.drive.get(f'{file_id}.{extension}').read()
+            return Response(content=content, media_type=info['mime'], headers={"Content-Disposition": f"inline; filename={info['name']}"})
+    except Exception as e:
+        return PlainTextResponse(str(e), status_code=500)
 
 @app.get("/assets/{path}")
 def assets(path: str):
@@ -121,8 +131,3 @@ async def get_stream(skip: int, file_hash: str):
         if i == skip:
             return Response(content=data, media_type="application/octet-stream")
         i += 1
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app)
