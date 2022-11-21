@@ -1,12 +1,12 @@
 ---
-title: "Filebox"
+title: "SpaceBox"
 tagline: "your personal cloud storage"
 theme_color: "#1c42684f"
 ---
 
 upload and store any file in your personal space drive
 
-Filebox comes with:
+SpaceBox comes with:
 
 - Minimal UI
 - Easy file upload
@@ -15,6 +15,6 @@ Filebox comes with:
 - Download file from your space drive when needed
 - Share file with others (size <= 30MB and any type)
 
-TODO:
+Coming Soon:
 - File preview.
 - File Renaming.

@@ -121,9 +121,9 @@ function downloadByChunk(file) {
             let a = document.createElement('a');
             a.href = url;
             a.download = name;
+            progressBar.style.width = "100%";
             a.click();
             showSnack(`Downloaded ${name}`);
-            hideBarMatrix(file.hash);
         })
     } else {
         let skips = 0;

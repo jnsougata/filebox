@@ -1,7 +1,7 @@
 v: 1
 icon: ./assets/icon.png
 micros:
-    - name: filebox
+    - name: SpaceBox
       src: .
       engine: python3.9
       primary: true
