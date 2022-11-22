@@ -22,7 +22,6 @@ func main() {
 	r.HandleFunc("/folder/{path}", HandleFolder).Methods("GET")
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
 	http.Handle("/", r)
-	fmt.Println("URL: http://localhost:8080")
 	_ = http.ListenAndServe(":8080", nil)
 }
 
@@ -50,9 +49,15 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "DELETE" {
+		metadata, _ := io.ReadAll(r.Body)
+		var file map[string]interface{}
+		_ = json.Unmarshal(metadata, &file)
+		hash := file["hash"].(string)
+		extension := strings.Split(file["name"].(string), ".")[1]
+		_ = drive.Delete(fmt.Sprintf("%s.%s", hash, extension))
+		_ = base.Delete(hash)
 		return
 	}
-
 }
 
 func HandleFolder(w http.ResponseWriter, r *http.Request) {
