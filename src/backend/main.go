@@ -95,17 +95,16 @@ func HandleEmbed(w http.ResponseWriter, r *http.Request) {
 func HandleDownload(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
-	skip := vars["skip"]
-	skipInt, _ := strconv.Atoi(skip)
+	skip, _ := strconv.Atoi(vars["skip"])
 	streamingResp := drive.Get(hash)
-	w.Header().Set("Content-Type", "application/octet-stream")
 	ChunkSize := 4 * 1024 * 1024
 	content, _ := io.ReadAll(streamingResp.Reader)
-	if (skipInt+1)*ChunkSize > len(content) {
-		_, _ = w.Write(content[skipInt*ChunkSize:])
+	w.Header().Set("Content-Type", "application/octet-stream")
+	if (skip+1)*ChunkSize > len(content) {
+		_, _ = w.Write(content[skip*ChunkSize:])
 		return
 	} else {
-		_, _ = w.Write(content[skipInt*ChunkSize : (skipInt+1)*ChunkSize])
+		_, _ = w.Write(content[skip*ChunkSize : (skip+1)*ChunkSize])
 		return
 	}
 }
