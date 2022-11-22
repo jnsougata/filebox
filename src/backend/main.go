@@ -24,6 +24,7 @@ func main() {
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
 	r.HandleFunc("/shared/chunk/{skip}/{hash}", HandleDownload).Methods("GET")
 	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")
+	r.HandleFunc("/query", QueryHandler).Methods("POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -124,5 +125,16 @@ func HandleSharedMetadata(w http.ResponseWriter, r *http.Request) {
 	hash := vars["hash"]
 	resp := base.Get(hash)
 	ba, _ := json.Marshal(resp[0].Data)
+	_, _ = w.Write(ba)
+}
+
+func QueryHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var body map[string]interface{}
+	_ = json.NewDecoder(r.Body).Decode(&body)
+	q := deta.Query()
+	q.Equals(body)
+	resp := base.Fetch(q, "", 0).Data["items"]
+	ba, _ := json.Marshal(resp)
 	_, _ = w.Write(ba)
 }

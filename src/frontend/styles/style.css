@@ -27,6 +27,7 @@ body {
     font-family: 'Prompt', sans-serif;
     overflow: hidden;
     height: 100vh;
+    background-color: var(--black-main);
 }
 
 .container {
@@ -62,6 +63,14 @@ body {
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    cursor: pointer;
+}
+
+@media screen and (min-width: 768px) {
+    .container > .header {
+        width: 50%;
+        border-radius: 0 0 10px 10px;
+    }
 }
 
 .left > h3 {
@@ -118,7 +127,7 @@ body {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    background-color: rgba(30,34,39,255);
+    background-color: var(--black-main);
     overflow: hidden;
 }
 
@@ -126,7 +135,7 @@ body {
     width: 100%;
     height: auto;
     padding: 10px;
-    background-color: rgba(30,34,39,255);
+    background-color: var(--black-main);
     display: none;
     justify-content: center;
     align-items: center;
@@ -156,15 +165,16 @@ body {
 } 
 
 .inner > input[type="text"] {
-    width: 30%;
-    height: 20px;
+    width: 500px;
+    height: 40px;
+    max-height: 40px;
     border: none;
     outline: none;
     border-radius: 20px;
     padding: 5px;
     text-align: center;
     color: white;
-    background-color: rgba(70, 71, 72, 0.548);
+    background-color: var(--black-secondary);
     margin-left: auto;
     margin-right: auto;
 }

@@ -29,6 +29,11 @@ uploadInput.addEventListener('change', () => {
     }
 });
 
+let headerLeft = document.querySelector(".left");
+headerLeft.onclick = () => {
+    window.open("https://github.com/jnsougata/filebox", "_blank");
+}
+
 function uploadFile(file) {
     fetch("/api/secret")
     .then(response => response.text())
@@ -301,6 +306,12 @@ window.addEventListener("paste", (e) => {
     }
 });
 
+window.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.key === "z") {
+        previousFolderButton.click();
+    }
+})
+
 function showSnack(inner, color = snackbarGreen) {
     snackbar.innerHTML = inner;
     snackbar.style.backgroundColor = color;
@@ -382,8 +393,13 @@ search.oninput = (ev) => {
                 } else {
                     resultPanel.innerHTML = "";
                     data.forEach(file => {
-                        metadata[file.hash] = file;
-                        resultPanel.appendChild(newFileChild(file));
+                        if (file.type !== "folder") {
+                            metadata[file.hash] = file;
+                            resultPanel.appendChild(newFileChild(file));
+                            resultPanel.onclick = (e) => {
+                                toggle.click();
+                            };
+                        }
                     });
                 }
             })
