@@ -33,7 +33,7 @@ function uploadFile(file) {
     .then(response => response.text())
     .then(token => {
         showSnack(`Uploading ${file.name}`);
-        let header = {"X-Api-Key": token}
+        let header = {"X-Api-Key": token, "Content-Type": file.type}
         let hash = randomFileHash();
         let projectId = token.split("_")[0];
         const ROOT = 'https://drive.deta.sh/v1';

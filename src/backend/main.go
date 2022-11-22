@@ -22,7 +22,7 @@ func main() {
 	r.HandleFunc("/metadata", HandleMetadata).Methods("GET", "POST", "DELETE")
 	r.HandleFunc("/folder/{path}", HandleFolder).Methods("GET")
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
-	r.HandleFunc("/shared/chunks/{skip}/{hash}", HandleDownload).Methods("GET")
+	r.HandleFunc("/shared/chunk/{skip}/{hash}", HandleDownload).Methods("GET")
 	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
@@ -34,32 +34,41 @@ func HandleSecret(w http.ResponseWriter, _ *http.Request) {
 }
 
 func HandleMetadata(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
+
+	switch r.Method {
+
+	case "GET":
 		w.Header().Set("Content-Type", "application/json")
 		resps := base.Get()
 		items := resps[0].Data["items"]
 		ba, _ := json.Marshal(items)
 		_, _ = w.Write(ba)
 		return
-	}
-	if r.Method == "POST" {
+
+	case "POST":
 		w.Header().Set("Content-Type", "application/json")
 		var data map[string]interface{}
 		_ = json.NewDecoder(r.Body).Decode(&data)
+		key := data["hash"].(string)
+		data["key"] = key
 		resp := base.Put(data)
-		ba, _ := json.Marshal(resp)
+		w.WriteHeader(resp[0].StatusCode)
+		ba, _ := json.Marshal(resp[0].Data)
 		_, _ = w.Write(ba)
 		return
-	}
-	if r.Method == "DELETE" {
+
+	case "DELETE":
 		metadata, _ := io.ReadAll(r.Body)
 		var file map[string]interface{}
 		_ = json.Unmarshal(metadata, &file)
 		hash := file["hash"].(string)
+		_ = base.Delete(hash)
 		extension := strings.Split(file["name"].(string), ".")[1]
 		_ = drive.Delete(fmt.Sprintf("%s.%s", hash, extension))
-		_ = base.Delete(hash)
 		return
+
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
@@ -79,7 +88,7 @@ func HandleEmbed(w http.ResponseWriter, r *http.Request) {
 	hash := vars["hash"]
 	resp := base.Get(hash)
 	meta := resp[0].Data
-	if meta["size"].(float64) < 5*1024*1024 {
+	if meta["size"].(int) < 5*1024*1024 {
 		fileName := meta["name"].(string)
 		mime := meta["mime"].(string)
 		w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=%s", fileName))
