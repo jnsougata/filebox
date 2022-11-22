@@ -35,16 +35,6 @@ def folder(name: str):
 def shared():
     return ContentResponse("./static/download.html", media_type="text/html")
 
-@app.get("/embed/{file_id}")
-def shared(file_id: str):
-    try:
-        info = app.db.get(file_id)
-        if info and info['size'] <= 4 * 1024 * 1024:
-            extension = info['name'].split('.')[-1]
-            content = app.drive.get(f'{file_id}.{extension}').read()
-            return Response(content=content, media_type=info['mime'], headers={"Content-Disposition": f"inline; filename={info['name']}"})
-    except Exception as e:
-        return PlainTextResponse(str(e), status_code=500)
 
 @app.get("/assets/{path}")
 def assets(path: str):
@@ -59,58 +49,6 @@ def styles(path: str):
 @app.get("/scripts/{path}")
 def scripts(path: str):
     return ContentResponse(f"./scripts/{path}", media_type="text/javascript")
-
-
-#@app.get("/api/secret")
-#def micro_secret():
-    #return PlainTextResponse(os.getenv("DETA_PROJECT_KEY"))
-
-
-@app.post("/api/query")
-async def query(request: Request):
-    q = await request.json()
-    resp = app.db.fetch(q)
-    items = resp.items
-    while resp.last:
-        resp = app.db.fetch(q, last=resp.last)
-        items += resp.items
-    return items
-
-
-@app.post("/api/metadata")
-async def metadata(request: Request):
-    data = await request.json()
-    return app.db.put(data, data['hash'])
-
-
-@app.get("/api/metadata")
-async def complete_meta():
-    resp = app.db.fetch()
-    items = resp.items
-    while resp.last:
-        resp = app.db.fetch(last=resp.last)
-        items += resp.items
-    return [item for item in items if not item.get('parent')]
-
-
-@app.get("/api/folder/{name:path}")
-async def folder_items(name: str):
-    res = app.db.fetch({"parent": name})
-    items = res.items
-    while res.last:
-        res = app.db.fetch(last=res.last)
-        items += res.items
-    return items
-
-
-@app.delete("/api/metadata")
-async def delete_meta(request: Request):
-    data = await request.json()
-    file_name = data['name']
-    file_hash = data['hash']
-    extension = file_name.split('.')[-1]
-    app.drive.delete(file_hash + '.' + extension)
-    return app.db.delete(file_hash)
 
 
 @app.get("/api/shared/metadata/{file_hash}")
