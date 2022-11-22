@@ -224,6 +224,66 @@ body {
     overflow-x: hidden;
 }
 
+.body > .content > .cards > .prompt {
+    margin-top: 10px;
+    width: calc(100% - 20px);
+    height: 30px;
+    background-color: var(--black-secondary);
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    overflow-y: hidden;
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.prompt > button {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-left: 5px;
+    margin-right: 5px;
+    background-color: #3662e9;
+    border-radius: 5px;
+    left: 0;
+    position: sticky;
+}
+
+.prompt > button > i {
+    color: white;
+    font-size: 15px;
+    padding: 3px 6px;
+}
+
+.prompt > .fragment {
+    width: max-content;
+    height: calc(100% - 10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 15px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 0 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    font-family: 'Consolas', monospace;
+    background-color: rgba(255, 255, 255, 0.137);
+}
+
 .card {
     margin-top: 10px;
     width: calc(100% - 20px);
@@ -312,6 +372,11 @@ body {
 
     .card > .details > p > i {
         font-size: 15px;
+    }
+
+    .body > .content > .cards > .prompt {
+        width: 50%;
+        height: 30px;
     }
 }
 
@@ -409,3 +474,10 @@ body {
         min-width: 350px;
     }
 }
+
+@media screen and (max-width: 768px) {
+    .prompt::-webkit-scrollbar {
+        display: none;
+    }
+}
+    

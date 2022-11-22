@@ -10,6 +10,7 @@ const uploadBlue = "#1549e3";
 let hiddenState = true;
 let metadata = null;
 let contextFile = null;
+let folderQueue = [];
 
 function randomFileHash() {
     return [...Array(16)].map(
@@ -45,6 +46,14 @@ function uploadFile(file) {
                 "size": file.size,
                 "mime": file.type,
                 "date": new Date().toISOString(),
+            }
+            if (folderQueue.length > 0) {
+                let folder = folderQueue[folderQueue.length - 1];
+                if (folder.parent) {
+                    body.parent = `${folder.parent}/${folder.name}`;
+                } else {
+                    body.parent = folder.name;
+                }
             }
             metadata[hash] = body;
             let content = ev.target.result;
@@ -307,9 +316,9 @@ function shareButtonClick(file) {
         return;
     }
     window.navigator.clipboard.writeText(window.location.href + "download/" + file.hash)
-        .then(() => {
-            showSnack(`URL copied to clipboard`);
-        });
+    .then(() => {
+        showSnack(`URL copied to clipboard`);
+    });
 }
 
 function deleteFile(file) {
@@ -385,10 +394,6 @@ search.oninput = (ev) => {
 let newFolderButton = document.getElementById("folder");
 newFolderButton.onclick = () => {
     let folderName = prompt("Enter folder name");
-    if (folderName === "dir") {
-        showSnack("`dir` is a reserved word", snackbarRed)
-        return
-    }
     if (folderName) {
         let folderData = {
             name: folderName,
@@ -406,14 +411,6 @@ newFolderButton.onclick = () => {
         });
     }
 };
-
-function folderClick(folder) {
-    if (folder.parent) {
-        window.location.href = `${window.location.href}dir/${folder.parent}/${folder.name}`;
-    } else {
-        window.location.href = `${window.location.href}dir/${folder.name}`;
-    }
-}
 
 function newFileChild(file) {
     let fileDiv = document.createElement("div");
@@ -475,7 +472,7 @@ let navIcon = document.querySelector("#sidenav_icon");
 let navDownloadButton = document.querySelector("#sidenav_download");
 let navDeleteButton = document.querySelector("#sidenav_delete");
 let navCopyButton = document.querySelector("#sidenav_copy");
-
+let navEmbedButton = document.querySelector("#sidenav_embed");
 
 function cardClick(hash) {
     contextFile = metadata[hash];
@@ -497,7 +494,8 @@ function cardClick(hash) {
         navIcon.className = handleMimeIcon(contextFile.mime);
         sidebar.style.display = "flex";
     } else {
-        folderClick(contextFile);
+        folderQueue.push(metadata[hash]);
+        folderClick(metadata[hash]);
     }
 }
 
@@ -516,3 +514,92 @@ navCopyButton.onclick = () => {
     shareButtonClick(contextFile);
     sidebar.style.display = "none";
 };
+navEmbedButton.onclick = () => {
+    if (contextFile.size > 1024 * 1024 * 5) {
+        showSnack("File is too big to embed", snackbarRed);
+        return;
+    }
+    window.navigator.clipboard.writeText(`${window.location.protocol}//${window.location.host}/api/embed/${contextFile.hash}`)
+    .then(() => {
+        showSnack(`Embed url copied to clipboard`);
+    });
+};
+
+let pathPrompt = document.querySelector(".fragment");
+function folderClick(folder) {
+    if (folder.parent) {
+        pathPrompt.innerHTML = `/${folder.parent}/${folder.name}/`;
+        handleFolderClick(`${folder.parent}/${folder.name}`);
+    } else {
+        pathPrompt.innerHTML = `/${folder.name}/`;
+        handleFolderClick(folder.name);
+    }
+}
+let previousFolderButton = document.querySelector("#previos_folder");
+previousFolderButton.onclick = () => {
+    if (folderQueue.length > 1) {
+        folderQueue.pop();
+        let folder = folderQueue[folderQueue.length - 1];
+        if (folder.parent) {
+            pathPrompt.innerHTML = `/${folder.parent}/${folder.name}/`;
+            handleFolderClick(`${folder.parent}/${folder.name}`);
+        } else {
+            pathPrompt.innerHTML = `/${folder.name}/`;
+            handleFolderClick(folder.name);
+        }
+    } else if (folderQueue.length === 1) {
+        pathPrompt.innerHTML = `/`;
+        folderQueue.pop();
+        fetch("/api/metadata")
+        .then(response => response.json())
+        .then(data => {
+            for (let file of Object.values(metadata)) {
+                let fileDiv = document.getElementById(`file-${file.hash}`);
+                cardView.removeChild(fileDiv);
+            }
+            metadata = {};
+            let folders = [];
+            let files = [];
+            data.forEach(file => {
+                if (!file.parent) {
+                    metadata[file.hash] = file;
+                    if (file.type === "folder") {
+                        folders.push(file);
+                    } else {
+                        files.push(file);
+                    }
+                }
+            });
+            let items = folders.concat(files);
+            items.forEach(file => {
+                cardView.appendChild(newFileChild(file));
+            });
+        })
+    }
+};
+
+function handleFolderClick(parent) {
+    fetch(`/api/folder/${parent}`)
+    .then(res => res.json())
+    .then(data => {
+        for (let file of Object.values(metadata)) {
+            let fileDiv = document.getElementById(`file-${file.hash}`);
+            cardView.removeChild(fileDiv);
+        }
+        metadata = {};
+        let folders = [];
+        let files = [];
+        data.forEach(file => {
+            metadata[file.hash] = file;
+            if (file.type === "folder") {
+                folders.push(file);
+            } else {
+                files.push(file);
+            }
+        });
+        let items = folders.concat(files);
+        items.forEach(file => {
+            cardView.appendChild(newFileChild(file));
+        });
+    })
+}

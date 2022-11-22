@@ -20,7 +20,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/secret", HandleSecret).Methods("GET")
 	r.HandleFunc("/metadata", HandleMetadata).Methods("GET", "POST", "DELETE")
-	r.HandleFunc("/folder/{path}", HandleFolder).Methods("GET")
+	r.HandleFunc("/folder/{path:[a-zA-Z0-9=\\-\\/]+}", HandleFolder).Methods("GET")
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
 	r.HandleFunc("/shared/chunk/{skip}/{hash}", HandleDownload).Methods("GET")
 	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")

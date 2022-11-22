@@ -22,13 +22,6 @@ def index():
     return ContentResponse("./static/index.html", media_type="text/html")
 
 
-@app.get("/dir/{name:path}")
-def folder(name: str):
-    if name:
-        return ContentResponse("./static/folder.html", media_type="text/html")
-    return RedirectResponse("/")
-
-
 @app.get("/download/{file_id}")
 def shared():
     return ContentResponse("./static/download.html", media_type="text/html")
