@@ -1,0 +1,16 @@
+name: Push to Space
+on: [push, workflow_dispatch]
+
+jobs:
+    push-to-space:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - name: Deta Space Deployment Github Action
+          uses: neobrains/space-deployment-github-action@space-release
+          with:
+            access_token: ${{ secrets.SPACE_ACCESS_TOKEN }}
+            project_id: ${{ secrets.SPACE_PROJECT_ID }}
+            do_space_push: true
+            do_space_release: true
+            do_list_on_discovery: true
