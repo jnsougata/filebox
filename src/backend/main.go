@@ -119,6 +119,6 @@ func HandleSharedMetadata(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
 	resp := base.Get(hash)
-	ba, _ := json.Marshal(resp)
+	ba, _ := json.Marshal(resp[0].Data)
 	_, _ = w.Write(ba)
 }
