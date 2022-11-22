@@ -97,11 +97,7 @@ func HandleDownload(w http.ResponseWriter, r *http.Request) {
 	hash := vars["hash"]
 	skip := vars["skip"]
 	skipInt, _ := strconv.Atoi(skip)
-	resp := base.Get(hash)
-	meta := resp[0].Data
-	fileName := meta["name"].(string)
-	extension := strings.Split(fileName, ".")[1]
-	streamingResp := drive.Get(fmt.Sprintf("%s.%s", hash, extension))
+	streamingResp := drive.Get(hash)
 	w.Header().Set("Content-Type", "application/octet-stream")
 	ChunkSize := 4 * 1024 * 1024
 	content, _ := io.ReadAll(streamingResp.Reader)
