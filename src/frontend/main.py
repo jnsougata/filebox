@@ -61,9 +61,9 @@ def scripts(path: str):
     return ContentResponse(f"./scripts/{path}", media_type="text/javascript")
 
 
-@app.get("/api/secret")
-def micro_secret():
-    return PlainTextResponse(os.getenv("DETA_PROJECT_KEY"))
+#@app.get("/api/secret")
+#def micro_secret():
+    #return PlainTextResponse(os.getenv("DETA_PROJECT_KEY"))
 
 
 @app.post("/api/query")

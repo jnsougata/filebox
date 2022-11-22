@@ -1,0 +1,27 @@
+v: 1
+icon: ./frontend/assets/icon.png
+micros:
+  - name: frontend
+    src: ./frontend/
+    engine: python3.9
+    primary: true
+    public_routes:
+      - "/embed/*"
+      - "/assets/*"
+      - "/download/*"
+      - "/api/shared/*"
+      - "/scripts/magic.js"
+      - "/styles/style.css"
+      - "/api/embed/*"
+  
+  - name: backend
+    src: ./backend/
+    engine: custom
+    commands:
+      - go get
+      - go build main.go
+    include:
+      - main
+    run: ./main
+    path: api
+    

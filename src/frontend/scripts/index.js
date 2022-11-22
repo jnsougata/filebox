@@ -214,11 +214,13 @@ window.onload = () => {
         let folders = [];
         let files = [];
         data.forEach(file => {
-            metadata[file.hash] = file;
-            if (file.type === "folder") {
-                folders.push(file);
-            } else {
-                files.push(file);
+            if (!file.parent) {
+                metadata[file.hash] = file;
+                if (file.type === "folder") {
+                    folders.push(file);
+                } else {
+                    files.push(file);
+                }
             }
         });
         let items = folders.concat(files);
