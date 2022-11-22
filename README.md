@@ -1,6 +1,7 @@
 # FileBox
 A personal cloud storage service for free (upto 10GB)
 
+- [Install on Deta Space](https://alpha.deta.space/discovery/@gyrooo/filebox)
 
 ### Comes with
 
@@ -13,6 +14,7 @@ A personal cloud storage service for free (upto 10GB)
 
 ### What's new
 - Folder support
+- More suitable for mobile devices
 - Embed files of size less than 5MB 
 
 ### Coming Soon
