@@ -9,10 +9,10 @@ micros:
       - "/embed/*"
       - "/assets/*"
       - "/download/*"
+      - "/api/embed/*"
       - "/api/shared/*"
       - "/scripts/magic.js"
       - "/styles/style.css"
-      - "/api/embed/*"
   
   - name: backend
     src: ./backend/

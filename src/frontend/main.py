@@ -15,8 +15,6 @@ class ContentResponse(Response):
 
 
 app = FastAPI(docs_url=None, redoc_url=None)
-app.drive = Deta().Drive("filebox")
-app.db = Deta().Base("filebox_metadata")
 
 
 @app.get("/")
@@ -49,23 +47,3 @@ def styles(path: str):
 @app.get("/scripts/{path}")
 def scripts(path: str):
     return ContentResponse(f"./scripts/{path}", media_type="text/javascript")
-
-
-@app.get("/api/shared/metadata/{file_hash}")
-async def get_meta(file_hash: str):
-    return app.db.get(file_hash)
-
-
-@app.get("/api/shared/chunk/{skip}/{file_hash}")
-async def get_stream(skip: int, file_hash: str):
-    deta_project_key = os.getenv("DETA_PROJECT_KEY")
-    deta_project_id = deta_project_key.split("_")[0]
-    url = f"https://drive.deta.sh/v1/{deta_project_id}/filebox/files/download?name={file_hash}"
-    headers = {"X-Api-Key": deta_project_key}
-    chunk_size = 1024 * 1024 * 4
-    resp = requests.get(url, headers=headers, stream=True)
-    i = 0
-    for data in resp.iter_content(chunk_size=chunk_size):
-        if i == skip:
-            return Response(content=data, media_type="application/octet-stream")
-        i += 1

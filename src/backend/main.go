@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -21,6 +22,8 @@ func main() {
 	r.HandleFunc("/metadata", HandleMetadata).Methods("GET", "POST", "DELETE")
 	r.HandleFunc("/folder/{path}", HandleFolder).Methods("GET")
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
+	r.HandleFunc("/shared/chunks/{skip}/{hash}", HandleDownload).Methods("GET")
+	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -87,4 +90,35 @@ func HandleEmbed(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(content)
 		return
 	}
+}
+
+func HandleDownload(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	hash := vars["hash"]
+	skip := vars["skip"]
+	skipInt, _ := strconv.Atoi(skip)
+	resp := base.Get(hash)
+	meta := resp[0].Data
+	fileName := meta["name"].(string)
+	extension := strings.Split(fileName, ".")[1]
+	streamingResp := drive.Get(fmt.Sprintf("%s.%s", hash, extension))
+	w.Header().Set("Content-Type", "application/octet-stream")
+	ChunkSize := 4 * 1024 * 1024
+	content, _ := io.ReadAll(streamingResp.Reader)
+	if (skipInt+1)*ChunkSize > len(content) {
+		_, _ = w.Write(content[skipInt*ChunkSize:])
+		return
+	} else {
+		_, _ = w.Write(content[skipInt*ChunkSize : (skipInt+1)*ChunkSize])
+		return
+	}
+}
+
+func HandleSharedMetadata(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(r)
+	hash := vars["hash"]
+	resp := base.Get(hash)
+	ba, _ := json.Marshal(resp)
+	_, _ = w.Write(ba)
 }
