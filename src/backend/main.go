@@ -88,7 +88,7 @@ func HandleEmbed(w http.ResponseWriter, r *http.Request) {
 	hash := vars["hash"]
 	resp := base.Get(hash)
 	meta := resp[0].Data
-	if meta["size"].(int) < 5*1024*1024 {
+	if meta["size"].(float64) < 5*1024*1024 {
 		fileName := meta["name"].(string)
 		mime := meta["mime"].(string)
 		w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=%s", fileName))
