@@ -249,6 +249,7 @@ body {
     overflow-y: hidden;
     overflow-x: auto;
     flex-shrink: 0;
+    z-index: 2;
 }
 
 .prompt > button {
@@ -304,6 +305,7 @@ body {
     display: flex;
     justify-content: space-around;
     align-items: center;
+    cursor: pointer;
 }
 
 .card > .icon {
@@ -319,11 +321,6 @@ body {
 .card > .icon > i {
     font-size: 30px;
     color: #1549e3;
-    
-}
-
-.card:hover {
-    background-color: #ffffff1a;
 }
 
 .card > .details {
@@ -394,11 +391,13 @@ body {
     right: 0;
     width: 300px;
     height: 100%;
-    background-color: var(--black-secondary);
+    background-color: transparent;
     position: absolute;
     display: none;
     align-items: center;
     transition: 0.5s;
+    z-index: 1;
+    margin-top: 50px;
 }
 
 .body > .content > .side > button {
@@ -428,7 +427,9 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: var(--black-secondary);
+    background-color: var(--black-main);
+    border-radius: 10px;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
 }
 
 .body > .content > .side > .inner > * {
@@ -444,6 +445,7 @@ body {
 }
 
 .body > .content > .side > .inner > .details > p {
+    max-width: 230px;
     font-size: 15px;
     color: white;
     text-align: center;

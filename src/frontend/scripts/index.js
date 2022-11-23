@@ -268,7 +268,7 @@ function handleMimeIcon(mime) {
 
 function handleSizeUnit(size) {
     if (size === undefined) {
-        return "n/a";
+        return "";
     }
     if (size < 1024) {
         return size + " B";
@@ -528,7 +528,6 @@ navDeleteButton.onclick = () => {
 };
 navCopyButton.onclick = () => {
     shareButtonClick(contextFile);
-    sidebar.style.display = "none";
 };
 navEmbedButton.onclick = () => {
     if (contextFile.size > 1024 * 1024 * 5) {
