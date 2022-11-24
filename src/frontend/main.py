@@ -13,7 +13,7 @@ app = FastAPI(docs_url=None, redoc_url=None)
 
 @app.get("/")
 def index():
-    return ContentResponse("./static/index.html", media_type="text/html")
+    return ContentResponse("./static/next.html", media_type="text/html")
 
 
 @app.get("/download/{hash}")

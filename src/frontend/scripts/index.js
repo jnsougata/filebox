@@ -1,7 +1,8 @@
-let uploadButton = document.getElementById('upload');
+let uploadButton = document.querySelector("#new-upload");
+let folderButton = document.querySelector("#new-folder");
 let uploadInput = document.getElementById('file-input');
 let fileView = document.querySelector('.content');
-let cardView = document.querySelector('.cards');
+let cardView = document.querySelector('.view');
 let snackbar = document.getElementById("snackbar");
 const snackbarRed = "rgb(203, 20, 70)";
 const snackbarGreen = "rgb(37, 172, 80)";
@@ -16,22 +17,6 @@ function randomFileHash() {
     return [...Array(16)].map(
         () => Math.floor(Math.random() * 16).toString(16)
     ).join('');
-}
-
-uploadButton.addEventListener('click', () => {
-    uploadInput.click();
-});
-
-uploadInput.addEventListener('change', () => {
-    let files = uploadInput.files;
-    for (let i = 0; i < files.length; i++) {
-        uploadFile(files[i]);
-    }
-});
-
-let headerLeft = document.querySelector(".left");
-headerLeft.onclick = () => {
-    window.open("https://github.com/jnsougata/filebox", "_blank");
 }
 
 function uploadFile(file) {
@@ -219,8 +204,6 @@ function downloadFile(file) {
 }
 
 window.onload = () => {
-    hiddenState = true;
-    document.querySelector(".search").display = "none";
     fetch("/api/metadata")
     .then(response => response.json())
     .then(data => {
@@ -357,26 +340,11 @@ function hideBarMatrix(hash) {
     bar.style.width = "0%";
 }
 
-let searchBar = document.querySelector(".search");
-let toggle = document.querySelector("#toggle");
-toggle.onclick = () => {
-    if (hiddenState) {
-        toggle.innerHTML = `<i class="fa-solid fa-chevron-up"></i>`;
-        hiddenState = false;
-        searchBar.style.display = "flex";
-        fileView.style.display = "none";
-    } else {
-        toggle.innerHTML = `<i class="fa-solid fa-search"></i>`;
-        hiddenState = true;
-        searchBar.style.display = "none"
-        fileView.style.display = "flex";
-    }
-};
-
 let search = document.getElementById("search");
-let resultPanel = document.getElementById("results");
+let resultPanel = document.querySelector(".results");
 let inputTimer = null;
 search.oninput = (ev) => {
+    resultPanel.style.visibility = "visible";
     if (inputTimer) {
         clearTimeout(inputTimer);
     }
@@ -395,38 +363,22 @@ search.oninput = (ev) => {
                     data.forEach(file => {
                         if (file.type !== "folder") {
                             metadata[file.hash] = file;
-                            resultPanel.appendChild(newFileChild(file));
-                            resultPanel.onclick = (e) => {
-                                toggle.click();
+                            let child = newFileChild(file)
+                            child.onclick = () => {
+                                resultPanel.style.visibility = "hidden";
+                                cardClick(file.hash);
                             };
+                            resultPanel.appendChild(child);
                         }
                     });
                 }
             })
+        } else {
+            resultPanel.style.visibility = "hidden";
         }
     }, 2000);
 };
 
-let newFolderButton = document.getElementById("folder");
-newFolderButton.onclick = () => {
-    let folderName = prompt("Enter folder name");
-    if (folderName) {
-        let folderData = {
-            name: folderName,
-            hash: randomFileHash(),
-            date: new Date().toISOString(),
-            type: "folder",
-            parent: ""
-        }
-        cardView.appendChild(newFileChild(folderData));
-        fetch(`/api/metadata`, {
-            method: "POST",
-            body: JSON.stringify(folderData),
-        }).then(() => {
-            showSnack(`Folder ${folderName} created!`);
-        });
-    }
-};
 
 function newFileChild(file) {
     let fileDiv = document.createElement("div");
@@ -476,60 +428,43 @@ function newFileChild(file) {
     return fileDiv;
 }
 
-let sidebar = document.querySelector(".side");
-let crossButton = document.querySelector("#cross");
-let navTitle = document.querySelector("#sidenav_title");
-let navFileSize = document.querySelector("#sidenav_size");
-let navFileDate = document.querySelector("#sidenav_date");
-let navFileHash = document.querySelector("#sidenav_hash");
-let navFileMime = document.querySelector("#sidenav_mime");
-let navFileParent = document.querySelector("#sidenav_parent");
-let navIcon = document.querySelector("#sidenav_icon");
-let navDownloadButton = document.querySelector("#sidenav_download");
-let navDeleteButton = document.querySelector("#sidenav_delete");
-let navCopyButton = document.querySelector("#sidenav_copy");
-let navEmbedButton = document.querySelector("#sidenav_embed");
+let fileOption = document.querySelector(".file-option");
+let fileOptionClose = document.querySelector("#close-option");
+let fileOptionTitle = document.querySelector("#title-option");
+let fileOptionMime = document.querySelector("#mime-option");
+let fileDelteOption = document.querySelector("#delete-option");
+let fileEmbedOption = document.querySelector("#embed-option");
+let fileShareOption = document.querySelector("#copy-option");
+let fileDownloadOption = document.querySelector("#download-option");
 
 function cardClick(hash) {
     contextFile = metadata[hash];
     if (contextFile.type !== "folder") {
-        navTitle.innerHTML = contextFile.name;
-        navFileSize.innerHTML = handleSizeUnit(contextFile.size);
-        let d = new Date(contextFile.date);
-        navFileDate.innerHTML = d.getDate()
-            + "/" + (d.getMonth() + 1)
-            + "/" + d.getFullYear()
-            + " " + d.getHours()
-            + ":" + d.getMinutes()
-            + ":" + d.getSeconds();
-        navFileHash.innerHTML = contextFile.hash;
-        if (contextFile.parent) {
-            navFileParent.innerHTML = contextFile.parent;
-        }
-        navFileMime.innerHTML = contextFile.mime;
-        navIcon.className = handleMimeIcon(contextFile.mime);
-        sidebar.style.display = "flex";
+        fileOptionTitle.innerHTML = contextFile.name;
+        fileOptionMime.innerHTML = contextFile.mime;
+        fileOption.style.visibility = "visible";
     } else {
         folderQueue.push(metadata[hash]);
         folderClick(metadata[hash]);
     }
 }
 
-crossButton.onclick = () => {
-    sidebar.style.display = "none";
+fileOptionClose.onclick = () => {
+    fileOption.style.visibility = "hidden";
 };
-navDownloadButton.onclick = () => {
+
+fileDownloadOption.onclick = () => {
     downloadFile(contextFile);
-    sidebar.style.display = "none";
+    fileOption.style.visibility = "hidden";
 };
-navDeleteButton.onclick = () => {
+fileDelteOption.onclick = () => {
     deleteFile(contextFile);
-    sidebar.style.display = "none";
+    fileOption.style.visibility = "hidden";
 };
-navCopyButton.onclick = () => {
+fileShareOption.onclick = () => {
     shareButtonClick(contextFile);
 };
-navEmbedButton.onclick = () => {
+fileEmbedOption.onclick = () => {
     if (contextFile.size > 1024 * 1024 * 5) {
         showSnack("File is too big to embed", snackbarRed);
         return;
@@ -542,6 +477,7 @@ navEmbedButton.onclick = () => {
 
 let pathPrompt = document.querySelector(".fragment");
 function folderClick(folder) {
+    fileOption.style.visibility = "hidden";
     if (folder.parent) {
         pathPrompt.innerHTML = `/${folder.parent}/${folder.name}/`;
         handleFolderClick(`${folder.parent}/${folder.name}`);
@@ -552,6 +488,7 @@ function folderClick(folder) {
 }
 let previousFolderButton = document.querySelector("#previos_folder");
 previousFolderButton.onclick = () => {
+    fileOption.style.visibility = "hidden";
     if (folderQueue.length > 1) {
         folderQueue.pop();
         let folder = folderQueue[folderQueue.length - 1];
@@ -618,3 +555,42 @@ function handleFolderClick(parent) {
         });
     })
 }
+
+uploadButton.addEventListener('click', () => {
+    uploadInput.click();
+});
+
+uploadInput.addEventListener('change', () => {
+    let files = uploadInput.files;
+    for (let i = 0; i < files.length; i++) {
+        uploadFile(files[i]);
+    }
+});
+
+folderButton.onclick = () => {
+    let folderName = prompt("Enter folder name");
+    if (folderName) {
+        let folderData = {
+            name: folderName,
+            hash: randomFileHash(),
+            date: new Date().toISOString(),
+            type: "folder",
+            parent: ""
+        }
+        if (folderQueue.length > 0) {
+            let folder = folderQueue[folderQueue.length - 1];
+            if (folder.parent) {
+                folderData.parent = `${folder.parent}/${folder.name}`;
+            } else {
+                folderData.parent = folder.name;
+            }
+        }
+        cardView.appendChild(newFileChild(folderData));
+        fetch(`/api/metadata`, {
+            method: "POST",
+            body: JSON.stringify(folderData),
+        }).then(() => {
+            showSnack(`Folder ${folderName} created!`);
+        });
+    }
+};
