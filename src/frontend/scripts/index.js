@@ -585,6 +585,7 @@ folderButton.onclick = () => {
                 folderData.parent = folder.name;
             }
         }
+        metadata[folderData.hash] = folderData;
         cardView.appendChild(newFileChild(folderData));
         fetch(`/api/metadata`, {
             method: "POST",
