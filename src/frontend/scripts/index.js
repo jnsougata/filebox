@@ -397,6 +397,7 @@ function newFileChild(file) {
     detailsDiv.className = "details";
     let fileName = document.createElement("p");
     fileName.innerHTML = file.name;
+    fileName.style.fontSize = "15px";
     let fileDetails = document.createElement("p");
     let d = new Date(file.date);
     let date = d.getDate()
@@ -405,10 +406,12 @@ function newFileChild(file) {
         + " " + d.getHours()
         + ":" + d.getMinutes()
         + ":" + d.getSeconds();
-    fileDetails.innerHTML = `
-    <i class="fa-solid fa-database" style="margin-left: 0"></i> ${handleSizeUnit(file.size)}
-    <i class="fa-solid fa-calendar"></i> ${date}
-    `;
+    let size = handleSizeUnit(file.size);
+    if (size) {
+        fileDetails.innerHTML = `${handleSizeUnit(file.size)}  ${date}`;
+    } else {
+        fileDetails.innerHTML = `${date}`;
+    }
     let progressBar = document.createElement("div");
     progressBar.id = `progress-${file.hash}`;
     progressBar.className = "progress";

@@ -6,7 +6,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon" href="../assets/icon.png" type="image/x-icon">
-        <link rel="stylesheet" type="text/css" href="../styles/style.css">
+        <link rel="stylesheet" type="text/css" href="../styles/next.css">
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,78 +16,71 @@
     </head>
     <body>
         <div class="container">
-            <div class="header">
-                <div class="left">
-                    <img src="../assets/icon.png" alt="FileBox">
-                    <h3>FileBox</h3>
+            <header>
+                <div class="menu">
+                    <i class="fas fa-bars"></i>
                 </div>
-                <div class="right">
-                    <button id="folder">
-                        <i class="fa-solid fa-folder-plus"></i>
-                    </button>
-                    <button id="upload">
-                        <i class="fa-solid fa-file-arrow-up"></i>
-                    </button>
-                    <input type="file" id="file-input" multiple style="display: none;">
-                    <button id="settings">
-                        <i class="fa-solid fa-cog"></i>
-                    </button>
-                    <button id="toggle">
-                        <i class="fa-solid fa-search"></i>
-                    </button>
+                <div class="logo">
+                    <img src="../assets/icon.png" alt="logo">
+                    FileBox
                 </div>
-            </div>
-            <div class="body">
-                <div class="search">
-                    <div class="inner">
-                        <label for="search"></label>
-                        <input type="text" placeholder="search by keywords" id="search" autocomplete="off">
-                        <div class="results" id="results"></div>
+                <div class="search-bar">
+                    <input type="text" placeholder="search by keywords" id="search">
+                    <i class="fas fa-search"></i>
+                </div>
+            </header>
+            <div class="content">
+                <div class="sidebar-left">
+                    <div class="new-button" id="new-upload">
+                        <span class="material-symbols-rounded" style="font-size: 25px;">
+                            upload
+                        </span>
+                        <span>Upload</span>
+                        <input type="file" id="file-input" multiple style="display: none;">
+                    </div>
+                    <div class="new-button" id="new-folder">
+                        <span class="material-symbols-rounded" style="font-size: 25px;">
+                            folder
+                        </span>
+                        <span>New Folder</span>
                     </div>
                 </div>
-                <div class="content">
-                    <div class="cards">
-                        <div class="prompt">
-                            <div class="fragment">/</div>
-                            <button id="previos_folder">
-                                <i class="fa-solid fa-arrow-left"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="side">
-                        <button id="cross">
-                            <i class="fa-solid fa-times"></i>
+                <div class="view">
+                    <div class="prompt">
+                        <div class="fragment">/</div>
+                        <button id="previos_folder">
+                            <i class="fa-solid fa-arrow-left"></i>
                         </button>
-                        <div class="inner">
-                            <i id="sidenav_icon"></i>
-                            <div class="details">
-                                <p id="sidenav_title" contenteditable="true"></p>
-                                <p id="sidenav_size"></p>
-                                <p id="sidenav_date"></p>
-                                <p id="sidenav_mime"></p>
-                                <p id="sidenav_hash"></p>
-                                <p id="sidenav_parent"></p>
-                            </div>
-                            <div class="group">
-                                <span id="sidenav_download" class="material-symbols-rounded" style="background-color: #1549e3">
-                                    download
-                                </span>
-                                <span id="sidenav_copy" class="material-symbols-rounded" style="background-color: #1549e3">
-                                    link
-                                </span>
-                                <span id="sidenav_embed" class="material-symbols-rounded" style="background-color: #9327eb">
-                                    code
-                                </span>
-                                <span id="sidenav_delete" class="material-symbols-rounded" style="background-color: rgb(255, 68, 68)">
-                                    delete_forever
-                                </span>
-                            </div>
-                        </div>
                     </div>
                 </div>
+                <div class="file-option">
+                    <button id="close-option">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                    <div class="details">
+                        <p id="title-option" contenteditable="true"></p>
+                        <p id="mime-option"></p>
+                    </div>
+                    <div class="group">
+                        <span id="delete-option" class="material-symbols-rounded" style="background-color: rgb(255, 68, 68)">
+                            delete_forever
+                        </span>
+                        <span id="embed-option" class="material-symbols-rounded" style="background-color: #9327eb">
+                            code
+                        </span>
+                        <span id="copy-option" class="material-symbols-rounded" style="background-color: #1549e3">
+                            link
+                        </span>
+                        <span id="download-option" class="material-symbols-rounded" style="background-color: #1549e3">
+                            download
+                        </span>
+                    </div>
+                    <div class="snackbar" id="snackbar"></div>
+                </div>
+                <div class="results"></div>
             </div>
-            <div class="snackbar" id="snackbar"></div>
         </div>
+        <script src="../scripts/next.js"></script>
         <script src="../scripts/index.js"></script>
     </body>
 </html>
