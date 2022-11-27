@@ -379,7 +379,6 @@ search.oninput = (ev) => {
     }, 2000);
 };
 
-
 function newFileChild(file) {
     let fileDiv = document.createElement("div");
     fileDiv.id = `file-${file.hash}`;
@@ -425,10 +424,56 @@ function newFileChild(file) {
     detailsDiv.appendChild(progressBar);
     fileDiv.appendChild(iconDiv);
     fileDiv.appendChild(detailsDiv);
+    if (file.type == "folder") {
+        let deleteButton = document.createElement("div");
+        deleteButton.className = "remove";
+        let deleteIcon = document.createElement("i");
+        deleteIcon.className = "fa-solid fa-trash";
+        deleteButton.appendChild(deleteIcon);
+        deleteButton.onclick = (e) => {
+            deleteFolder(e, file);
+        };
+        fileDiv.appendChild(deleteButton);
+    }
     fileDiv.onclick = () => {
         cardClick(file.hash);
     };
     return fileDiv;
+}
+
+let folderTarget = {};
+function deleteFolder(ev, folder) {
+    ev.stopPropagation();
+    folderTarget["hash"] = folder.hash;
+    if (folder.parent) {
+        folderTarget["children_path"] = `${folder.parent}/${folder.name}`;
+        folderTarget["self_path"] = `/${folder.parent}/${folder.name}`;
+    } else {
+        folderTarget["children_path"] = `${folder.name}`;
+        folderTarget["self_path"] = `/${folder.name}`;
+    }
+    let title = document.querySelector("#confirm_title")
+    title.innerHTML = `Permanently delete ${folderTarget.self_path} and all files inside it?`;
+    document.querySelector(".warning").style.display = "flex";
+}
+
+let confirmButton = document.querySelector("#confirm_yes");
+confirmButton.onclick = () => {
+    fetch(`/api/remove/folder`, {
+        method: "POST",
+        body: JSON.stringify(folderTarget),
+    } )
+    .then(() => {
+        document.querySelector(".warning").style.display = "none";
+        document.getElementById(`file-${folderTarget.hash}`).remove();
+        showSnack(`Deleted ${folderTarget.self_path}`, snackbarRed);
+    })
+};
+
+let cancelButton = document.querySelector("#confirm_no");
+cancelButton.onclick = () => {
+    document.querySelector(".warning").style.display = "none";
+    folderTarget = null;
 }
 
 let fileOption = document.querySelector(".file-option");

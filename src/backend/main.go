@@ -26,6 +26,7 @@ func main() {
 	r.HandleFunc("/shared/chunk/{skip}/{hash}", HandleDownload).Methods("GET")
 	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")
 	r.HandleFunc("/query", QueryHandler).Methods("POST")
+	r.HandleFunc("/remove/folder", HandleFolderDelete).Methods("POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -138,4 +139,28 @@ func QueryHandler(w http.ResponseWriter, r *http.Request) {
 	resp := base.Fetch(q, "", 0).Data["items"]
 	ba, _ := json.Marshal(resp)
 	_, _ = w.Write(ba)
+}
+
+func HandleFolderDelete(w http.ResponseWriter, r *http.Request) {
+	var body map[string]interface{}
+	_ = json.NewDecoder(r.Body).Decode(&body)
+	base.Delete(body["hash"].(string))
+	q := deta.Query()
+	q.Equals(map[string]interface{}{"parent": body["children_path"].(string)})
+	resp := base.Fetch(q, "", 0).Data["items"]
+	// TODO: fetch all items if pagination is received
+	var driveTargets []string
+	for _, item := range resp.([]interface{}) {
+		fileRecord := item.(map[string]interface{})
+		fileHash := fileRecord["hash"].(string)
+		extSplit := strings.Split(fileRecord["name"].(string), ".")
+		if len(extSplit) > 1 {
+			driveTargets = append(driveTargets, fmt.Sprintf("%s.%s", fileHash, extSplit[1]))
+		} else {
+			driveTargets = append(driveTargets, fileHash)
+		}
+	}
+	_ = drive.Delete(driveTargets...)
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("ok"))
 }

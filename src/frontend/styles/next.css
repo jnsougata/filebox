@@ -55,7 +55,7 @@ body {
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
 }
 
-.container > header > .menu{
+.container > header > .menu {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -105,6 +105,7 @@ body {
 }
 
 .container > header > .search-bar > i {
+    position: fixed;
     font-size: 18px;
     color: rgb(31, 98, 199);
     cursor: pointer;
@@ -119,7 +120,7 @@ body {
         width: 150px;
     }
     .container > header > .search-bar > i {
-        margin-right: 12px;
+        margin-right: 15px;
     }
 }
 
@@ -245,6 +246,24 @@ body {
     cursor: pointer;
 }
 
+.card > .remove {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.123);
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.card > .remove > i {
+    font-size: 15px;
+    color: #ccc;
+    padding: 10px;
+}
+
 .card > .icon {
     width: 20px;
     height: 20px;
@@ -326,6 +345,9 @@ body {
     .body > .content > .cards > .prompt {
         width: 50%;
         height: 30px;
+    }
+    .card > .remove {
+        margin-right: 20px;
     }
 }
 
@@ -562,3 +584,80 @@ body {
         margin-bottom: 20px;
     }
 }
+
+.warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(16, 14, 14, 0.766);
+    z-index: 1000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 15px;
+    animation: warning 0.5s ease-in-out infinite;
+}
+
+.warning > .box {
+    width: 400px;
+    height: 150px;
+    background-color: var(--black-main);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+}
+
+.warning > .box > .title {
+    font-size: 15px;
+    margin-bottom: 10px;
+    max-width: 300px;
+    text-align: left;
+    word-wrap: break-word;
+}
+
+.warning > .box > .group {
+    width: 300px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.warning > .box > .group > button {
+    background-color: rgb(239, 73, 73);
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.3s;
+    padding: 5px 8px;
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+@media screen and (max-width: 768px) {
+    .warning > .box {
+        width: 300px;
+        height: 150px;
+    }
+
+    .warning > .box > .title {
+        font-size: 15px;
+        margin-bottom: 10px;
+        max-width: 250px;
+        text-align: left;
+        word-wrap: break-word;
+    }
+
+    .warning > .box > .group {
+        width: 250px;
+    }
+}
+    
