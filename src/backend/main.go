@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/jnsougata/deta-go/deta"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/gorilla/mux"
+	"github.com/jnsougata/deta-go/deta"
 )
 
 var d = deta.New()
