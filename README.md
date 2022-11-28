@@ -21,5 +21,9 @@ A personal cloud storage service for free (upto 10GB)
 - File preview
 - File Renaming
 
-## Preview
-![image](https://dev-collie-filebox.gyrooo.deta.app/embed/4e6c3c0279b85b7c)
+## Mobile Preview
+![image](https://user-images.githubusercontent.com/53375272/204375192-36dfb307-2f7f-44fd-b463-279f765b5fba.png)
+
+## Desktop Preview
+![image](https://user-images.githubusercontent.com/53375272/204374655-4dd8743f-63a1-4c8a-8b0d-176020271c0c.png)
+
