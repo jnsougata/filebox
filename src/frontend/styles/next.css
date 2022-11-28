@@ -424,7 +424,6 @@ body {
     right: 0;
     bottom: 0;
     position: fixed;
-    margin-bottom: 60px;
     width: 400px;
     height: 150px;
     margin-right: 48px;
@@ -509,7 +508,6 @@ body {
         height: 150px;
         margin-right: auto;
         margin-left: auto;
-        margin-bottom: 0;
         background-color: var(--black-secondary);
         border-radius: 20px 20px 0 0;
     }
@@ -563,7 +561,7 @@ body {
     min-height: 20px;
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 80px;
+    margin-bottom: 20px;
     color: white;
     font-size: small;
     text-align: center;
@@ -581,7 +579,6 @@ body {
 @media screen and (max-width: 768px) {
     .snackbar {
         max-width: 300px;
-        margin-bottom: 20px;
     }
 }
 
