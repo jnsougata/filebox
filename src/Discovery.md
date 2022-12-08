@@ -1,19 +1,20 @@
 ---
 title: "FileBox"
-tagline: "your personal cloud storage"
+tagline: "Personal file storage on space"
 theme_color: "#1c42684f"
 ---
 
-upload and store any file in your personal space drive
+Upload and store any file in your personal space drive
 
 FileBox comes with:
 
-- Minimal UI
-- Easy file upload
-- Multiple file upload (drag and drop)
-- Upload any file type and size ( < 10GB )
+- Minimal Desktop and Mobile compatible UI
+- Easy file upload & multiple upload support
+- Upload file of any type and size upto 10GB
+- Embeddable file urls for using in any website
 - Download file from your space drive when needed
-- Share file with others (size <= 30MB and any type)
+- Publicly shareable file urls of the files upto 30MB 
+
 
 Coming Soon:
 - File preview.

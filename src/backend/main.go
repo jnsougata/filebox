@@ -27,6 +27,7 @@ func main() {
 	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")
 	r.HandleFunc("/query", QueryHandler).Methods("POST")
 	r.HandleFunc("/remove/folder", HandleFolderDelete).Methods("POST")
+	r.HandleFunc("/rename", HandleRename).Methods("POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -163,4 +164,12 @@ func HandleFolderDelete(w http.ResponseWriter, r *http.Request) {
 	_ = drive.Delete(driveTargets...)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("ok"))
+}
+
+func HandleRename(w http.ResponseWriter, r *http.Request) {
+	var body map[string]interface{}
+	_ = json.NewDecoder(r.Body).Decode(&body)
+	updater := base.Update(body["hash"].(string))
+	updater.Set(map[string]interface{}{"name": body["name"].(string)})
+	updater.Do()
 }

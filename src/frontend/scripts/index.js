@@ -577,7 +577,6 @@ previousFolderButton.onclick = () => {
         })
     }
 };
-
 function handleFolderClick(parent) {
     fetch(`/api/folder/${parent}`)
     .then(res => res.json())
@@ -603,7 +602,6 @@ function handleFolderClick(parent) {
         });
     })
 }
-
 uploadButton.addEventListener('click', () => {
     uploadInput.click();
 });
@@ -614,7 +612,6 @@ uploadInput.addEventListener('change', () => {
         uploadFile(files[i]);
     }
 });
-
 folderButton.onclick = () => {
     let folderName = prompt("Enter folder name");
     if (folderName) {
@@ -643,3 +640,54 @@ folderButton.onclick = () => {
         });
     }
 };
+let nameInputTimer = null;
+function fileRename(updatedName, hash) {
+    if (nameInputTimer) {
+        clearTimeout(nameInputTimer)
+    }
+    nameInputTimer = setTimeout(function() {
+        let oldNameExtension = metadata[hash].name.split(".").pop();
+        let newNameExtension = updatedName.split(".").pop();
+        if (oldNameExtension !== newNameExtension) {
+            showSnack("File extension cannot be changed", snackbarRed);
+            return;
+        }
+        let payload = {
+            hash: hash,
+            name: updatedName
+        }
+        fetch(`/api/rename`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+        })
+        .then((res) => {
+            if (res.status === 200) {
+                metadata[hash].name = updatedName;
+                showSnack(`File renamed to ${updatedName}`);
+            } else {
+                return;
+            }
+        })
+    }, 2000)
+}
+
+let menu =  document.querySelector( '.menu' );
+let sidebar_left =  document.querySelector( '.sidebar-left' );
+let sidebar_right =  document.querySelector( '.sidebar-right' );
+let file_option =  document.querySelector( '.file-option' );
+let is_toggled =  false ;
+menu.addEventListener( 'click' ,  (e) => {
+    if (is_toggled) {
+        sidebar_left.style.display =  'none' ;
+        is_toggled =  false ;
+    }  else  {
+        sidebar_left.style.display =  'flex' ;
+        file_option.style.visibility =  'hidden' ;
+        is_toggled =  true ;
+    }
+} );
+
+let logo = document.querySelector(".logo");
+logo.onclick = () => {
+    window.open("https://github.com/jnsougata/filebox", "_blank");
+}
