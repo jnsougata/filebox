@@ -1,9 +1,12 @@
 let uploadButton = document.querySelector("#new-upload");
 let folderButton = document.querySelector("#new-folder");
-let uploadInput = document.getElementById('file-input');
-let fileView = document.querySelector('.content');
-let cardView = document.querySelector('.view');
+let uploadInput = document.getElementById("file-input");
+let fileView = document.querySelector(".content");
+let cardView = document.querySelector(".view");
 let snackbar = document.getElementById("snackbar");
+let fileOption = document.querySelector(".file-option");
+let sidebarLeft =  document.querySelector(".sidebar-left");
+let menu =  document.querySelector( '.menu' );
 const snackbarRed = "rgb(203, 20, 70)";
 const snackbarGreen = "rgb(37, 172, 80)";
 const downloadGreen = "#25a03d";
@@ -12,6 +15,7 @@ let hiddenState = true;
 let metadata = null;
 let contextFile = null;
 let folderQueue = [];
+let isRenaming = false;
 
 function randomFileHash() {
     return [...Array(16)].map(
@@ -326,6 +330,7 @@ function deleteFile(file) {
     })
 }
 
+// Progress Bar Handler
 function renderBarMatrix(hash, color) {
     let progressBar = document.getElementById(`progress-${hash}`);
     progressBar.style.display = "flex";
@@ -340,6 +345,7 @@ function hideBarMatrix(hash) {
     bar.style.width = "0%";
 }
 
+// File Search Handler
 let search = document.getElementById("search");
 let resultPanel = document.querySelector(".results");
 let inputTimer = null;
@@ -379,6 +385,7 @@ search.oninput = (ev) => {
     }, 2000);
 };
 
+// File / Folder Render Element Handler
 function newFileChild(file) {
     let fileDiv = document.createElement("div");
     fileDiv.id = `file-${file.hash}`;
@@ -396,6 +403,17 @@ function newFileChild(file) {
     detailsDiv.className = "details";
     let fileName = document.createElement("p");
     fileName.innerHTML = file.name;
+    if (file.type !== "folder") {
+        fileName.contentEditable = "true";
+        fileName.spellcheck = false;
+    }
+    fileName.onclick = (e) => {
+        e.stopPropagation();
+        isRenaming = true;
+    };
+    fileName.onblur = (e) => {
+        fileRename(e, file.hash);
+    };
     fileName.style.fontSize = "15px";
     let fileDetails = document.createElement("p");
     let d = new Date(file.date);
@@ -434,13 +452,25 @@ function newFileChild(file) {
             deleteFolder(e, file);
         };
         fileDiv.appendChild(deleteButton);
+        fileDiv.onclick = () => {
+            cardClick(file.hash);
+        };
+    } else {
+        let fileView = document.createElement("div");
+        fileView.className = "options";
+        let fileViewIcon = document.createElement("i");
+        fileViewIcon.className = "fa-solid fa-ellipsis-vertical";
+        fileView.appendChild(fileViewIcon);
+        fileView.onclick = (e) => {
+            e.stopPropagation();
+            cardClick(file.hash);
+        };
+        fileDiv.appendChild(fileView);
     }
-    fileDiv.onclick = () => {
-        cardClick(file.hash);
-    };
     return fileDiv;
 }
 
+// Folder Deletion Handler
 let folderTarget = {};
 function deleteFolder(ev, folder) {
     ev.stopPropagation();
@@ -476,7 +506,8 @@ cancelButton.onclick = () => {
     folderTarget = null;
 }
 
-let fileOption = document.querySelector(".file-option");
+
+// File Menu Options Handlers
 let fileOptionClose = document.querySelector("#close-option");
 let fileOptionTitle = document.querySelector("#title-option");
 let fileOptionMime = document.querySelector("#mime-option");
@@ -486,6 +517,9 @@ let fileShareOption = document.querySelector("#copy-option");
 let fileDownloadOption = document.querySelector("#download-option");
 
 function cardClick(hash) {
+    if (isRenaming) {
+        return;
+    }
     contextFile = metadata[hash];
     if (contextFile.type !== "folder") {
         fileOptionTitle.innerHTML = contextFile.name;
@@ -523,6 +557,7 @@ fileEmbedOption.onclick = () => {
     });
 };
 
+// Promt Path Handler
 let pathPrompt = document.querySelector(".fragment");
 function folderClick(folder) {
     fileOption.style.visibility = "hidden";
@@ -534,6 +569,8 @@ function folderClick(folder) {
         handleFolderClick(folder.name);
     }
 }
+
+// Prompt Back Button Handler
 let previousFolderButton = document.querySelector("#previos_folder");
 previousFolderButton.onclick = () => {
     fileOption.style.visibility = "hidden";
@@ -577,6 +614,8 @@ previousFolderButton.onclick = () => {
         })
     }
 };
+
+// Folder Click Handler
 function handleFolderClick(parent) {
     fetch(`/api/folder/${parent}`)
     .then(res => res.json())
@@ -602,6 +641,8 @@ function handleFolderClick(parent) {
         });
     })
 }
+
+// Drag and Drop Handler
 uploadButton.addEventListener('click', () => {
     uploadInput.click();
 });
@@ -612,6 +653,8 @@ uploadInput.addEventListener('change', () => {
         uploadFile(files[i]);
     }
 });
+
+// Folder Create Handler
 folderButton.onclick = () => {
     let folderName = prompt("Enter folder name");
     if (folderName) {
@@ -640,50 +683,51 @@ folderButton.onclick = () => {
         });
     }
 };
-let nameInputTimer = null;
-function fileRename(updatedName, hash) {
-    if (nameInputTimer) {
-        clearTimeout(nameInputTimer)
+
+// File Rename Handler
+function fileRename(e, hash) {
+    let oldName = metadata[hash].name;
+    let oldNameExtension = oldName.split(".").pop();
+    let updatedName = e.target.innerHTML;
+    let updatedExtension = updatedName.split(".").pop();
+    if (oldNameExtension !== updatedExtension) {
+        e.target.innerHTML = oldName;
+        showSnack("File extension cannot be changed", snackbarRed);
+        isRenaming = false;
+        return;
     }
-    nameInputTimer = setTimeout(function() {
-        let oldNameExtension = metadata[hash].name.split(".").pop();
-        let newNameExtension = updatedName.split(".").pop();
-        if (oldNameExtension !== newNameExtension) {
-            showSnack("File extension cannot be changed", snackbarRed);
+    if (updatedName === oldName) {
+        isRenaming = false;
+        return;
+    }
+    let payload = {
+        hash: hash,
+        name: updatedName
+    }
+    fetch(`/api/rename`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+    })
+    .then((res) => {
+        isRenaming = false;
+        if (res.status === 200) {
+            metadata[hash].name = updatedName;
+            showSnack(`File renamed to ${updatedName}`);
+        } else {
             return;
         }
-        let payload = {
-            hash: hash,
-            name: updatedName
-        }
-        fetch(`/api/rename`, {
-            method: "POST",
-            body: JSON.stringify(payload),
-        })
-        .then((res) => {
-            if (res.status === 200) {
-                metadata[hash].name = updatedName;
-                showSnack(`File renamed to ${updatedName}`);
-            } else {
-                return;
-            }
-        })
-    }, 2000)
+    })
 }
 
-let menu =  document.querySelector( '.menu' );
-let sidebar_left =  document.querySelector( '.sidebar-left' );
-let sidebar_right =  document.querySelector( '.sidebar-right' );
-let file_option =  document.querySelector( '.file-option' );
-let is_toggled =  false ;
+let isToggled =  false ;
 menu.addEventListener( 'click' ,  (e) => {
-    if (is_toggled) {
-        sidebar_left.style.display =  'none' ;
-        is_toggled =  false ;
+    if (isToggled) {
+        sidebarLeft.style.display =  'none' ;
+        isToggled =  false ;
     }  else  {
-        sidebar_left.style.display =  'flex' ;
-        file_option.style.visibility =  'hidden' ;
-        is_toggled =  true ;
+        sidebarLeft.style.display =  'flex' ;
+        fileOption.style.visibility =  'hidden' ;
+        isToggled =  true ;
     }
 } );
 

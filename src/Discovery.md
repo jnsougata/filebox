@@ -14,8 +14,3 @@ FileBox comes with:
 - Embeddable file urls for using in any website
 - Download file from your space drive when needed
 - Publicly shareable file urls of the files upto 30MB 
-
-
-Coming Soon:
-- File preview.
-- File Renaming.

@@ -243,7 +243,24 @@ body {
     display: flex;
     justify-content: space-around;
     align-items: center;
+}
+
+.card > .options {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    border-radius: 5px;
     cursor: pointer;
+    margin-right: 10px;
+}
+
+.card > .options > i {
+    font-size: 15px;
+    color: #ccc;
+    padding: 10px;
 }
 
 .card > .remove {
@@ -347,6 +364,11 @@ body {
         height: 30px;
     }
     .card > .remove {
+        margin-right: 20px;
+    }
+    .card > .options {
+        width: 30px;
+        height: 30px;
         margin-right: 20px;
     }
 }
@@ -643,7 +665,6 @@ body {
         width: 300px;
         height: 150px;
     }
-
     .warning > .box > .title {
         font-size: 15px;
         margin-bottom: 10px;
@@ -651,7 +672,6 @@ body {
         text-align: left;
         word-wrap: break-word;
     }
-
     .warning > .box > .group {
         width: 250px;
     }
