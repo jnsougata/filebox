@@ -17,9 +17,8 @@ A personal cloud storage service for free (upto 10GB)
 - More suitable for mobile devices
 - Embed files of size less than 5MB 
 
-### Coming Soon
-- File preview
-- File Renaming
+### Logo Credit
+<a href="https://www.flaticon.com/free-icons/box" title="box icons">Box icons created by srip - Flaticon</a>
 
 ## Mobile Preview
 ![image](https://user-images.githubusercontent.com/53375272/204375192-36dfb307-2f7f-44fd-b463-279f765b5fba.png)
