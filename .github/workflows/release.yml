@@ -11,6 +11,6 @@ jobs:
           with:
             access_token: ${{ secrets.SPACE_ACCESS_TOKEN }}
             project_id: ${{ secrets.SPACE_PROJECT_ID }}
-            space_push: true
-            space_release: true
-            list_on_discovery: true
+            space_push: false
+            space_release: false
+            list_on_discovery: false

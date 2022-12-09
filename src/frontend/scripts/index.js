@@ -617,7 +617,10 @@ previousFolderButton.onclick = () => {
 
 // Folder Click Handler
 function handleFolderClick(parent) {
-    fetch(`/api/folder/${parent}`)
+    fetch(`/api/folder`, {
+        method: "POST",
+        body: JSON.stringify({parent: parent})
+    })
     .then(res => res.json())
     .then(data => {
         for (let file of Object.values(metadata)) {

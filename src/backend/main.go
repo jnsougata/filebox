@@ -21,7 +21,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/secret", HandleSecret).Methods("GET")
 	r.HandleFunc("/metadata", HandleMetadata).Methods("GET", "POST", "DELETE")
-	r.HandleFunc("/folder/{path:[a-zA-Z0-9=\\-\\/]+}", HandleFolder).Methods("GET")
+	r.HandleFunc("/folder", HandleFolder).Methods("POST")
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
 	r.HandleFunc("/shared/chunk/{skip}/{hash}", HandleDownload).Methods("GET")
 	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")
@@ -78,10 +78,11 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 
 func HandleFolder(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	vars := mux.Vars(r)
-	path := vars["path"]
+	var body map[string]interface{}
+	_ = json.NewDecoder(r.Body).Decode(&body)
+	parent := body["parent"].(string) 
 	q := deta.Query()
-	q.Equals(map[string]interface{}{"parent": path})
+	q.Equals(map[string]interface{}{"parent": parent})
 	resp := base.Fetch(q, "", 0).Data["items"]
 	ba, _ := json.Marshal(resp)
 	_, _ = w.Write(ba)
