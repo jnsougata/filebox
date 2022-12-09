@@ -442,7 +442,6 @@ body {
 }
 
 .file-option {
-    visibility: hidden;
     right: 0;
     bottom: 0;
     position: fixed;
@@ -451,13 +450,12 @@ body {
     margin-right: 48px;
     background-color: #282835;
     border-radius: 5px 5px 0 0;
-    display: flex;
+    display: none;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     z-index: 100;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
@@ -495,16 +493,26 @@ body {
     width: 100%;
 }
 
-.file-option > .group > span {
-    font-size: 25px;
-    color: whitesmoke;
+.file-option > .group > button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: 0.3s;
     margin-left: 10px;
     margin-right: 10px;
-    padding: 6px;
+}
+
+.file-option > .group > button > i {
+    font-size: 15px;
+    color: whitesmoke;
     border-radius: 50%;
     cursor: pointer;
     transition: 0.3s;
-    background-color: #ffffff13;
 }
 
 .file-option > button {
@@ -541,7 +549,6 @@ body {
 }
 
 .results {
-    visibility: hidden;
     right: 0;
     bottom: 0;
     position: fixed;
@@ -556,13 +563,14 @@ body {
     align-items: center;
     z-index: 100;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    display: flex;
+    display: none;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     transition: 0.3s;
     overflow-x: hidden;
     overflow-y: auto;
+    padding-top: 20px;
 }
 
 @media screen and (max-width: 768px) {
@@ -573,6 +581,7 @@ body {
         margin-left: auto;
         margin-bottom: 0;
         border-radius: 20px 20px 0 0;
+        padding-top: 10px;
     }
 }
 

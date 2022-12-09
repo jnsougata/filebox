@@ -350,7 +350,7 @@ let search = document.getElementById("search");
 let resultPanel = document.querySelector(".results");
 let inputTimer = null;
 search.oninput = (ev) => {
-    resultPanel.style.visibility = "visible";
+    resultPanel.style.display = "flex";
     if (inputTimer) {
         clearTimeout(inputTimer);
     }
@@ -369,24 +369,25 @@ search.oninput = (ev) => {
                     data.forEach(file => {
                         if (file.type !== "folder") {
                             metadata[file.hash] = file;
-                            let child = newFileChild(file)
-                            child.onclick = () => {
-                                resultPanel.style.visibility = "hidden";
+                            resultPanel.appendChild(newFileChild(file, true));
+                            let optionsButton = document.getElementById(`result-${file.hash}`);
+                            optionsButton.addEventListener("click", (e) => {
+                                resultPanel.style.display = "none";
+                                e.stopPropagation();
                                 cardClick(file.hash);
-                            };
-                            resultPanel.appendChild(child);
+                            });
                         }
                     });
                 }
             })
         } else {
-            resultPanel.style.visibility = "hidden";
+            resultPanel.style.display = "none";
         }
     }, 2000);
 };
 
 // File / Folder Render Element Handler
-function newFileChild(file) {
+function newFileChild(file, isResult = false) {
     let fileDiv = document.createElement("div");
     fileDiv.id = `file-${file.hash}`;
     fileDiv.className = "card";
@@ -458,6 +459,9 @@ function newFileChild(file) {
     } else {
         let fileView = document.createElement("div");
         fileView.className = "options";
+        if (isResult) {
+            fileView.id = `result-${file.hash}`;
+        }
         let fileViewIcon = document.createElement("i");
         fileViewIcon.className = "fa-solid fa-ellipsis-vertical";
         fileView.appendChild(fileViewIcon);
@@ -524,24 +528,22 @@ function cardClick(hash) {
     if (contextFile.type !== "folder") {
         fileOptionTitle.innerHTML = contextFile.name;
         fileOptionMime.innerHTML = contextFile.mime;
-        fileOption.style.visibility = "visible";
+        fileOption.style.display = "flex";
     } else {
         folderQueue.push(metadata[hash]);
         folderClick(metadata[hash]);
     }
 }
-
 fileOptionClose.onclick = () => {
-    fileOption.style.visibility = "hidden";
+    fileOption.style.display = "none";
 };
-
 fileDownloadOption.onclick = () => {
     downloadFile(contextFile);
-    fileOption.style.visibility = "hidden";
+    fileOption.style.display = "none";
 };
 fileDelteOption.onclick = () => {
     deleteFile(contextFile);
-    fileOption.style.visibility = "hidden";
+    fileOption.style.display = "none";
 };
 fileShareOption.onclick = () => {
     shareButtonClick(contextFile);
@@ -560,7 +562,7 @@ fileEmbedOption.onclick = () => {
 // Promt Path Handler
 let pathPrompt = document.querySelector(".fragment");
 function folderClick(folder) {
-    fileOption.style.visibility = "hidden";
+    fileOption.style.display = "none";
     if (folder.parent) {
         pathPrompt.innerHTML = `/${folder.parent}/${folder.name}/`;
         handleFolderClick(`${folder.parent}/${folder.name}`);
@@ -573,7 +575,7 @@ function folderClick(folder) {
 // Prompt Back Button Handler
 let previousFolderButton = document.querySelector("#previos_folder");
 previousFolderButton.onclick = () => {
-    fileOption.style.visibility = "hidden";
+    fileOption.style.display = "none";
     if (folderQueue.length > 1) {
         folderQueue.pop();
         let folder = folderQueue[folderQueue.length - 1];
@@ -729,7 +731,7 @@ menu.addEventListener( 'click' ,  (e) => {
         isToggled =  false ;
     }  else  {
         sidebarLeft.style.display =  'flex' ;
-        fileOption.style.visibility =  'hidden' ;
+        fileOption.style.display =  'none' ;
         isToggled =  true ;
     }
 } );
