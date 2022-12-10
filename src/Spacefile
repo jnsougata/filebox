@@ -1,20 +1,9 @@
 v: 1
-icon: ./frontend/assets/icon.png
+icon: ./router/assets/icon.png
 micros:
 
-  - name: backend
-    src: ./backend/
-    engine: custom
-    commands:
-      - go get
-      - go build main.go
-    include:
-      - main
-    run: ./main
-    path: api
-  
-  - name: frontend
-    src: ./frontend/
+  - name: router
+    src: ./router/
     engine: custom
     primary: true
     commands:
@@ -35,4 +24,15 @@ micros:
       - "/api/shared/*"
       - "/scripts/magic.js"
       - "/styles/style.css"
+  
+  - name: api
+    src: ./api/
+    engine: custom
+    commands:
+      - go get
+      - go build main.go
+    include:
+      - main
+    run: ./main
+    path: api
     
