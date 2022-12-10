@@ -1,12 +1,12 @@
 ---
 title: "FileBox"
-tagline: "Personal file storage on space"
+tagline: "Fastest file storage on space"
 theme_color: "#1c42684f"
 ---
 
-Upload and store any file in your personal space drive
+Upload and store any file in your Personal Space Drive
 
-FileBox comes with:
+#### Features
 
 - Minimal Desktop and Mobile compatible UI
 - Easy file upload & multiple upload support
