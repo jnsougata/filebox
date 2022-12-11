@@ -1,6 +1,7 @@
 ---
 title: "FileBox"
-tagline: "Fastest file storage on space"
+tagline: "Fastest File Storage (Supports Large Files)"
+git: "https://github.com/jnsougata/filebox"
 theme_color: "#1c42684f"
 ---
 
