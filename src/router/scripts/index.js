@@ -463,6 +463,7 @@ function newFileChild(file, isResult = false) {
             fileView.id = `result-${file.hash}`;
         }
         let fileViewIcon = document.createElement("i");
+        fileViewIcon.id = `icon-${file.hash}`;
         fileViewIcon.className = "fa-solid fa-circle-chevron-down";
         fileView.appendChild(fileViewIcon);
         fileView.onclick = (e) => {
@@ -542,6 +543,8 @@ function cardClick(hash) {
 }
 fileOptionClose.onclick = () => {
     fileOption.style.display = "none";
+    let icon = document.querySelector(`#icon-${contextFile.hash}`)
+    icon.className = "fa-solid fa-circle-chevron-down";
 };
 fileDownloadOption.onclick = () => {
     downloadFile(contextFile);
@@ -559,7 +562,8 @@ fileEmbedOption.onclick = () => {
         showSnack("File is too big to embed", snackbarRed);
         return;
     }
-    window.navigator.clipboard.writeText(`${window.location.protocol}//${window.location.host}/api/embed/${contextFile.hash}`)
+    let embedUrl = `${window.location.protocol}//${window.location.host}/api/embed/${contextFile.hash}`;
+    window.navigator.clipboard.writeText(embedUrl)
     .then(() => {
         showSnack(`Embed url copied to clipboard`);
     });
