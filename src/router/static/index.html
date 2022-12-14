@@ -6,7 +6,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon" href="/assets/icon.png" type="image/x-icon">
-        <link rel="stylesheet" type="text/css" href="/styles/index.css">
+        <link rel="stylesheet" type="text/css" href="../styles/index.css">
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@100;400;900&display=swap" rel="stylesheet" />
@@ -17,15 +17,15 @@
         <div class="container">
             <header>
                 <div class="menu">
-                    <i class="fas fa-bars"></i>
+                    <i class="fa-solid fa-bars-staggered"></i>
                 </div>
                 <div class="logo">
                     <img src="/assets/icon.png" alt="logo">
                     FileBox
                 </div>
-                <div class="search-bar">
-                    <input type="text" placeholder="search by keywords" id="search">
-                    <i class="fas fa-search"></i>
+                <div class="search">
+                   <input type="text" placeholder="search by keywords" id="search">
+                   <i class="fa-solid fa-compass"></i>
                 </div>
             </header>
             <div class="warning">
@@ -33,23 +33,19 @@
                     <div class="title" id="confirm_title"></div>
                     <div class="group">
                         <button id="confirm_yes">Yes</button>
-                        <button style="background-color: rgb(62, 171, 62);" id="confirm_no">No</button>
+                        <button style="background-color: rgb(24, 146, 24);" id="confirm_no">No</button>
                     </div>
                 </div>
             </div>
             <div class="content">
-                <div class="sidebar-left">
-                    <div class="new-button" id="new-upload">
-                        <span class="material-symbols-rounded" style="font-size: 25px;">
-                            upload
-                        </span>
+                <div class="sidebar">
+                    <div class="btn" id="new-upload">
+                        <span class="material-symbols-rounded" style="font-size: 25px;">upload</span>
                         <span>Upload</span>
                         <input type="file" id="file-input" multiple style="display: none;">
                     </div>
-                    <div class="new-button" id="new-folder">
-                        <span class="material-symbols-rounded" style="font-size: 25px;">
-                            folder
-                        </span>
+                    <div class="btn" id="new-folder">
+                        <span class="material-symbols-rounded" style="font-size: 25px;">folder</span>
                         <span>New Folder</span>
                     </div>
                 </div>
@@ -57,7 +53,7 @@
                     <div class="prompt">
                         <div class="fragment">/</div>
                         <button id="previos_folder">
-                            <i class="fa-solid fa-arrow-left"></i>
+                            <i class="fa-solid fa-circle-chevron-left"></i>
                         </button>
                     </div>
                 </div>

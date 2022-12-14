@@ -5,7 +5,7 @@ let fileView = document.querySelector(".content");
 let cardView = document.querySelector(".view");
 let snackbar = document.getElementById("snackbar");
 let fileOption = document.querySelector(".file-option");
-let sidebarLeft =  document.querySelector(".sidebar-left");
+let sidebarLeft =  document.querySelector(".sidebar");
 let menu =  document.querySelector( '.menu' );
 const snackbarRed = "rgb(203, 20, 70)";
 const snackbarGreen = "rgb(37, 172, 80)";
@@ -463,10 +463,16 @@ function newFileChild(file, isResult = false) {
             fileView.id = `result-${file.hash}`;
         }
         let fileViewIcon = document.createElement("i");
-        fileViewIcon.className = "fa-solid fa-ellipsis-vertical";
+        fileViewIcon.className = "fa-solid fa-circle-chevron-down";
         fileView.appendChild(fileViewIcon);
         fileView.onclick = (e) => {
+            if (fileViewIcon.className === "fa-solid fa-circle-chevron-up") {
+                fileViewIcon.className = "fa-solid fa-circle-chevron-down";
+                fileOptionClose.click();
+                return;
+            }
             e.stopPropagation();
+            fileViewIcon.className = "fa-solid fa-circle-chevron-up";
             cardClick(file.hash);
         };
         fileDiv.appendChild(fileView);
@@ -507,7 +513,7 @@ confirmButton.onclick = () => {
 let cancelButton = document.querySelector("#confirm_no");
 cancelButton.onclick = () => {
     document.querySelector(".warning").style.display = "none";
-    folderTarget = null;
+    folderTarget = {};
 }
 
 

@@ -81,17 +81,18 @@ body {
     margin-left: 10px;
 }
 
-.container > header > .search-bar {
+.container > header > .search {
     width: 100%;
     height: 100%;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    margin-left: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
-.container > header > .search-bar > input[type="text"] {
-    width: 300px;
+.container > header > .search > input[type="text"] {
+    max-width: 300px;
     height: 100%;
     border: none;
     outline: none;
@@ -99,28 +100,21 @@ body {
     color: white;
     font-size: 15px;
     padding: 0 10px;
-    border-radius: 5px;
+    border-radius: 15px;
     transition: 0.2s;
-    margin-right: 10px;
 }
 
-.container > header > .search-bar > i {
+.container > header > .search > i {
     position: fixed;
     font-size: 18px;
-    color: rgb(31, 98, 199);
+    color: rgb(72, 158, 22);
     cursor: pointer;
-    margin-right: 20px;
+    margin-right: 8px;
 }
 
 @media screen and (max-width: 768px) {
     .container > header > .logo > img {
         display: none;
-    }
-    .container > header > .search-bar > input[type="text"] {
-        width: 150px;
-    }
-    .container > header > .search-bar > i {
-        margin-right: 15px;
     }
 }
 
@@ -131,6 +125,9 @@ body {
     .container > header > .logo {
         display: flex;
         margin-left: 20px;
+    }
+    .container > header > .search {
+        padding-right: 20px;
     }
 }
 
@@ -150,7 +147,22 @@ body {
     margin-top: 50px;
 }
 
-.content > .sidebar-left {
+.content > .bottom {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 30px;
+    background-color: var(--black-main);
+    color: white;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100 !important;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+}
+
+.content > .sidebar {
     position: fixed;
     top: 0;
     left: 0;
@@ -165,7 +177,7 @@ body {
     padding-top: 60px;
 }
 
-.sidebar-left > .new-button {
+.sidebar > .btn {
     width: calc(100% - 80px);
     height: 40px;
     display: flex;
@@ -178,7 +190,7 @@ body {
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
 }
 
-.sidebar-left > .new-button > span {
+.sidebar > .btn > span {
     font-size: 15px;
     color: whitesmoke;
     margin-right: 10px;
@@ -186,15 +198,8 @@ body {
 }
 
 @media screen and (max-width: 768px) {
-    .content > .sidebar-left {
+    .content > .sidebar {
         display: none;
-        max-width: 250px;
-    }
-}
-
-
-@media screen and (max-width: 768px) {
-    .content > .sidebar-right {
         max-width: 250px;
     }
 }
@@ -259,8 +264,14 @@ body {
 
 .card > .options > i {
     font-size: 15px;
-    color: #ccc;
+    color: rgb(185, 182, 182);
     padding: 10px;
+}
+
+@media screen and (min-width: 768px) {
+    .card > .options > i {
+        font-size: 20px;
+    }
 }
 
 .card > .remove {
@@ -409,16 +420,15 @@ body {
     transition: 0.3s;
     margin-left: 5px;
     margin-right: 5px;
-    background-color: #3662e9;
+    background-color: transparent;
     border-radius: 5px;
-    left: 0;
     position: sticky;
+    margin-right: 6px;
 }
 
 .prompt > button > i {
-    color: white;
-    font-size: 15px;
-    padding: 3px 6px;
+    color: rgb(185, 184, 184);
+    font-size: 18px;
 }
 
 .prompt > .fragment {
@@ -541,7 +551,6 @@ body {
         background-color: var(--black-secondary);
         border-radius: 20px 20px 0 0;
     }
-
     .file-option > button {
         margin-right: 15px;
         margin-top: 15px;
@@ -555,7 +564,7 @@ body {
     width: 500px;
     height: 300px;
     margin-right: 48px;
-    background-color: #282835;
+    background-color: var(--black-secondary);
     border-radius: 5px 5px 0 0;
     display: flex;
     flex-direction: column;
