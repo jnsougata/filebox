@@ -28,6 +28,7 @@ func main() {
 	r.HandleFunc("/query", QueryHandler).Methods("POST")
 	r.HandleFunc("/remove/folder", HandleFolderDelete).Methods("POST")
 	r.HandleFunc("/rename", HandleRename).Methods("POST")
+	r.HandleFunc("/consumption", HandleSpaceUsage).Methods("GET")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -80,7 +81,7 @@ func HandleFolder(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var body map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&body)
-	parent := body["parent"].(string) 
+	parent := body["parent"].(string)
 	q := deta.Query()
 	q.Equals(map[string]interface{}{"parent": parent})
 	resp := base.Fetch(q, "", 0).Data["items"]
@@ -173,4 +174,21 @@ func HandleRename(w http.ResponseWriter, r *http.Request) {
 	updater := base.Update(body["hash"].(string))
 	updater.Set(map[string]interface{}{"name": body["name"].(string)})
 	updater.Do()
+}
+
+func HandleSpaceUsage(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	resp := base.Get()
+	totalSize := 0.0
+	for _, item := range resp {
+		records := item.Data["items"].([]map[string]interface{})
+		for _, record := range records {
+			size, ok := record["size"].(float64)
+			if ok {
+				totalSize += size
+			}
+		}
+	}
+	ba, _ := json.Marshal(map[string]interface{}{"size": totalSize})
+	_, _ = w.Write(ba)
 }
