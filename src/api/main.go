@@ -179,16 +179,6 @@ func HandleRename(w http.ResponseWriter, r *http.Request) {
 func HandleSpaceUsage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	resp := base.Get()
-	totalSize := 0.0
-	for _, item := range resp {
-		records := item.Data["items"].([]map[string]interface{})
-		for _, record := range records {
-			size, ok := record["size"].(float64)
-			if ok {
-				totalSize += size
-			}
-		}
-	}
-	ba, _ := json.Marshal(map[string]interface{}{"size": totalSize})
+	ba, _ := json.Marshal(resp)
 	_, _ = w.Write(ba)
 }

@@ -5,11 +5,11 @@ function handleSizeUnit(size) {
     if (size < 1024) {
         return size + " B";
     } else if (size < 1024 * 1024) {
-        return (size / 1024).toFixed(4) + " KB";
+        return (size / 1024).toFixed(2) + " KB";
     } else if (size < 1024 * 1024 * 1024) {
-        return (size / 1024 / 1024).toFixed(4) + " MB";
+        return (size / 1024 / 1024).toFixed(2) + " MB";
     } else {
-        return (size / 1024 / 1024 / 1024).toFixed(4) + " GB";
+        return (size / 1024 / 1024 / 1024).toFixed(2) + " GB";
     }
 }
 
@@ -21,6 +21,18 @@ function fomatDateString(date) {
         + " " + d.getHours()
         + ":" + d.getMinutes()
         + ":" + d.getSeconds();
+}
+
+function getTotalSize(data) {
+    let totalSize = 0;
+    data.forEach((r) => {
+        r.Data.items.forEach((item) => {
+            if (item.size) {
+                totalSize += item.size;
+            }
+        });
+    });
+    return totalSize;
 }
 
 function handleMimeIcon(mime) {
@@ -88,7 +100,9 @@ function handleFileOrFolderClick(hash) {
         handleFolderClick(globalContextFile);
     } else {
         let optionsPanel = document.querySelector('.options-panel');
-        blurLayer.style.display = 'block';
+        if (window.innerWidth < 768) {
+            blurLayer.style.display = 'block';
+        }
         optionsPanel.style.display = 'flex';
         let fileNameP = document.querySelector('#options-panel-filename');
         fileNameP.innerHTML = globalContextFile.name;
@@ -97,6 +111,7 @@ function handleFileOrFolderClick(hash) {
 
 function newFileElem(file) {
     let li = document.createElement('li');
+    li.id = `file-${file.hash}`
     let fileIcon = document.createElement('i');
     fileIcon.className = handleMimeIcon(file.mime);
     let fileInfo = document.createElement('div');
@@ -236,14 +251,20 @@ function updateFileView(contentBlock) {
     fileView.appendChild(contentBlock);
 }
 
-function queueElem(file) {
+function queueElem(file, taskType="upload") {
     let task = document.createElement('div');
     task.className = 'task';
     let icon = document.createElement('div');
     icon.className = 'icon';
     let fileIcon = document.createElement('i');
     fileIcon.id = `icon-${file.hash}`;
-    fileIcon.className = handleMimeIcon(file.mime);
+    if (taskType === "upload") {
+        fileIcon.className = 'fa-solid fa-circle-up';
+        fileIcon.style.color = colorBlue;
+    } else {
+        fileIcon.className = 'fa-solid fa-circle-down';
+        fileIcon.style.color = colorGreen;
+    }
     icon.appendChild(fileIcon);
     let fileName = document.createElement('p');
     fileName.innerHTML = file.name;
@@ -253,6 +274,11 @@ function queueElem(file) {
     progressBar.className = 'bar';
     progressBar.style.width = '0%';
     progressBar.id = `bar-${file.hash}`;
+    if (taskType === "upload") {
+        progressBar.style.backgroundColor = colorBlue;
+    } else {
+        progressBar.style.backgroundColor = colorGreen;
+    }
     progress.appendChild(progressBar);
     task.appendChild(icon);
     task.appendChild(fileName);
@@ -261,6 +287,23 @@ function queueElem(file) {
 }
 
 function updateToCompleted(hash) {
-    let icon = document.querySelector(`#icon-${hash}}}`);
+    let icon = document.querySelector(`#icon-${hash}`);
     icon.className = 'fa-solid fa-check-circle';
+    icon.style.color = '#279627';
+}
+
+let snackTimer = null;
+function showSnack(text, color=colorGreen) {
+    let snackbar = document.querySelector('.snackbar');
+    snackbar.style.display = 'flex';
+    snackbar.innerHTML = `
+    <div class="content" style="background-color: ${color}">
+        <p>${text}</p>
+    </div>`;
+    if (snackTimer) {
+        clearTimeout(snackTimer);
+    }
+    snackTimer = setTimeout(() => {
+        snackbar.style.display = 'none';
+    }, 3000);
 }

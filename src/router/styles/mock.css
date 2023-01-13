@@ -85,10 +85,10 @@ body {
     height: 42px;
     display: flex;
     justify-content: flex-start;
-   
     align-items: center;
     font-size: 16px;
     cursor: pointer;
+    border-left: 5px solid transparent;
 }
 
 .option > i {
@@ -513,8 +513,7 @@ body {
     padding-left: 20px;
 }
 .my-files > ul > li > .info > p {
-    max-width: 300px;
-    
+    max-width: 300px;  
     font-size: 15px;
     color: #ccc;
     display: flex;
@@ -629,7 +628,7 @@ body {
 }
 .queue > .task {
     width: 100%;
-    height: 50px;
+    height: 53px;
     padding: 5px;
     font-size: 15px;
     text-align: left;
@@ -652,7 +651,7 @@ body {
     justify-content: center;
 }
 .queue > .task > p {
-    max-width: 350px;
+    max-width: calc(100% - 20px);
     height: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -660,16 +659,22 @@ body {
     color: white;
     padding-left: 50px;
 }
+@media screen and (max-width: 768px) {
+    .queue > .task > p {
+        max-width: 350px;
+    }
+}
 .queue > .task > .progress {
-    width: 100%;
+    width: calc(100% - 20px);
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: flex-start;
     padding-left: 50px;
+    padding-right: 20px;
 }
 .queue > .task > .progress > .bar {
-    width: 50%;
+    width: 0;
     height: 5px;
     background-color: #2d2f32;
     transition: width 0.5s;
@@ -677,11 +682,12 @@ body {
 }
 
 .snackbar {
-    width: 100%;
-    height: 60px;
-    position: fixed;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 75px;
+    padding: 10px;
+    position: fixed;
     display: none;
     align-items: center;
     justify-content: center;
@@ -689,13 +695,24 @@ body {
     font-size: 20px;
     transition: bottom 0.5s;
     z-index: 1100 !important;
+    background-color: transparent;
+    animation: sildein 0.5s;
 }
 .snackbar > .content {
-    width: 100%;
-    height: 100%;
+    width: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: #2d2f32;
-    border-bottom: 1px solid #ffffff0c;
+    box-shadow: 0 0 10px 0 #000000;
+    border-radius: 5px;
+    flex-grow: 0;
+}
+.snackbar > .content > p {
+    font-size: 16px;
+    max-width: 480px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }

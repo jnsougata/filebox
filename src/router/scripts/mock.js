@@ -9,6 +9,9 @@ var blurLayer = document.querySelector('.blur-layer');
 let mainSection = document.querySelector('#main');
 let secondarySection = document.querySelector('#secondary');
 var taskQueueElem = document.querySelector('.queue');
+const colorRed = "#CB1446";
+const colorGreen = "#2AA850";
+const colorBlue = "#2E83F3";
 
 
 function switchView(primary = true, secondary = false) {
@@ -77,7 +80,7 @@ for (let i = 0; i < sidebarOptions.length; i++) {
         currOption.style.borderLeft = '5px solid #2e83f3a8';
         currOption.style.backgroundColor = '#ffffff09';
         if (previousOption && previousOption !== currOption) {
-            previousOption.style.borderLeft = 'none';
+            previousOption.style.borderLeft = '5px solid transparent';
             previousOption.style.backgroundColor = 'transparent';
         }
         previousOption = currOption;
@@ -152,8 +155,15 @@ queueButton.addEventListener('click', () => {
 
 let deleteButton = document.querySelector('#delete-file');
 deleteButton.addEventListener('click', () => {
-    // TODO: Delete file
-    console.log(globalContextFile);
+    fetch(`/api/metadata`, {
+        method: "DELETE",
+        body: JSON.stringify(globalContextFile),
+    })
+    .then(() => {
+        showSnack(`Deleted ${globalContextFile.name}`, colorRed);
+        document.getElementById(`file-${globalContextFile.hash}`).remove();
+        optionsPanelCloseButton.click();
+    })
 });
 
 let pinButton = document.querySelector('#pin-file');
@@ -163,17 +173,35 @@ pinButton.addEventListener('click', () => {
 
 let embedButton = document.querySelector('#embed-file');
 embedButton.addEventListener('click', () => {
-    // TODO: Embed file
+    if (globalContextFile.size > 4 * 1024 * 1024) {
+        showSnack(`File is too large to embed`, colorRed);
+    } else {
+        let embedUrl = `${window.location.origin}/api/embed/${globalContextFile.hash}`;
+        window.navigator.clipboard.writeText(embedUrl)
+        .then(() => {
+            showSnack(`Copied embed URL to clipboard`);
+        })
+    }
 });
 
 let shareButton = document.querySelector('#share-file');
 shareButton.addEventListener('click', () => {
-    // TODO: Share file
+    if (globalContextFile.size > 30 * 1024 * 1024) {
+        showSnack(`File is too large to share via link`, colorRed);
+    } else {
+        let downloadUrl = `${window.location.origin}/download/${globalContextFile.hash}`;
+        window.navigator.clipboard.writeText(downloadUrl)
+        .then(() => {
+            showSnack(`Copied download URL to clipboard`);
+        })
+    }
 });
 
 let downloadButton = document.querySelector('#download-file');
 downloadButton.addEventListener('click', () => {
-    // TODO: Download file
+    optionsPanelCloseButton.click();
+    download(globalContextFile);
+    showSnack(`Downloaded ${globalContextFile.name}`);
 });
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -182,10 +210,8 @@ window.addEventListener('DOMContentLoaded', () => {
     fetch("/api/consumption")
     .then(response => response.json())
     .then(data => {
-        console.log(data);
-        let totalSize = data.size;
-        globalConsumption = totalSize;
-        let totalSizeString = handleSizeUnit(totalSize);
+        globalConsumption = getTotalSize(data);
+        let totalSizeString = handleSizeUnit(globalConsumption);
         totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${totalSizeString}`;
     })
     homeButton.click();

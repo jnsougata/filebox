@@ -29,6 +29,7 @@ function upload(file) {
                     body.parent = folder.name;
                 }
             }
+            showSnack(`Uploading ${file.name}`, colorBlue);
             globalFileBucket[hash] = file;
             let content = ev.target.result;
             taskQueueElem.appendChild(queueElem(body));
@@ -108,14 +109,14 @@ function upload(file) {
                                     .then(() => {
                                         bar.style.width = "100%";
                                         updateToCompleted(hash)
-                                        showSnack(`Uploaded ${file.name} successfully!`);
+                                        showSnack(`Uploaded ${file.name} successfully!`, colorBlue);
                                         setTimeout(() => {
                                             
                                         }, 500);
                                     })
                                 })
                             } else {
-                                showSnack(`Failed to upload ${file.name}`, snackbarRed);
+                                showSnack(`Failed to upload ${file.name}`, colorRed);
                                 document.getElementById(`${hash}`).remove();
                                 fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
                                     method: 'DELETE', 
@@ -137,6 +138,7 @@ function download(file) {
     .then(response => response.text())
     .then(data => {
         showSnack(`Downloading ${file.name}`);
+        taskQueueElem.appendChild(queueElem(file, "download"));
         let header = {"X-Api-Key": data}
         let projectId = data.split("_")[0];
         const ROOT = 'https://drive.deta.sh/v1';
@@ -176,9 +178,8 @@ function download(file) {
             a.href = url;
             a.download = file.name;
             bar.style.width = "100%";
-            setTimeout(() => {
-                showSnack(`Downloaded ${file.name}`);
-            }, 500);
+            updateToCompleted(file.hash)
+            showSnack(`Downloaded ${file.name}`);
             a.click();
         })
         .catch((err) => console.error(err));
