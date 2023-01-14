@@ -1,4 +1,4 @@
-function randomFileHash() {
+function randId() {
     return [...Array(16)].map(
         () => Math.floor(Math.random() * 16).toString(16)
     ).join('');
@@ -9,7 +9,7 @@ function upload(file) {
     .then(response => response.text())
     .then(token => {
         let header = {"X-Api-Key": token, "Content-Type": file.type}
-        let hash = randomFileHash();
+        let hash = randId();
         let projectId = token.split("_")[0];
         const ROOT = 'https://drive.deta.sh/v1';
         let reader = new FileReader();
@@ -182,4 +182,28 @@ function download(file) {
         })
         .catch((err) => console.error(err));
     })
+}
+
+function createFolder() {
+    let folderName = prompt("Enter folder name", "New Folder");
+    if (folderName) {
+        let body = {
+            "name": folderName,
+            "type": "folder",
+            "hash": randId(),
+            "date": new Date().toISOString(),
+        }
+        if (globalFolderQueue.length > 0) {
+            let folder = globalFolderQueue[globalFolderQueue.length - 1];
+            if (folder.parent) {
+                body.parent = `${folder.parent}/${folder.name}`;
+            } else {
+                body.parent = folder.name;
+            }
+        }
+        fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
+        .then(() => {
+            showSnack(`Created folder ${folderName}`, colorGreen);
+        })
+    }
 }

@@ -65,11 +65,15 @@ let fileInput = document.querySelector('#input-file');
 uploadButton.addEventListener('click', () => {
     fileInput.click();
 });
-
 fileInput.addEventListener('change', () => {
     for (let i = 0; i < fileInput.files.length; i++) {
         upload(fileInput.files[i]);
     }
+});
+
+let newFolderButton = document.querySelector('#new-folder');
+newFolderButton.addEventListener('click', () => {
+    createFolder();
 });
 
 let sidebarOptions = document.querySelectorAll('.option');
