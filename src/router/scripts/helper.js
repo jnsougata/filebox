@@ -35,6 +35,11 @@ function getTotalSize(data) {
     return totalSize;
 }
 
+function updateSpaceUsage(incr) {
+    globalConsumption += incr;
+    totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${handleSizeUnit(globalConsumption)}`;
+}
+
 function handleMimeIcon(mime) {
     if (mime === undefined) {
         return "fa-solid fa-folder";
@@ -94,19 +99,25 @@ function handleFolderClick(folder) {
     })
 }
 
-function handleFileOrFolderClick(hash) {
+
+let folderOptionPanel = document.querySelector('#folder-options-panel');
+let fileOptionPanel = document.querySelector('#file-options-panel');
+function handleMenuClick(hash) {
     globalContextFile = globalFileBucket[hash];
-    if (globalContextFile.type === 'folder') {
-        handleFolderClick(globalContextFile);
-    } else {
-        let optionsPanel = document.querySelector('.options-panel');
-        if (window.innerWidth < 768) {
-            blurLayer.style.display = 'block';
-        }
-        optionsPanel.style.display = 'flex';
-        let fileNameP = document.querySelector('#options-panel-filename');
-        fileNameP.innerHTML = globalContextFile.name;
+    if (window.innerWidth < 768) {
+        blurLayer.style.display = 'block';
     }
+    if (globalContextFile.type === 'folder') {
+        folderOptionPanel.style.display = 'flex';
+        let folderNameElem = document.querySelector('#options-panel-folder_name');
+        folderNameElem.innerHTML = globalContextFile.name;
+        fileOptionPanel.style.display = 'none';
+    } else {
+        fileOptionPanel.style.display = 'flex';
+        let fileNameElem = document.querySelector('#options-panel-filename');
+        fileNameElem.innerHTML = globalContextFile.name;
+        folderOptionPanel.style.display = 'none';
+    }   
 }
 
 function newFileElem(file) {
@@ -119,23 +130,33 @@ function newFileElem(file) {
     let fileName = document.createElement('p');
     fileName.innerHTML = file.name;
     let fileSizeAndDate = document.createElement('p');
-    fileSizeAndDate.style.fontSize = '12px';
-    fileSizeAndDate.innerHTML = handleSizeUnit(file.size) + " • " + fomatDateString(file.date);
+    fileSizeAndDate.style.fontSize = '11px';
+    if (file.type === 'folder') {
+        let parent = "";
+        if (file.parent) {
+            parent = `/${file.parent}/`;
+        } else {
+            parent = "/";
+        }
+        fileSizeAndDate.innerHTML = `${parent} • ${fomatDateString(file.date)}`;
+    } else {
+        fileSizeAndDate.innerHTML = `${handleSizeUnit(file.size)} • ${fomatDateString(file.date)}`;
+    }
     fileInfo.appendChild(fileName);
     fileInfo.appendChild(fileSizeAndDate);
     li.appendChild(fileIcon);
     li.appendChild(fileInfo);
-    let pinOptionSpan = document.createElement('span');
-    pinOptionSpan.className = 'material-symbols-rounded';
-    pinOptionSpan.id = `pin-${file.hash}`;
-    pinOptionSpan.innerHTML = 'push_pin';
-    pinOptionSpan.addEventListener('click', (ev) => {
+    let menuOptionSpan = document.createElement('span');
+    menuOptionSpan.className = 'fa-solid fa-ellipsis';
+    menuOptionSpan.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        // TODO: do more stuff
+        handleMenuClick(file.hash);
     });
-    li.appendChild(pinOptionSpan);
+    li.appendChild(menuOptionSpan);
     li.addEventListener('click', () => {
-        handleFileOrFolderClick(file.hash);
+        if (file.type === 'folder') {
+            handleFolderClick(file);
+        }
     });
     return li;
 }

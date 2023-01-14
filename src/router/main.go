@@ -10,7 +10,6 @@ import (
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", HandleIndex).Methods("GET")
-	r.HandleFunc("/mock", HandleMock).Methods("GET")
 	r.HandleFunc("/download/{hash}", HandleDownloadPage).Methods("GET")
 	r.HandleFunc("/assets/{filename}", HandleAssets).Methods("GET")
 	r.HandleFunc("/scripts/{filename}", HandleScripts).Methods("GET")

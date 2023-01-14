@@ -1,752 +1,273 @@
-let uploadButton = document.querySelector("#new-upload");
-let folderButton = document.querySelector("#new-folder");
-let uploadInput = document.getElementById("file-input");
-let fileView = document.querySelector(".content");
-let cardView = document.querySelector(".view");
-let snackbar = document.getElementById("snackbar");
-let fileOption = document.querySelector(".file-option");
-let sidebarLeft =  document.querySelector(".sidebar");
-let menu =  document.querySelector( '.menu' );
-const snackbarRed = "rgb(203, 20, 70)";
-const snackbarGreen = "rgb(37, 172, 80)";
-const downloadGreen = "#25a03d";
-const uploadBlue = "#1549e3";
-let hiddenState = true;
-let metadata = null;
-let contextFile = null;
-let folderQueue = [];
-let isRenaming = false;
+var globalFileBucket = {};
+var globalFolderQueue = [];
+let globalConsumption = 0;
+var globalContextFile = null;
+let totalSizeWidget = document.querySelector('.bottom-option');
+let sidebarState = false;
+let sidebar = document.querySelector('.sidebar');
+var blurLayer = document.querySelector('.blur-layer');
+let mainSection = document.querySelector('#main');
+let secondarySection = document.querySelector('#secondary');
+var taskQueueElem = document.querySelector('.queue');
+const colorRed = "#CB1446";
+const colorGreen = "#2AA850";
+const colorBlue = "#2E83F3";
 
-function randomFileHash() {
-    return [...Array(16)].map(
-        () => Math.floor(Math.random() * 16).toString(16)
-    ).join('');
+
+function switchView(primary = true, secondary = false) {
+    if (primary) {
+        mainSection.style.display = 'flex';
+    } else {
+        mainSection.style.display = 'none';
+    }
+    if (secondary) {
+        secondarySection.style.display = 'flex';
+    } else {
+        secondarySection.style.display = 'none';
+    }
 }
 
-function uploadFile(file) {
-    fetch("/api/secret")
-    .then(response => response.text())
-    .then(token => {
-        showSnack(`Uploading ${file.name}`);
-        let header = {"X-Api-Key": token, "Content-Type": file.type}
-        let hash = randomFileHash();
-        let projectId = token.split("_")[0];
-        const ROOT = 'https://drive.deta.sh/v1';
-        let reader = new FileReader();
-        reader.onload = (ev) => {
-            let body = {
-                "hash": hash,
-                "name": file.name,
-                "size": file.size,
-                "mime": file.type,
-                "date": new Date().toISOString(),
-            }
-            if (folderQueue.length > 0) {
-                let folder = folderQueue[folderQueue.length - 1];
-                if (folder.parent) {
-                    body.parent = `${folder.parent}/${folder.name}`;
-                } else {
-                    body.parent = folder.name;
-                }
-            }
-            metadata[hash] = body;
-            let content = ev.target.result;
-            cardView.appendChild(newFileChild(body));
-            let extension = file.name.split('.').pop();
-            let qualifiedName = `${hash}.${extension}`;
-            renderBarMatrix(hash, uploadBlue);
-            let bar = document.getElementById(`bar-${hash}`);
-            if (file.size < 10 * 1024 * 1024) {
-                fetch(`${ROOT}/${projectId}/filebox/files?name=${qualifiedName}`, {
-                    method: 'POST',
-                    body: content,
-                    headers: header
-                })
-                .then(() => {
-                    fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
-                    .then(() => {
-                        bar.style.width = "100%";
-                        setTimeout(() => {
-                            showSnack(`Uploaded ${file.name}`);
-                            hideBarMatrix(hash);
-                        }, 500);
-                    })
-                })
-            } else {
-                let chunkSize = 10 * 1024 * 1024;
-                let chunks = [];
-                for (let i = 0; i < content.byteLength; i += chunkSize) {
-                    chunks.push(content.slice(i, i + chunkSize));
-                }
-                fetch(`${ROOT}/${projectId}/filebox/uploads?name=${qualifiedName}`, {
-                    method: 'POST',
-                    headers: header
-                })
-                .then(response => response.json())
-                .then(data => {
-                    let finalChunk = chunks.pop();
-                    let finalIndex = chunks.length + 1;
-                    let uploadId = data["upload_id"];
-                    let name = data.name;
-                    let allOk = true;
-                    let promises = [];
-                    bar.style.width = "1%";
-                    let progressIndex = 0;
-                    chunks.forEach((chunk, index) => {
-                        promises.push(
-                            fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${index+1}`, {
-                                method: 'POST',
-                                body: chunk,
-                                headers: header
-                            }).then(response => {
-                                if (response.status !== 200) {
-                                    allOk = false;
-                                }
-                                progressIndex ++;
-                                bar.style.width = `${Math.round((progressIndex / finalIndex) * 100)}%`;
-                            })
-                        )
-                    })
-                    Promise.all(promises)
-                    .then(() => {
-                        fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${finalIndex}`, {
-                            method: 'POST',
-                            body: finalChunk,
-                            headers: header
-                        })
-                        .then(response => {
-                            if (response.status !== 200) {
-                                allOk = false;
-                            }
-                            if (allOk) {
-                                fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
-                                    method: 'PATCH',
-                                    headers: header,
-                                })
-                                .then(response => response.json())
-                                .then(() => {
-                                    fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
-                                    .then(() => {
-                                        bar.style.width = "100%";
-                                        showSnack(`Uploaded ${file.name} successfully!`);
-                                        setTimeout(() => {
-                                            hideBarMatrix(hash);
-                                        }, 500);
-                                    })
-                                })
-                            } else {
-                                showSnack(`Failed to upload ${file.name}`, snackbarRed);
-                                document.getElementById(`${hash}`).remove();
-                                fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
-                                    method: 'DELETE', 
-                                    headers: header
-                                })
-                                .then(() => {})
-                            }
-                        })
-                    })
-                })
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    })
+function sidebarEventState(enable = true) {
+    if (!enable) {
+        blurLayer.style.display = 'none';
+        sidebar.style.display = 'none';
+        floatingMenuButton.innerHTML = `<i class="fa-solid fa-bars"></i>`;
+        sidebarState = false;
+    } else {
+        if (window.innerWidth < 768) {
+            blurLayer.style.display = 'block';
+        }
+        sidebar.style.display = 'flex';
+        floatingMenuButton.innerHTML = `<i class="fa-solid fa-times"></i>`;
+        sidebarState = true;
+    }
 }
 
-function downloadFile(file) {
-    fetch("/api/secret")
-    .then(response => response.text())
-    .then(data => {
-        showSnack(`Downloading ${file.name}`);
-        let header = {"X-Api-Key": data}
-        let projectId = data.split("_")[0];
-        const ROOT = 'https://drive.deta.sh/v1';
-        let extension = file.name.split('.').pop();
-        let qualifiedName = file.hash + "." + extension;
-        renderBarMatrix(file.hash, downloadGreen);
-        let bar = document.getElementById(`bar-${file.hash}`);
-        fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
-            method: 'GET',
-            headers: header
-        })
-        .then((response) => {
-            let progress = 0;
-            const reader = response.body.getReader();
-            return new ReadableStream({
-                start(controller) {
-                    return pump();
-                    function pump() {
-                        return reader.read().then(({ done, value }) => {
-                            if (done) {
-                                controller.close();
-                                return;
-                            }
-                            controller.enqueue(value);
-                            progress += value.length;
-                            bar.style.width = `${Math.round((progress / file.size) * 100)}%`;
-                            return pump();
-                        });
-                    }
-                }
-            })
-        })
-        .then((stream) => new Response(stream))
-        .then((response) => response.blob())
-        .then((blob) => URL.createObjectURL(blob))
-        .then((url) => {
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = file.name;
-            bar.style.width = "100%";
-            setTimeout(() => {
-                showSnack(`Downloaded ${file.name}`);
-                hideBarMatrix(file.hash);
-            }, 500);
-            a.click();
-        })
-        .catch((err) => console.error(err));
-    })
+let floatingMenuButton = document.querySelector('.floating-menu-button');
+floatingMenuButton.addEventListener('click', () => {
+    if (sidebarState) {
+        blurLayer.style.display = 'none';
+        sidebar.style.display = 'none';
+        floatingMenuButton.innerHTML = `<i class="fa-solid fa-bars"></i>`;
+        sidebarState = false;
+    } else {
+        if (window.innerWidth < 768) {
+            blurLayer.style.display = 'block';
+        }
+        sidebar.style.display = 'flex';
+        floatingMenuButton.innerHTML = `<i class="fa-solid fa-times"></i>`;
+        sidebarState = true;
+    }
+});
+
+let uploadButton = document.querySelector('#upload-file');
+let fileInput = document.querySelector('#input-file');
+uploadButton.addEventListener('click', () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', () => {
+    for (let i = 0; i < fileInput.files.length; i++) {
+        upload(fileInput.files[i]);
+    }
+});
+
+let sidebarOptions = document.querySelectorAll('.option');
+let previousOption = null;
+for (let i = 0; i < sidebarOptions.length; i++) {
+    sidebarOptions[i].addEventListener('click', () => {
+        let currOption = sidebarOptions[i]
+        currOption.style.borderLeft = '5px solid #2e83f3a8';
+        currOption.style.backgroundColor = '#ffffff09';
+        if (previousOption && previousOption !== currOption) {
+            previousOption.style.borderLeft = '5px solid transparent';
+            previousOption.style.backgroundColor = 'transparent';
+        }
+        previousOption = currOption;
+    });
 }
 
-window.onload = () => {
+let fileOptionsPanelCloseButton = document.querySelector('#file-options-panel-close');
+fileOptionsPanelCloseButton.addEventListener('click', () => {
+    let optionsPanel = document.querySelector('#file-options-panel');
+    optionsPanel.style.display = 'none';
+    blurLayer.style.display = 'none';
+});
+
+let folderOptionsPanelCloseButton = document.querySelector('#folder-options-panel-close');
+folderOptionsPanelCloseButton.addEventListener('click', () => {
+    let optionsPanel = document.querySelector('#folder-options-panel');
+    optionsPanel.style.display = 'none';
+    blurLayer.style.display = 'none';
+});
+
+let homeButton = document.querySelector('#home');
+homeButton.addEventListener('click', () => {
+    switchView();
+    globalFileBucket = {};
     fetch("/api/metadata")
     .then(response => response.json())
     .then(data => {
-        metadata = {};
-        let folders = [];
-        let files = [];
-        data.forEach(file => {
-            if (!file.parent) {
-                metadata[file.hash] = file;
-                if (file.type === "folder") {
-                    folders.push(file);
-                } else {
-                    files.push(file);
-                }
-            }
-        });
-        let items = folders.concat(files);
-        items.forEach(file => {
-            cardView.appendChild(newFileChild(file));
+        let pinnedData = data.slice(0, 10);
+        let recentData = data.slice(0, 10); 
+        let pinnedBlock = buildPinnedContent(pinnedData);
+        let recentBlock = buildRecentContent(recentData);
+        let homePage = buildHomePage(pinnedBlock, recentBlock);
+        mainSection.innerHTML = '';
+        mainSection.appendChild(homePage);
+        if (window.innerWidth < 768) {
+            sidebarEventState(false);
+        }
+        data.forEach((file) => {
+            globalFileBucket[file.hash] = file;
         });
     })
-}
-
-function handleMimeIcon(mime) {
-    if (mime.startsWith("image")) {
-        return "fa-solid fa-image";
-    } else if (mime.startsWith("video")) {
-        return "fa-solid fa-video";
-    } else if (mime.startsWith("audio")) {
-        return "fa-solid fa-headphones";
-    } else if (mime.startsWith("text")) {
-        return  "fa-solid fa-file-lines";
-    } else if (mime.startsWith("application/pdf")) {
-        return "fa-solid fa-file-pdf";
-    } else if (mime.startsWith("application/zip")) {
-        return "fa-solid fa-file-zipper";
-    } else if (mime.startsWith("application/x-rar-compressed")) {
-        return "fa-solid fa-file-zipper";
-    } else if (mime.startsWith("font")) {
-        return "fa-solid fa-font";
-    } else {
-        return "fa-solid fa-file";
-    }
-}
-
-function handleSizeUnit(size) {
-    if (size === undefined) {
-        return "";
-    }
-    if (size < 1024) {
-        return size + " B";
-    } else if (size < 1024 * 1024) {
-        return (size / 1024).toFixed(4) + " KB";
-    } else if (size < 1024 * 1024 * 1024) {
-        return (size / 1024 / 1024).toFixed(4) + " MB";
-    } else {
-        return (size / 1024 / 1024 / 1024).toFixed(4) + " GB";
-    }
-}
-
-cardView.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
 });
 
-cardView.addEventListener("drop", (e) => {
-    e.preventDefault();
-    if (e.dataTransfer.items) {
-        [...e.dataTransfer.items].forEach((item) => {
-            uploadFile(item.getAsFile());
-        })
-    }
-});
-
-window.addEventListener("paste", (e) => {
-    let items = e.clipboardData.items;
-    if (items) {
-        [...items].forEach((item) => {
-            if (item.kind === "file") {
-                uploadFile(item.getAsFile());
-            }
-        })
-    }
-});
-
-window.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && e.key === "z") {
-        previousFolderButton.click();
-    }
-})
-
-function showSnack(inner, color = snackbarGreen) {
-    snackbar.innerHTML = inner;
-    snackbar.style.backgroundColor = color;
-    snackbar.style.visibility = "visible";
-    setTimeout(() => {
-        snackbar.style.visibility = "hidden";
-    }, 3000);
-}
-
-function shareButtonClick(file) {
-    if (file.size > 1024 * 1024 * 30) {
-        showSnack("File is too big to share", snackbarRed);
-        return;
-    }
-    window.navigator.clipboard.writeText(window.location.href + "download/" + file.hash)
-    .then(() => {
-        showSnack(`URL copied to clipboard`);
-    });
-}
-
-function deleteFile(file) {
-    fetch(`/api/metadata`, {
-        method: "DELETE",
-        body: JSON.stringify(file),
-    })
-    .then(() => {
-        showSnack(`Deleted ${file.name}`, snackbarRed);
-        document.getElementById(`file-${file.hash}`).remove();
-    })
-}
-
-// Progress Bar Handler
-function renderBarMatrix(hash, color) {
-    let progressBar = document.getElementById(`progress-${hash}`);
-    progressBar.style.display = "flex";
-    let bar = document.getElementById(`bar-${hash}`);
-    bar.style.backgroundColor = color;
-}
-
-function hideBarMatrix(hash) {
-    let progressBar = document.getElementById(`progress-${hash}`);
-    progressBar.style.display = "none";
-    let bar = document.getElementById(`bar-${hash}`);
-    bar.style.width = "0%";
-}
-
-// File Search Handler
-let search = document.getElementById("search");
-let resultPanel = document.querySelector(".results");
-let inputTimer = null;
-search.oninput = (ev) => {
-    resultPanel.style.display = "flex";
-    if (inputTimer) {
-        clearTimeout(inputTimer);
-    }
-    inputTimer = setTimeout(() => {
-        if (ev.target.value.length > 0) {
-            fetch(`/api/query`, {
-                method: "POST",
-                body: JSON.stringify({"name?contains": ev.target.value}),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.length === 0) {
-                    resultPanel.innerHTML = `<div class="no-result" style="color: #ef5151; font-size: 15px; margin-top: 15px;">👀 No results found</div>`;
-                } else {
-                    resultPanel.innerHTML = "";
-                    data.forEach(file => {
-                        if (file.type !== "folder") {
-                            metadata[file.hash] = file;
-                            resultPanel.appendChild(newFileChild(file, true));
-                            let optionsButton = document.getElementById(`result-${file.hash}`);
-                            optionsButton.addEventListener("click", (e) => {
-                                resultPanel.style.display = "none";
-                                e.stopPropagation();
-                                cardClick(file.hash);
-                            });
-                        }
-                    });
-                }
-            })
-        } else {
-            resultPanel.style.display = "none";
-        }
-    }, 2000);
-};
-
-// File / Folder Render Element Handler
-function newFileChild(file, isResult = false) {
-    let fileDiv = document.createElement("div");
-    fileDiv.id = `file-${file.hash}`;
-    fileDiv.className = "card";
-    let iconDiv = document.createElement("div");
-    iconDiv.className = "icon";
-    let icon = document.createElement("i");
-    if (file.type === "folder") {
-        icon.className = "fa-solid fa-folder";
-    } else {
-        icon.className = handleMimeIcon(file.mime);
-    }
-    iconDiv.appendChild(icon);
-    let detailsDiv = document.createElement("div");
-    detailsDiv.className = "details";
-    let fileName = document.createElement("p");
-    fileName.innerHTML = file.name;
-    if (file.type !== "folder") {
-        fileName.contentEditable = "true";
-        fileName.spellcheck = false;
-    }
-    fileName.onclick = (e) => {
-        e.stopPropagation();
-        isRenaming = true;
-    };
-    fileName.onblur = (e) => {
-        fileRename(e, file.hash);
-    };
-    fileName.style.fontSize = "15px";
-    let fileDetails = document.createElement("p");
-    let d = new Date(file.date);
-    let date = d.getDate()
-        + "/" + (d.getMonth() + 1)
-        + "/" + d.getFullYear()
-        + " " + d.getHours()
-        + ":" + d.getMinutes()
-        + ":" + d.getSeconds();
-    let size = handleSizeUnit(file.size);
-    if (size) {
-        fileDetails.innerHTML = `${handleSizeUnit(file.size)}  ${date}`;
-    } else {
-        fileDetails.innerHTML = `${date}`;
-    }
-    let progressBar = document.createElement("div");
-    progressBar.id = `progress-${file.hash}`;
-    progressBar.className = "progress";
-    let bar = document.createElement("div");
-    bar.id = `bar-${file.hash}`;
-    bar.className = "bar";
-    progressBar.appendChild(bar);
-    progressBar.style.display = "none";
-    detailsDiv.appendChild(fileName);
-    detailsDiv.appendChild(fileDetails);
-    detailsDiv.appendChild(progressBar);
-    fileDiv.appendChild(iconDiv);
-    fileDiv.appendChild(detailsDiv);
-    if (file.type == "folder") {
-        let deleteButton = document.createElement("div");
-        deleteButton.className = "remove";
-        let deleteIcon = document.createElement("i");
-        deleteIcon.className = "fa-solid fa-trash";
-        deleteButton.appendChild(deleteIcon);
-        deleteButton.onclick = (e) => {
-            deleteFolder(e, file);
-        };
-        fileDiv.appendChild(deleteButton);
-        fileDiv.onclick = () => {
-            cardClick(file.hash);
-        };
-    } else {
-        let fileView = document.createElement("div");
-        fileView.className = "options";
-        if (isResult) {
-            fileView.id = `result-${file.hash}`;
-        }
-        let fileViewIcon = document.createElement("i");
-        fileViewIcon.id = `icon-${file.hash}`;
-        fileViewIcon.className = "fa-solid fa-circle-chevron-down";
-        fileView.appendChild(fileViewIcon);
-        fileView.onclick = (e) => {
-            if (fileViewIcon.className === "fa-solid fa-circle-chevron-up") {
-                fileViewIcon.className = "fa-solid fa-circle-chevron-down";
-                fileOptionClose.click();
-                return;
-            }
-            e.stopPropagation();
-            fileViewIcon.className = "fa-solid fa-circle-chevron-up";
-            cardClick(file.hash);
-        };
-        fileDiv.appendChild(fileView);
-    }
-    return fileDiv;
-}
-
-// Folder Deletion Handler
-let folderTarget = {};
-function deleteFolder(ev, folder) {
-    ev.stopPropagation();
-    folderTarget["hash"] = folder.hash;
-    if (folder.parent) {
-        folderTarget["children_path"] = `${folder.parent}/${folder.name}`;
-        folderTarget["self_path"] = `/${folder.parent}/${folder.name}`;
-    } else {
-        folderTarget["children_path"] = `${folder.name}`;
-        folderTarget["self_path"] = `/${folder.name}`;
-    }
-    let title = document.querySelector("#confirm_title")
-    title.innerHTML = `Permanently delete ${folderTarget.self_path} and all files inside it?`;
-    document.querySelector(".warning").style.display = "flex";
-}
-
-let confirmButton = document.querySelector("#confirm_yes");
-confirmButton.onclick = () => {
-    fetch(`/api/remove/folder`, {
-        method: "POST",
-        body: JSON.stringify(folderTarget),
-    } )
-    .then(() => {
-        document.querySelector(".warning").style.display = "none";
-        document.getElementById(`file-${folderTarget.hash}`).remove();
-        showSnack(`Deleted ${folderTarget.self_path}`, snackbarRed);
-    })
-};
-
-let cancelButton = document.querySelector("#confirm_no");
-cancelButton.onclick = () => {
-    document.querySelector(".warning").style.display = "none";
-    folderTarget = {};
-}
-
-
-// File Menu Options Handlers
-let fileOptionClose = document.querySelector("#close-option");
-let fileOptionTitle = document.querySelector("#title-option");
-let fileOptionMime = document.querySelector("#mime-option");
-let fileDelteOption = document.querySelector("#delete-option");
-let fileEmbedOption = document.querySelector("#embed-option");
-let fileShareOption = document.querySelector("#copy-option");
-let fileDownloadOption = document.querySelector("#download-option");
-
-function cardClick(hash) {
-    if (isRenaming) {
-        return;
-    }
-    contextFile = metadata[hash];
-    if (contextFile.type !== "folder") {
-        fileOptionTitle.innerHTML = contextFile.name;
-        fileOptionMime.innerHTML = contextFile.mime;
-        fileOption.style.display = "flex";
-    } else {
-        folderQueue.push(metadata[hash]);
-        folderClick(metadata[hash]);
-    }
-}
-fileOptionClose.onclick = () => {
-    fileOption.style.display = "none";
-    let icon = document.querySelector(`#icon-${contextFile.hash}`)
-    icon.className = "fa-solid fa-circle-chevron-down";
-};
-fileDownloadOption.onclick = () => {
-    downloadFile(contextFile);
-    fileOption.style.display = "none";
-};
-fileDelteOption.onclick = () => {
-    deleteFile(contextFile);
-    fileOption.style.display = "none";
-};
-fileShareOption.onclick = () => {
-    shareButtonClick(contextFile);
-};
-fileEmbedOption.onclick = () => {
-    if (contextFile.size > 1024 * 1024 * 5) {
-        showSnack("File is too big to embed", snackbarRed);
-        return;
-    }
-    let embedUrl = `${window.location.protocol}//${window.location.host}/api/embed/${contextFile.hash}`;
-    window.navigator.clipboard.writeText(embedUrl)
-    .then(() => {
-        showSnack(`Embed url copied to clipboard`);
-    });
-};
-
-// Promt Path Handler
-let pathPrompt = document.querySelector(".fragment");
-function folderClick(folder) {
-    fileOption.style.display = "none";
-    if (folder.parent) {
-        pathPrompt.innerHTML = `/${folder.parent}/${folder.name}/`;
-        handleFolderClick(`${folder.parent}/${folder.name}`);
-    } else {
-        pathPrompt.innerHTML = `/${folder.name}/`;
-        handleFolderClick(folder.name);
-    }
-}
-
-// Prompt Back Button Handler
-let previousFolderButton = document.querySelector("#previos_folder");
-previousFolderButton.onclick = () => {
-    fileOption.style.display = "none";
-    if (folderQueue.length > 1) {
-        folderQueue.pop();
-        let folder = folderQueue[folderQueue.length - 1];
-        if (folder.parent) {
-            pathPrompt.innerHTML = `/${folder.parent}/${folder.name}/`;
-            handleFolderClick(`${folder.parent}/${folder.name}`);
-        } else {
-            pathPrompt.innerHTML = `/${folder.name}/`;
-            handleFolderClick(folder.name);
-        }
-    } else if (folderQueue.length === 1) {
-        pathPrompt.innerHTML = `/`;
-        folderQueue.pop();
-        fetch("/api/metadata")
-        .then(response => response.json())
-        .then(data => {
-            for (let file of Object.values(metadata)) {
-                let fileDiv = document.getElementById(`file-${file.hash}`);
-                cardView.removeChild(fileDiv);
-            }
-            metadata = {};
-            let folders = [];
-            let files = [];
-            data.forEach(file => {
-                if (!file.parent) {
-                    metadata[file.hash] = file;
-                    if (file.type === "folder") {
-                        folders.push(file);
-                    } else {
-                        files.push(file);
-                    }
-                }
-            });
-            let items = folders.concat(files);
-            items.forEach(file => {
-                cardView.appendChild(newFileChild(file));
-            });
-        })
-    }
-};
-
-// Folder Click Handler
-function handleFolderClick(parent) {
-    fetch(`/api/folder`, {
-        method: "POST",
-        body: JSON.stringify({parent: parent})
-    })
-    .then(res => res.json())
+let allFilesButton = document.querySelector('#all-files');
+allFilesButton.addEventListener('click', () => {
+    switchView();
+    globalFileBucket = {};
+    fetch("/api/metadata")
+    .then(response => response.json())
     .then(data => {
-        for (let file of Object.values(metadata)) {
-            let fileDiv = document.getElementById(`file-${file.hash}`);
-            cardView.removeChild(fileDiv);
-        }
-        metadata = {};
         let folders = [];
         let files = [];
-        data.forEach(file => {
-            metadata[file.hash] = file;
-            if (file.type === "folder") {
+        data.forEach((file) => {
+            globalFileBucket[file.hash] = file;
+            if (file.type === 'folder') {
                 folders.push(file);
             } else {
                 files.push(file);
             }
         });
-        let items = folders.concat(files);
-        items.forEach(file => {
-            cardView.appendChild(newFileChild(file));
-        });
+        let allFilesData = folders.concat(files);
+        let allFiles = buildAllFilesList(allFilesData);
+        mainSection.innerHTML = '';
+        mainSection.appendChild(buildAllFilesPage(allFiles));
+        if (window.innerWidth < 768) {
+            sidebarEventState(false);
+        }
+        updatePromptFragment();
     })
-}
-
-// Drag and Drop Handler
-uploadButton.addEventListener('click', () => {
-    uploadInput.click();
 });
 
-uploadInput.addEventListener('change', () => {
-    let files = uploadInput.files;
-    for (let i = 0; i < files.length; i++) {
-        uploadFile(files[i]);
+let queueButton = document.querySelector('#queue');
+queueButton.addEventListener('click', () => {
+    switchView(false, true);
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
     }
 });
 
-// Folder Create Handler
-folderButton.onclick = () => {
-    let folderName = prompt("Enter folder name");
-    if (folderName) {
-        let folderData = {
-            name: folderName,
-            hash: randomFileHash(),
-            date: new Date().toISOString(),
-            type: "folder",
-            parent: ""
-        }
-        if (folderQueue.length > 0) {
-            let folder = folderQueue[folderQueue.length - 1];
-            if (folder.parent) {
-                folderData.parent = `${folder.parent}/${folder.name}`;
-            } else {
-                folderData.parent = folder.name;
-            }
-        }
-        metadata[folderData.hash] = folderData;
-        cardView.appendChild(newFileChild(folderData));
-        fetch(`/api/metadata`, {
-            method: "POST",
-            body: JSON.stringify(folderData),
-        }).then(() => {
-            showSnack(`Folder ${folderName} created!`);
-        });
-    }
-};
+let deleteButton = document.querySelector('#delete-file');
+deleteButton.addEventListener('click', () => {
+    fetch(`/api/metadata`, {
+        method: "DELETE",
+        body: JSON.stringify(globalContextFile),
+    })
+    .then(() => {
+        showSnack(`Deleted ${globalContextFile.name}`, colorRed);
+        document.getElementById(`file-${globalContextFile.hash}`).remove();
+        updateSpaceUsage(-globalContextFile.size);
+        fileOptionsPanelCloseButton.click();
+    })
+});
 
-// File Rename Handler
-function fileRename(e, hash) {
-    let oldName = metadata[hash].name;
-    let oldNameExtension = oldName.split(".").pop();
-    let updatedName = e.target.innerHTML;
-    let updatedExtension = updatedName.split(".").pop();
-    if (oldNameExtension !== updatedExtension) {
-        e.target.innerHTML = oldName;
-        showSnack("File extension cannot be changed", snackbarRed);
-        isRenaming = false;
-        return;
+let pinButton = document.querySelector('#pin-file');
+pinButton.addEventListener('click', () => {
+    // TODO: Pin file
+});
+
+let embedButton = document.querySelector('#embed-file');
+embedButton.addEventListener('click', () => {
+    if (globalContextFile.size > 4 * 1024 * 1024) {
+        showSnack(`File is too large to embed`, colorRed);
+    } else {
+        let embedUrl = `${window.location.origin}/api/embed/${globalContextFile.hash}`;
+        window.navigator.clipboard.writeText(embedUrl)
+        .then(() => {
+            showSnack(`Copied embed URL to clipboard`);
+        })
     }
-    if (updatedName === oldName) {
-        isRenaming = false;
-        return;
+});
+
+let shareButton = document.querySelector('#share-file');
+shareButton.addEventListener('click', () => {
+    if (globalContextFile.size > 30 * 1024 * 1024) {
+        showSnack(`File is too large to share via link`, colorRed);
+    } else {
+        let downloadUrl = `${window.location.origin}/download/${globalContextFile.hash}`;
+        window.navigator.clipboard.writeText(downloadUrl)
+        .then(() => {
+            showSnack(`Copied download URL to clipboard`);
+        })
     }
-    let payload = {
-        hash: hash,
-        name: updatedName
+});
+
+let downloadButton = document.querySelector('#download-file');
+downloadButton.addEventListener('click', () => {
+    fileOptionsPanelCloseButton.click();
+    download(globalContextFile);
+    showSnack(`Downloaded ${globalContextFile.name}`);
+});
+
+let deleteFolderButton = document.querySelector('#delete-folder');
+deleteFolderButton.addEventListener('click', () => {
+    let folder = globalContextFile;
+    let body = {
+        "hash": folder.hash,
+    };
+    if (folder.parent) {
+        body["children_path"] = `${folder.parent}/${folder.name}`;
+    } else {
+        body["children_path"] = `${folder.name}`;
     }
-    fetch(`/api/rename`, {
+    fetch(`/api/remove/folder`, {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
     })
-    .then((res) => {
-        isRenaming = false;
-        if (res.status === 200) {
-            metadata[hash].name = updatedName;
-            showSnack(`File renamed to ${updatedName}`);
-        } else {
-            return;
-        }
+    .then(() => {
+        showSnack(`Deleted ${folder.name}`, colorRed);
+        document.getElementById(`file-${folder.hash}`).remove();
+        folderOptionsPanelCloseButton.click();
+        fetch("/api/consumption")
+        .then(response => response.json())
+        .then(data => {
+            globalConsumption = getTotalSize(data);
+            let totalSizeString = handleSizeUnit(globalConsumption);
+            totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${totalSizeString}`;
+        })
     })
-}
+});
 
-let isToggled =  false ;
-menu.addEventListener( 'click' ,  (e) => {
-    if (isToggled) {
-        sidebarLeft.style.display =  'none' ;
-        isToggled =  false ;
-    }  else  {
-        sidebarLeft.style.display =  'flex' ;
-        fileOption.style.display =  'none' ;
-        isToggled =  true ;
+let pinFolderButton = document.querySelector('#pin-folder');
+pinFolderButton.addEventListener('click', () => {
+    // TODO: Pin folder
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    mainSection.style.display = 'none';
+    secondarySection.style.display = 'none';
+    fetch("/api/consumption")
+    .then(response => response.json())
+    .then(data => {
+        globalConsumption = getTotalSize(data);
+        let totalSizeString = handleSizeUnit(globalConsumption);
+        totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${totalSizeString}`;
+    })
+    homeButton.click();
+});
+
+window.addEventListener('resize', () => {
+    blurLayer.style.display = 'none';
+    if (window.innerWidth > 768) {
+        sidebar.style.display = 'flex';
+        sidebarState = true;
+    } else {
+        sidebar.style.display = 'none';
+        floatingMenuButton.display = 'block';
+        floatingMenuButton.innerHTML = `<i class="fa-solid fa-bars"></i>`;
+        sidebarState = false;
     }
-} );
-
-let logo = document.querySelector(".logo");
-logo.onclick = () => {
-    window.open("https://github.com/jnsougata/filebox", "_blank");
-}
+});

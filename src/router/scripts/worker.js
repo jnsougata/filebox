@@ -109,10 +109,8 @@ function upload(file) {
                                     .then(() => {
                                         bar.style.width = "100%";
                                         updateToCompleted(hash)
+                                        updateSpaceUsage(file.size);
                                         showSnack(`Uploaded ${file.name} successfully!`, colorBlue);
-                                        setTimeout(() => {
-                                            
-                                        }, 500);
                                     })
                                 })
                             } else {

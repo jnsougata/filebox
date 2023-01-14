@@ -5,85 +5,119 @@
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="icon" href="/assets/icon.png" type="image/x-icon">
-        <link rel="stylesheet" type="text/css" href="../styles/index.css">
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@100;400;900&display=swap" rel="stylesheet" />
+        <link rel="icon" href="../assets/icon.png" type="image/x-icon">
+        <link rel="stylesheet" type="text/css" href="../styles/mock.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
     </head>
     <body>
+        <div class="snackbar">
+        </div>
+        <div class="floating-menu-button">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <div class="options-panel" id="file-options-panel">
+            <p style="margin-top: 10px;" id="options-panel-filename"></p>
+            <div style="margin-top: 30px;">
+                <span class="material-symbols-rounded" id="delete-file">
+                    delete_forever
+                </span>
+                <span class="material-symbols-rounded" id="pin-file">
+                    push_pin
+                </span>
+                <span class="material-symbols-rounded" id="embed-file">
+                    code
+                </span>
+                <span class="material-symbols-rounded" id="share-file">
+                    link
+                </span>
+                <span class="material-symbols-rounded" id="download-file">
+                    download
+                </span>
+            </div>
+            <div>
+                <button style="margin-top: 30px;" id="file-options-panel-close">close</button>
+            </div>
+        </div>
+        <div class="options-panel" id="folder-options-panel">
+            <p style="margin-top: 10px;" id="options-panel-folder_name"></p>
+            <div style="margin-top: 30px;">
+                <span class="material-symbols-rounded" id="delete-folder">
+                    delete_forever
+                </span>
+                <span class="material-symbols-rounded" id="pin-folder">
+                    push_pin
+                </span>
+            </div>
+            <div>
+                <button style="margin-top: 30px;" id="folder-options-panel-close">close</button>
+            </div>
+        </div>
+        <div class="blur-layer"></div>
         <div class="container">
-            <header>
-                <div class="menu">
-                    <i class="fa-solid fa-bars-staggered"></i>
-                </div>
+            <div class="sidebar">
                 <div class="logo">
-                    <img src="/assets/icon.png" alt="logo">
-                    FileBox
+                    <img src="../assets/icon.png" alt="logo" />
+                    <h3>FileBox</h3>
                 </div>
-                <div class="search">
-                   <input type="text" placeholder="search by keywords" id="search">
-                   <i class="fa-solid fa-compass"></i>
+                <div class="option" id="home">
+                    <i class="fa-solid fa-home"></i>Home
                 </div>
-            </header>
-            <div class="warning">
-                <div class="box">
-                    <div class="title" id="confirm_title"></div>
-                    <div class="group">
-                        <button id="confirm_yes">Yes</button>
-                        <button style="background-color: rgb(24, 146, 24);" id="confirm_no">No</button>
-                    </div>
+                <div class="option" id="all-files">
+                    <i class="fa-solid fa-folder"></i>My Files
+                </div>
+                <div class="option">
+                    <i class="fa-solid fa-book-open"></i>PDFs
+                </div>
+                <div class="option">
+                    <i class="fa-solid fa-file-excel"></i>Docs
+                </div>
+                <div class="option">
+                    <i class="fa-solid fa-image"></i>Images
+                </div>
+                <div class="option">
+                    <i class="fa-solid fa-video"></i>Videos
+                </div>
+                <div class="option">
+                    <i class="fa-solid fa-music"></i>Audio
+                </div>
+                <div class="option">
+                    <i class="fa-solid fa-ghost"></i>Others
+                </div>
+                <div class="option" id="queue">
+                    <i class="fa-solid fa-list-ul"></i>Queue
+                </div>
+                <div class="bottom-option">
                 </div>
             </div>
             <div class="content">
-                <div class="sidebar">
-                    <div class="btn" id="new-upload">
-                        <span class="material-symbols-rounded" style="font-size: 25px;">upload</span>
-                        <span>Upload</span>
-                        <input type="file" id="file-input" multiple style="display: none;">
-                    </div>
-                    <div class="btn" id="new-folder">
-                        <span class="material-symbols-rounded" style="font-size: 25px;">folder</span>
-                        <span>New Folder</span>
-                    </div>
-                </div>
-                <div class="view">
-                    <div class="prompt">
-                        <div class="fragment">/</div>
-                        <button id="previos_folder">
-                            <i class="fa-solid fa-circle-chevron-left"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="file-option">
-                    <button id="close-option">
-                        <i class="fa-solid fa-times"></i>
+                <header>
+                    <i class="fa-solid fa-compass"></i>
+                    <input type="text" placeholder="search files" />
+                    <button id="new-folder">
+                        <i class="fa-solid fa-plus"></i>
+                        Folder
                     </button>
-                    <div class="details">
-                        <p id="title-option"></p>
-                        <p id="mime-option"></p>
+                    <button id="upload-file">
+                        <input type="file" id="input-file" style="display: none;" multiple/>
+                        <i class="fa-solid fa-paperclip"></i>
+                        Upload
+                    </button>
+                </header>
+                <section id="main">
+                </section>
+                <section id="secondary">
+                    <div class="queue">
+                        <p>Task Queue</p>
                     </div>
-                    <div class="group">
-                        <button style="background-color: #ff4444" id="delete-option">
-                            <i class="fa-solid fa-trash" ></i>
-                        </button>
-                        <button style="background-color: #9f18ee" id="embed-option">
-                            <i class="fa-solid fa-code"></i>
-                        </button>
-                        <button style="background-color: #1549e3" id="copy-option">
-                            <i class="fa-solid fa-link"></i>
-                        </button>
-                        <button style="background-color: #09aa4c" id="download-option" >
-                            <i class="fa-solid fa-download" ></i>
-                        </button>
-                    </div>
-                    <div class="snackbar" id="snackbar"></div>
-                </div>
+                </section>
             </div>
         </div>
-        <div class="results"></div>
-        <script src="/scripts/index.js"></script>
+        <script src="../scripts/index.js"></script>
+        <script src="../scripts/helper.js"></script>
+        <script src="../scripts/worker.js"></script>
     </body>
 </html>

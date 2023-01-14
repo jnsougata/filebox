@@ -343,7 +343,7 @@ body {
     color: #ccc;
 }
 .home-page > ul > li > span {
-    font-size: 18px;
+    font-size: 15px;
     color: #ccc;
     margin-left: 10px;
     padding: 8px;
@@ -392,7 +392,7 @@ body {
     .home-page > ul > li > span {
         font-size: 15px;
         margin-left: 5px;
-        padding: 8px;
+        padding: 7px;
     }
 }
 .options-panel {
@@ -495,7 +495,7 @@ body {
     color: #ccc;
 }
 .my-files > ul > li > span {
-    font-size: 18px;
+    font-size: 15px;
     color: #ccc;
     margin-left: 10px;
     padding: 8px;
@@ -542,9 +542,9 @@ body {
         font-size: 12px;
     }
     .my-files > ul > li > span {
-        font-size: 15px;
+        font-size: 13px;
         margin-left: 5px;
-        padding: 8px;
+        padding: 7px;
     }
 }
 .prompt {
