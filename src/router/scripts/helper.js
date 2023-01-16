@@ -329,3 +329,21 @@ function showSnack(text, color=colorGreen) {
         snackbar.style.display = 'none';
     }, 3000);
 }
+
+function renderCategory(query) {
+    switchView();
+    globalFileBucket = {};
+    fetch("/api/query", {
+        method: "POST",
+        body: JSON.stringify(query),
+    })
+    .then(response => response.json())
+    .then(data => {
+        let items = buildAllFilesList(data);
+        mainSection.innerHTML = '';
+        mainSection.appendChild(buildAllFilesPage(items));
+        data.forEach((file) => {
+            globalFileBucket[file.hash] = file;
+        });
+    })
+}

@@ -165,6 +165,36 @@ queueButton.addEventListener('click', () => {
     }
 });
 
+let pdfButton = document.querySelector('#pdf');
+pdfButton.addEventListener('click', () => {
+    renderCategory({"mime": "application/pdf"});
+});
+
+let docsButton = document.querySelector('#docs');
+docsButton.addEventListener('click', () => {
+    renderCategory({"mime?contains": "text"});
+});
+
+let imgButton = document.querySelector('#image');
+imgButton.addEventListener('click', () => {
+    renderCategory({"mime?contains": "image"});
+});
+
+let audioButton = document.querySelector('#audio');
+audioButton.addEventListener('click', () => {
+    renderCategory({"mime?contains": "audio"});
+});
+
+let videoButton = document.querySelector('#video');
+videoButton.addEventListener('click', () => {
+    renderCategory({"mime?contains": "video"});
+});
+
+let otherButton = document.querySelector('#others');
+otherButton.addEventListener('click', () => {
+    renderCategory({"mime?contains": "application/vnd"});
+});
+
 let deleteButton = document.querySelector('#delete-file');
 deleteButton.addEventListener('click', () => {
     fetch(`/api/metadata`, {
