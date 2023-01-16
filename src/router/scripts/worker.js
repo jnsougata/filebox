@@ -202,16 +202,22 @@ function createFolder() {
             }
         }
         fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
-        .then(() => {
-            showSnack(`Created folder ${folderName}`, colorGreen);
-            if (body.parent) {
-                let view = document.querySelector('#folder-view');
-                view.appendChild(newFileElem(body));
-            } else {
-                let allFiles = document.querySelector('.all-files');
-                if (allFiles) {
-                    allFiles.appendChild(newFileElem(body));
-                }
+        .then((resp) => {
+            if (resp.status === 409) {
+                showSnack(`Folder with same name already exists`, colorRed);
+                return;
+            } else if (resp.status <= 207) {
+                showSnack(`Created folder ${folderName}`, colorGreen);
+                if (body.parent) {
+                    globalFileBucket[body.hash] = body;
+                    let view = document.querySelector('#folder-view');
+                    view.appendChild(newFileElem(body));
+                } else {
+                    let allFiles = document.querySelector('.all-files');
+                    if (allFiles) {
+                        allFiles.appendChild(newFileElem(body));
+                    }
+                }   
             }
         })
     }

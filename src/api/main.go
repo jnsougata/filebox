@@ -25,7 +25,7 @@ func main() {
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
 	r.HandleFunc("/shared/chunk/{skip}/{hash}", HandleDownload).Methods("GET")
 	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")
-	r.HandleFunc("/query", QueryHandler).Methods("POST")
+	r.HandleFunc("/query", HandleQuery).Methods("POST")
 	r.HandleFunc("/remove/folder", HandleFolderDelete).Methods("POST")
 	r.HandleFunc("/rename", HandleRename).Methods("POST")
 	r.HandleFunc("/consumption", HandleSpaceUsage).Methods("GET")
@@ -56,6 +56,28 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewDecoder(r.Body).Decode(&data)
 		key := data["hash"].(string)
 		data["key"] = key
+		_, hasPrent := data["parent"]
+		_, isFolder := data["type"]
+		if !hasPrent && isFolder {
+			q := deta.Query()
+			q.Equals(map[string]interface{}{"name": data["name"].(string)})
+			resp := base.Fetch(q, "", 0).Data["items"].([]interface{})
+			if len(resp) > 0 {
+				w.WriteHeader(http.StatusConflict)
+				return
+			}
+		}
+		if hasPrent && isFolder {
+			q := deta.Query()
+			q.Equals(map[string]interface{}{"parent": data["parent"].(string), "name": data["name"].(string)})
+			resp := base.Fetch(q, "", 0).Data["items"].([]interface{})
+			for _, item := range resp {
+				if item.(map[string]interface{})["name"] == data["name"] {
+					w.WriteHeader(http.StatusConflict)
+					return
+				}
+			}
+		}
 		resp := base.Put(data)
 		w.WriteHeader(resp[0].StatusCode)
 		ba, _ := json.Marshal(resp[0].Data)
@@ -133,7 +155,7 @@ func HandleSharedMetadata(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(ba)
 }
 
-func QueryHandler(w http.ResponseWriter, r *http.Request) {
+func HandleQuery(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var body map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&body)
