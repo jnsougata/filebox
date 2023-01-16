@@ -168,31 +168,49 @@ queueButton.addEventListener('click', () => {
 let pdfButton = document.querySelector('#pdf');
 pdfButton.addEventListener('click', () => {
     renderCategory({"mime": "application/pdf"});
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
 });
 
 let docsButton = document.querySelector('#docs');
 docsButton.addEventListener('click', () => {
     renderCategory({"mime?contains": "text"});
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
 });
 
 let imgButton = document.querySelector('#image');
 imgButton.addEventListener('click', () => {
     renderCategory({"mime?contains": "image"});
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
 });
 
 let audioButton = document.querySelector('#audio');
 audioButton.addEventListener('click', () => {
     renderCategory({"mime?contains": "audio"});
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
 });
 
 let videoButton = document.querySelector('#video');
 videoButton.addEventListener('click', () => {
     renderCategory({"mime?contains": "video"});
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
 });
 
 let otherButton = document.querySelector('#others');
 otherButton.addEventListener('click', () => {
     renderCategory({"mime?contains": "application/vnd"});
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
 });
 
 let deleteButton = document.querySelector('#delete-file');
