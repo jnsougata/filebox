@@ -132,6 +132,7 @@ let allFilesButton = document.querySelector('#all-files');
 allFilesButton.addEventListener('click', () => {
     switchView();
     globalFileBucket = {};
+    globalFolderQueue = [];
     fetch("/api/metadata")
     .then(response => response.json())
     .then(data => {

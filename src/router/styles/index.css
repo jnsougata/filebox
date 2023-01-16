@@ -1,15 +1,12 @@
 * {
     margin: 0;
     padding: 0;
-}
-
-:root {
-    --black-main: #1d1b22;
-    --black-secondary: #26262e;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
 
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 5px;
     height: 8px;
 }
   
@@ -24,675 +21,698 @@
 }
 
 body {
-    font-family: 'Prompt', sans-serif;
     overflow: hidden;
     height: 100vh;
-    background-color: var(--black-main);
+    background-color: #1a1c20;
 }
 
 .container {
     width: 100%;
     height: 100%;
-    background-color: var(--black-main);
-    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.blur-layer {
+    display: none;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff0a;
+    position: absolute;
+    z-index: 99;
+    backdrop-filter: blur(2px);
+}
+
+.sidebar {
+    width: 250px;
+    height: 100%;
+    background-color: #065bc7;
+    background-color: #1a1c20;
+    color: white;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-}
-.container > header {
-    top: 0;
-    position: fixed;
-    background-color: var(--black-secondary);
-    color: white;
-    padding: 10px;
-    width: 100%;
-    height: 30px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    z-index: 110 !important;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    box-shadow: 0 0 1px 0 rgba(204, 204, 204, 0.521);
+    overflow-y: auto;
 }
 
-.container > header > .menu {
+.sidebar > .logo {
+    width: 100%;
+    height: 150px;
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    margin-left: 20px;
-}
-  
-.container > header > .menu > i {
-    font-size: 18px;
-    color: white;
-    cursor: pointer;
 }
 
-.container > header > .logo {
-    width: max-content;
-    height: 100%;
+.logo > img {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+.logo > h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+}
+
+.option {
+    width: 100%;
+    height: 42px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    font-size: 16px;
+    cursor: pointer;
+    border-left: 5px solid transparent;
+}
+
+.option > i {
+    font-size: 16px;
+    color: #ccc;
+    z-index: 2;
+    margin-right: 10px;
+    margin-left: 40px;
+}
+
+.option:hover {
+    background-color: #ffffff1c;
+}
+
+.bottom-option {
+    bottom: 0;
+    position: absolute;
+    width: 250px;
+    height: 60px;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: white;
-    font-size: 20px;
-    font-weight: 500;
-    margin-left: 10px;
+    background-color: #ffffff0c;
+    font-size: 16px;
+    cursor: pointer;
 }
 
-.container > header > .search {
-    width: 100%;
-    height: 100%;
+.bottom-option > i {
+    font-size: 16px;
+    color: rgb(255, 71, 71);
+    z-index: 2;
+    margin-right: 10px;
+}
+
+.floating-menu-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background-color: #065bc7;
+    border-radius: 50%;
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
-    padding-left: 10px;
-    padding-right: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    z-index: 1000;
 }
 
-.container > header > .search > input[type="text"] {
-    max-width: 300px;
+.floating-menu-button > i {
+    font-size: 15px;
+    color: white;
+}
+
+@media screen and (min-width: 768px) {
+    .floating-menu-button {
+        display: none;
+    }
+}
+
+.content {
+    width: calc(100% - 250px);
     height: 100%;
+    background-color: transparent;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.content > header {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    flex-shrink: 0;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 10px;
+    padding-left: 10px;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+}
+
+.content > header > i {
+    font-size: 20px;
+    color: rgb(39, 150, 39);
+    z-index: 2;
+    margin-right: 10px;
+}
+
+.content > header > input[type="text"] {
+    width: 100%;
+    height: calc(100% - 10px);
+    background-color: transparent;
     border: none;
     outline: none;
-    background-color: var(--black-main);
     color: white;
-    font-size: 15px;
-    padding: 0 10px;
-    border-radius: 15px;
-    transition: 0.2s;
+    font-size: 20px;
 }
 
-.container > header > .search > i {
-    position: fixed;
-    font-size: 18px;
-    color: rgb(72, 158, 22);
+
+.content > header > button {
+    height: calc(100% - 20px);
+    background-color: #2d2f32;
+    border: none;
+    outline: none;
+    color: #ccc;
+    font-size: 16px;
+    padding: 5px 10px;
     cursor: pointer;
-    margin-right: 8px;
+    white-space: nowrap;
+    border-radius: 4px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-@media screen and (max-width: 768px) {
-    .container > header > .logo > img {
-        display: none;
-    }
-}
-
-@media screen and (min-width: 768px) {
-    .container > header > .menu{
-        display: none;
-    }
-    .container > header > .logo {
-        display: flex;
-        margin-left: 20px;
-    }
-    .container > header > .search {
-        padding-right: 20px;
-    }
-}
-
-.container > header > .logo > img {
-    width: 20px;
-    height: 20px;
+.content > header > button > i {
+    font-size: 16px;
     margin-right: 5px;
 }
 
-.container > .content {
+@media screen and (max-width: 768px) {
+    .sidebar {
+        top: 0;
+        left: 0;
+        display: none;
+        position: fixed;
+    }
+    .content {
+        width: 100%;
+    }
+    .content > header {
+        height: 50px;
+    }
+    .content > header > input[type="text"] {
+        font-size: 14px;
+    }
+    .content > header > button {
+        font-size: 14px;
+    }
+}
+
+.content > section {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: row;
-    justify-content: flex-start;
+    justify-content: center;
+    align-items: center;
     overflow: hidden;
-    margin-top: 50px;
 }
 
-.content > .bottom {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    height: 30px;
-    background-color: var(--black-main);
-    color: white;
-    padding: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100 !important;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-}
-
-.content > .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 300px;
-    height: 100%;
-    background-color: var(--black-secondary);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 99 !important;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    padding-top: 60px;
-}
-
-.sidebar > .btn {
-    width: calc(100% - 80px);
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
-    background-color: rgba(255, 255, 255, 0.123);
-    border-radius: 25px;
-    cursor: pointer;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-}
-
-.sidebar > .btn > span {
-    font-size: 15px;
-    color: whitesmoke;
-    margin-right: 10px;
-    font-weight: 500;
-}
-
-@media screen and (max-width: 768px) {
-    .content > .sidebar {
-        display: none;
-        max-width: 250px;
-    }
-}
-
-.content > .view {
+.home-page {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    margin-left: auto;
-    margin-right: auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    background-color: #1a1c20;
 }
-
-@media screen and (min-width: 768px) {
-    .content > .view {
-        margin-left: 300px;
-    }
-}
-
-.content > footer {
-    position: fixed;
-    bottom: 0;
+.home-page > p {
     width: 100%;
-    height: 30px;
-    background-color: var(--black-main);
-    color: white;
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 98 !important;
-}
-
-.card {
-    margin-top: 5px;
-    margin-bottom: 5px;
-    width: calc(100% - 20px);
-    height: 50px;
-    flex-shrink: 0;
-    background-color: var(--black-secondary);
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-}
-
-.card > .options {
-    width: 25px;
-    height: 25px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: transparent;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-right: 10px;
-}
-
-.card > .options > i {
-    font-size: 15px;
-    color: rgb(185, 182, 182);
-    padding: 10px;
-}
-
-@media screen and (min-width: 768px) {
-    .card > .options > i {
-        font-size: 20px;
-    }
-}
-
-.card > .remove {
-    width: 30px;
-    height: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(255, 255, 255, 0.123);
-    border-radius: 5px;
-    cursor: pointer;
-    margin-right: 10px;
-}
-
-.card > .remove > i {
-    font-size: 15px;
+    font-size: 20px;
+    font-weight: 600;
     color: #ccc;
-    padding: 10px;
+    margin-top: 20px;
+    padding: 5px 10px;
+    border-bottom: 1px solid #ffffff0c;
 }
-
-.card > .icon {
-    width: 20px;
-    height: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-left: 15px;
+.home-page > p > i {
+    font-size: 20px;
+    color: #ccc;
     margin-right: 5px;
 }
-
-.card > .icon > i {
-    font-size: 15px;
-    color: #ffffff43;
+.home-page > .pinned {
+    width: 100%;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-shrink: 0;
 }
-
-.card > .details {
+.home-page > .pinned > .card {
+    width: 200px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    margin-right: 20px;
+    cursor: pointer;
+    border-radius: 10px;
+    background-color: #ffffff0c;
+    padding: 10px;
+    flex-shrink: 0;
+}
+.home-page > .pinned > .card > i {
+    font-size: 40px;
+    color: #ccc;
+    margin-top: -10px;
+}
+.home-page > .pinned > .card > p {
+    width: 150px;
+    font-size: 12px;
+    color: #ccc;
+    overflow-y: auto;
+    text-overflow: clip;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    text-align: center;
+}
+.home-page > .pinned > .card > .unpin {
+    width: 100%;
+    text-align: end;
+    color: rgb(226, 63, 63);
+}
+.home-page > .pinned > .card > .unpin > span {
+    font-size: 25px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+.home-page > ul {
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow-y: auto;
+}
+.home-page > ul > li {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #ffffff0c;
+}
+.home-page > ul > li > i {
+    font-size: 25px;
+    color: #ccc;
+}
+.home-page > ul > li > span {
+    font-size: 15px;
+    color: #ccc;
     margin-left: 10px;
+    padding: 8px;
+    background-color: #ffffff0c;
+    border-radius: 50%;
+    cursor: pointer;
+}
+.home-page > ul > li > .info {
+    width: 100%;
+    height: 60px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
+    padding-left: 20px;
 }
-
-.card > .details > p {
-    font-size: 8px;
-    color: white;
-    margin-bottom: 2px;
-    max-width: 250px;
+.home-page > ul > li > .info > p {
+    max-width: 400px;
+    font-size: 15px;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    
 }
-
-.card > .details > p > i {
-    font-size: 8px;
-    color: #ffffff43;
-    margin-left: 10px;
-}
-
-.card > .details > .progress {
-    width: calc(100% - 10px);
-    height: 3px;
-    background-color: rgba(255, 255, 255, 0.158);
-    border-radius: 10px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-.card > .details > .progress > .bar {
-    width: 0;
-    height: 100%;
-    background-color: #1549e3;
-    border-radius: 10px;
-}
-
-@media screen and (min-width: 768px) {
-    .card {
-        width: calc(100% - 80px);
-        height: 70px;
-        margin-top: 20px;
+@media screen and (max-width: 768px) {
+    .home-page > ul > li {
+        height: 50px;
+        padding-left: 0;
+        padding-right: 10px;
     }
-    .card > .icon {
-        margin-left: 25px;
-        margin-right: 15px;
-    }
-    .card > .icon > i {
+    .home-page > ul > li > i {
         font-size: 20px;
+        margin-left: 10px;
     }
-    .card > .details > p {
-        max-width: 300px;
-        font-size: 13px;
+    .home-page > ul > li > .info {
+        height: 50px;
+        padding-left: 10px;
     }
-    .card > .details > p > i {
+    .home-page > ul > li > .info > p {
+        width: 300px;
         font-size: 12px;
     }
-    .body > .content > .cards > .prompt {
-        width: 50%;
-        height: 30px;
+    .home-page > ul > li > span {
+        font-size: 15px;
+        margin-left: 5px;
+        padding: 7px;
     }
-    .card > .remove {
-        margin-right: 20px;
+}
+.options-panel {
+    width: 500px;
+    height: 200px;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: #1a1c20;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    z-index: 10000 !important;
+    border-radius: 10px 10px 0 0;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+}
+.options-panel > p {
+    max-width: 480px;
+    height: 40px;
+    padding-top: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 18px;
+    color: #ccc;
+    max-width: 480px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid #ffffff0c;
+}
+.options-panel > div > span {
+    font-size: 20px;
+    color: #ccc;
+    margin-left: 10px;
+    padding: 10px;
+    background-color: #ffffff0c;
+    border-radius: 50%;
+    cursor: pointer;
+}
+.options-panel > div > button {
+    font-size: 15px;
+    padding: 5px 30px;
+    background-color: rgb(223, 61, 61);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+@media screen and (max-width: 768px) {
+    .options-panel {
+        width: 100%;
     }
-    .card > .options {
-        width: 30px;
-        height: 30px;
-        margin-right: 20px;
+    .options-panel > p {
+        max-width: calc(100% - 20px);
+        font-size: 15px;
     }
 }
 
-.view > .prompt {
-    margin-top: 10px;
-    margin-bottom: 5px;
-    width: calc(100% - 80px);
-    height: 30px;
-    background-color: var(--black-secondary);
-    border-radius: 5px;
+.my-files {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: flex-start;
+    background-color: #1a1c20;
+}
+.my-files > p {
+    width: 100%;
+    height: 50px;
+    padding: 10px;
+    font-size: 20px;
+    text-align: left;
+    border-bottom: 1px solid #ffffff0c;
+}
+.my-files > ul {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow-y: auto;
+}
+.my-files > ul > li {
+    width: 100%;
+    height: 60px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: sticky;
-    top: 0;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    overflow-y: hidden;
-    overflow-x: auto;
+    padding-left: 20px;
+    padding-right: 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #ffffff0c;
     flex-shrink: 0;
-    z-index: 2;
 }
-
-@media screen and (max-width: 768px) {
-    .view > .prompt {
-        width: calc(100% - 20px);
-    }
+.my-files > ul > li > i {
+    font-size: 25px;
+    color: #ccc;
 }
-
-.prompt > button {
-    background-color: transparent;
-    border: none;
-    outline: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: 0.3s;
-    margin-left: 5px;
-    margin-right: 5px;
-    background-color: transparent;
-    border-radius: 5px;
-    position: sticky;
-    margin-right: 6px;
-}
-
-.prompt > button > i {
-    color: rgb(185, 184, 184);
-    font-size: 18px;
-}
-
-.prompt > .fragment {
-    width: max-content;
-    height: calc(100% - 10px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
+.my-files > ul > li > span {
     font-size: 15px;
-    border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    color: #ccc;
+    margin-left: 10px;
+    padding: 8px;
+    background-color: #ffffff0c;
+    border-radius: 50%;
     cursor: pointer;
-    padding: 0 5px;
-    margin-left: 5px;
-    margin-right: 5px;
-    font-family: 'Consolas', monospace;
-    background-color: rgba(255, 255, 255, 0.137);
 }
-
-.file-option {
-    right: 0;
-    bottom: 0;
-    position: fixed;
-    width: 400px;
-    height: 150px;
-    margin-right: 48px;
-    background-color: #282835;
-    border-radius: 5px 5px 0 0;
-    display: none;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    z-index: 100;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    transition: 0.3s;
-}
-
-.file-option > .details {
-    padding-top: 20px;
-    width: calc(100% - 20px);
+.my-files > ul > li > .info {
+    width: 100%;
+    height: 60px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    padding-left: 20px;
 }
-
-.file-option > .details > p {
-    max-width: 300px;
+.my-files > ul > li > .info > p {
+    max-width: 300px;  
     font-size: 15px;
-    color: white;
-    text-align: center;
-    margin-bottom: 5px;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    background-color: rgba(0, 0, 0, 0.137);
-    padding: 0 15px;
-    border-radius: 15px;
+    
 }
-
-.file-option > .group {
+@media screen and (max-width: 768px) {
+    .my-files > ul > li {
+        height: 50px;
+        padding-left: 0;
+        padding-right: 10px;
+    }
+    .my-files > ul > li > i {
+        font-size: 20px;
+        margin-left: 10px;
+    }
+    .my-files > ul > li > .info {
+        height: 50px;
+        padding-left: 10px;
+    }
+    .my-files > ul > li > .info > p {
+        width: 300px;
+        font-size: 12px;
+    }
+    .my-files > ul > li > span {
+        font-size: 13px;
+        margin-left: 5px;
+        padding: 7px;
+    }
+}
+.prompt {
+    width: 100%;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    align-items: flex-start;
+    justify-content: flex-start;
+    background-color: #2d2f323f;
+    overflow-y: hidden;
+    overflow-x: auto;
+}
+.prompt > .back {
+    right: 0;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: #2d2f32;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 10px;
-    width: 100%;
-}
-
-.file-option > .group > button {
-    width: 40px;
-    height: 40px;
-    border: none;
-    outline: none;
-    color: white;
-    font-size: 15px;
     cursor: pointer;
-    border-radius: 50%;
-    transition: 0.3s;
-    margin-left: 10px;
-    margin-right: 10px;
 }
-
-.file-option > .group > button > i {
+.prompt > .back > i {
     font-size: 15px;
-    color: whitesmoke;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: 0.3s;
+    color: #ccc;
 }
-
-.file-option > button {
-    position: fixed;
-    right: 0;
-    width: 20px;
-    height: 20px;
-    background-color: #686868;
-    border: none;
-    outline: none;
-    color: white;
-    font-size: 15px;
-    cursor: pointer;
-    border-radius: 50%;
-    transition: 0.3s;
-    margin-right: 58px;
-    margin-top: 10px;
+.prompt > .fragment {
+    width: fit-content;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 10px;
+    padding-right: 5px;
+    background-color: #2d2f32;
+    font-family: 'Courier New', Courier, monospace;
+}
+.prompt > .arrow {
+    width: 0;
+    height: 100%;
+    border-top: 15px solid transparent;
+    border-bottom: 15px solid transparent; 
+    border-left: 10px solid #2d2f32; 
 }
 
 @media screen and (max-width: 768px) {
-    .file-option {
-        width: 100%;
-        height: 150px;
-        margin-right: auto;
-        margin-left: auto;
-        background-color: var(--black-secondary);
-        border-radius: 20px 20px 0 0;
+    .prompt > .back {
+        width: 25px;
+        height: 25px;
     }
-    .file-option > button {
-        margin-right: 15px;
-        margin-top: 15px;
+    .prompt > .arrow {
+        border-top: 12px solid transparent;
+        border-bottom: 12px solid transparent; 
+        border-left: 8px solid #2d2f32; 
+    }
+    .prompt {
+        height: 25px;
+    }
+    .prompt > .fragment {
+        font-size: 14px;
     }
 }
 
-.results {
-    top: 0;
-    right: 0;
-    position: fixed;
-    width: 500px;
-    height: 200px;
-    margin-top: 50px;
-    background-color: #282835;
-    border-radius: 0 0 5px 5px;
+.queue {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.queue > p {
+    width: 100%;
+    height: 50px;
+    padding: 10px;
+    font-size: 20px;
+    text-align: left;
+    border-bottom: 1px solid #ffffff0c;
+}
+.queue > .task {
+    width: 100%;
+    height: 53px;
+    padding: 5px;
+    font-size: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ffffff0c;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     justify-content: flex-start;
-    align-items: center;
-    z-index: 100;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    display: none;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    transition: 0.3s;
-    overflow-x: hidden;
-    overflow-y: auto;
-    padding-top: 20px;
-}
 
+}
+.queue > .task > .icon {
+    font-size: 25px;
+    color: #ccc;
+    cursor: pointer;
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.queue > .task > p {
+    max-width: calc(100% - 20px);
+    height: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: white;
+    padding-left: 50px;
+}
 @media screen and (max-width: 768px) {
-    .results {
-        width: 100%;
-        height: fit-content;
-        max-height: 200px;
-        margin-right: auto;
-        margin-left: auto;
-        border-radius: 0 0 10px 10px;
-        padding-top: 10px;
+    .queue > .task > p {
+        max-width: 350px;
     }
+}
+.queue > .task > .progress {
+    width: calc(100% - 20px);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 50px;
+    padding-right: 20px;
+}
+.queue > .task > .progress > .bar {
+    width: 0;
+    height: 5px;
+    background-color: #2d2f32;
+    transition: width 0.5s;
+    border-radius: 10px;
 }
 
 .snackbar {
-    visibility: hidden;
-    min-width: 250px;
-    min-height: 20px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 20px;
-    color: white;
-    font-size: small;
-    text-align: center;
-    border-radius: 5px;
-    padding: 16px;
-    position: fixed;
-    z-index: 500 !important;
-    bottom: 0;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-}
-
-@media screen and (max-width: 768px) {
-    .snackbar {
-        max-width: 300px;
-    }
-}
-
-.warning {
-    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
-    background-color: rgba(16, 14, 14, 0.766);
-    z-index: 1000;
+    height: 75px;
+    padding: 10px;
+    position: fixed;
     display: none;
-    justify-content: center;
     align-items: center;
-    color: white;
-    font-size: 15px;
-    animation: warning 0.5s ease-in-out infinite;
+    justify-content: center;
+    color: #ccc;
+    font-size: 20px;
+    transition: bottom 0.5s;
+    z-index: 1100 !important;
+    background-color: transparent;
+    animation: sildein 0.5s;
 }
-
-.warning > .box {
-    width: 400px;
-    height: 150px;
-    background-color: var(--black-main);
-    border-radius: 5px;
+.snackbar > .content {
+    width: 500px;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     align-items: center;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    background-color: #2d2f32;
+    box-shadow: 0 0 10px 0 #000000;
+    border-radius: 5px;
+    flex-grow: 0;
 }
-
-.warning > .box > .title {
-    font-size: 15px;
-    margin-bottom: 10px;
-    max-width: 300px;
+.snackbar > .content > p {
+    font-size: 16px;
+    max-width: 480px;
     text-align: left;
-    word-wrap: break-word;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
-
-.warning > .box > .group {
-    width: 300px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-
-.warning > .box > .group > button {
-    background-color: rgb(239, 73, 73);
-    border: none;
-    outline: none;
-    color: white;
-    font-size: 15px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: 0.3s;
-    padding: 5px 8px;
-    margin-top: 10px;
-    margin-left: 10px;
-}
-
-@media screen and (max-width: 768px) {
-    .warning > .box {
-        width: 300px;
-        height: 150px;
-    }
-    .warning > .box > .title {
-        font-size: 15px;
-        margin-bottom: 10px;
-        max-width: 250px;
-        text-align: left;
-        word-wrap: break-word;
-    }
-    .warning > .box > .group {
-        width: 250px;
-    }
-}
-    

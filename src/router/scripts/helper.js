@@ -90,6 +90,7 @@ function handleFolderClick(folder) {
     .then(res => res.json())
     .then(data => {
         let ul = document.createElement('ul');
+        ul.id = 'folder-view';
         data.forEach((file) => {
             globalFileBucket[file.hash] = file;
             ul.appendChild(newFileElem(file));

@@ -204,6 +204,15 @@ function createFolder() {
         fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
         .then(() => {
             showSnack(`Created folder ${folderName}`, colorGreen);
+            if (body.parent) {
+                let view = document.querySelector('#folder-view');
+                view.appendChild(newFileElem(body));
+            } else {
+                let allFiles = document.querySelector('.all-files');
+                if (allFiles) {
+                    allFiles.appendChild(newFileElem(body));
+                }
+            }
         })
     }
 }
