@@ -6,8 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="/assets/icon.png" type="image/x-icon">
-    <link rel="stylesheet" type="text/css" href="/styles/style.css">
-
+    <link rel="stylesheet" type="text/css" href="../styles/shared.css">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@100;400;900&display=swap" rel="stylesheet" />
@@ -15,22 +14,22 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <div class="left">
-            <img src="/assets/icon.png" alt="FileBox">
-            <h3>FileBox</h3>
-        </div>
-        <div class="right">
-        </div>
-    </div>
-    <div class="body">
-        <div class="content">
-            <div class="cards"></div>
+    <header>
+        <img src="../assets/icon.png" alt="FileBox">
+        <h3>FileBox</h3>
+    </header>
+    <div class="container">
+        <div class="downloader">
+            <p id="filename"></p>
+            <span class="material-symbols-rounded" id="download">
+                download
+            </span>
         </div>
     </div>
-    <div class="snackbar" id="snackbar"></div>
-</div>
-<script src="/scripts/magic.js"></script>
+    <footer>
+        <p id="percentage"></p>
+        <div class="progress"></div>
+    </footer>
+    <script src="../scripts/shared.js"></script>
 </body>
 </html>

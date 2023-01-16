@@ -202,7 +202,7 @@ shareButton.addEventListener('click', () => {
     if (globalContextFile.size > 30 * 1024 * 1024) {
         showSnack(`File is too large to share via link`, colorRed);
     } else {
-        let downloadUrl = `${window.location.origin}/download/${globalContextFile.hash}`;
+        let downloadUrl = `${window.location.origin}/shared/${globalContextFile.hash}`;
         window.navigator.clipboard.writeText(downloadUrl)
         .then(() => {
             showSnack(`Copied download URL to clipboard`);

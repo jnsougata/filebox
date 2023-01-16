@@ -10,7 +10,7 @@ import (
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", HandleIndex).Methods("GET")
-	r.HandleFunc("/download/{hash}", HandleDownloadPage).Methods("GET")
+	r.HandleFunc("/shared/{hash}", HandleDownloadPage).Methods("GET")
 	r.HandleFunc("/assets/{filename}", HandleAssets).Methods("GET")
 	r.HandleFunc("/scripts/{filename}", HandleScripts).Methods("GET")
 	r.HandleFunc("/styles/{filename}", HandleStyles).Methods("GET")
@@ -24,15 +24,9 @@ func HandleIndex(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write([]byte(content))
 }
 
-func HandleMock(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	content, _ := os.ReadFile("static/mock.html")
-	_, _ = w.Write([]byte(content))
-}
-
 func HandleDownloadPage(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	content, _ := os.ReadFile("static/download.html")
+	content, _ := os.ReadFile("static/shared.html")
 	_, _ = w.Write([]byte(content))
 }
 
