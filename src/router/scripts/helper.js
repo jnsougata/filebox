@@ -213,14 +213,18 @@ function buildAllFilesList(data) {
 function buildHomePage(pinnedBlock, recentBlock) {
     let homePage = document.createElement('div');
     homePage.className = 'home-page';
-    let pinnedTitle = document.createElement('p');
-    pinnedTitle.innerHTML = '<i class="fa-solid fa-thumbtack"></i>  Pinned';
-    let recentTitle = document.createElement('p');
-    recentTitle.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>  Recent files';
-    homePage.appendChild(pinnedTitle);
-    homePage.appendChild(pinnedBlock);
-    homePage.appendChild(recentTitle);
-    homePage.appendChild(recentBlock);
+    if (pinnedBlock) {
+        let pinnedTitle = document.createElement('p');
+        pinnedTitle.innerHTML = '<i class="fa-solid fa-thumbtack"></i>  Pinned';
+        homePage.appendChild(pinnedTitle);
+        homePage.appendChild(pinnedBlock);
+    }
+    if (recentBlock) {
+        let recentTitle = document.createElement('p');
+        recentTitle.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>  Recent files';
+        homePage.appendChild(recentTitle);
+        homePage.appendChild(recentBlock);
+    }
     return homePage;
 }
 

@@ -29,6 +29,8 @@ func main() {
 	r.HandleFunc("/remove/folder", HandleFolderDelete).Methods("POST")
 	r.HandleFunc("/rename", HandleRename).Methods("POST")
 	r.HandleFunc("/consumption", HandleSpaceUsage).Methods("GET")
+	r.HandleFunc("/pin/{hash}", HandlePin).Methods("POST", "DELETE")
+	r.HandleFunc("/recent", HandleRecent).Methods("GET")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -203,4 +205,33 @@ func HandleSpaceUsage(w http.ResponseWriter, r *http.Request) {
 	resp := base.Get()
 	ba, _ := json.Marshal(resp)
 	_, _ = w.Write(ba)
+}
+
+func HandlePin(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(r)
+	hash := vars["hash"]
+	switch r.Method {
+
+	case "POST":
+		updater := base.Update(hash)
+		updater.Set(map[string]interface{}{"pinned": true})
+		updater.Do()
+		w.WriteHeader(http.StatusOK)
+		return
+	case "DELETE":
+		updater := base.Update(hash)
+		updater.Delete("pinned")
+		updater.Do()
+		w.WriteHeader(http.StatusOK)
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+func HandleRecent(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	// send an empty json array
+	_, _ = w.Write([]byte("[]"))
 }

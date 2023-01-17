@@ -15,6 +15,11 @@ const colorBlue = "#2E83F3";
 
 
 function switchView(primary = true, secondary = false) {
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
+    folderOptionPanel.style.display = 'none';
+    fileOptionPanel.style.display = 'none';
     if (primary) {
         mainSection.style.display = 'flex';
     } else {
@@ -109,23 +114,37 @@ let homeButton = document.querySelector('#home');
 homeButton.addEventListener('click', () => {
     switchView();
     globalFileBucket = {};
-    fetch("/api/metadata")
-    .then(response => response.json())
-    .then(data => {
-        let pinnedData = data.slice(0, 10);
-        let recentData = data.slice(0, 10); 
-        let pinnedBlock = buildPinnedContent(pinnedData);
-        let recentBlock = buildRecentContent(recentData);
+    let pinnedBlock = null;
+    let recentBlock = null;
+    Promise.all([
+        fetch("/api/query", {
+            method: 'POST',
+            body: JSON.stringify({"pinned": true}),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                pinnedBlock = buildPinnedContent(data);
+            }
+            data.forEach((file) => {
+                globalFileBucket[file.hash] = file;
+            });
+        }),
+        fetch("/api/recent")
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                recentBlock = buildRecentContent(data);
+            }
+            data.forEach((file) => {
+                globalFileBucket[file.hash] = file;
+            });
+        })
+    ]).then(() => {
         let homePage = buildHomePage(pinnedBlock, recentBlock);
         mainSection.innerHTML = '';
         mainSection.appendChild(homePage);
-        if (window.innerWidth < 768) {
-            sidebarEventState(false);
-        }
-        data.forEach((file) => {
-            globalFileBucket[file.hash] = file;
-        });
-    })
+    });
 });
 
 let allFilesButton = document.querySelector('#all-files');
@@ -229,7 +248,11 @@ deleteButton.addEventListener('click', () => {
 
 let pinButton = document.querySelector('#pin-file');
 pinButton.addEventListener('click', () => {
-    // TODO: Pin file
+    fetch(`/api/pin/${globalContextFile.hash}`, {method: "POST"})
+    .then(() => {
+        showSnack(`File pinned successfully!`);
+        fileOptionsPanelCloseButton.click();
+    })
 });
 
 let embedButton = document.querySelector('#embed-file');
@@ -296,7 +319,11 @@ deleteFolderButton.addEventListener('click', () => {
 
 let pinFolderButton = document.querySelector('#pin-folder');
 pinFolderButton.addEventListener('click', () => {
-    // TODO: Pin folder
+    fetch(`/api/pin/${globalContextFile.hash}`, {method: "POST"})
+    .then(() => {
+        showSnack(`File pinned successfully!`);
+        fileOptionsPanelCloseButton.click();
+    })
 });
 
 window.addEventListener('DOMContentLoaded', () => {
