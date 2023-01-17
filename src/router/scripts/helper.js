@@ -162,26 +162,38 @@ function newFileElem(file) {
     return li;
 }
 
-function buildPinnedContent (data) {
+function newPinnedElem(file) {
+    let card = document.createElement('div');
+    card.className = 'card';
+    let unpinDiv = document.createElement('div');
+    unpinDiv.className = 'unpin';
+    let unpin = document.createElement('sapn');
+    unpin.className = 'material-symbols-rounded';
+    unpin.innerHTML = 'cancel';
+    unpin.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        fetch(`/api/pin/${file.hash}`, {method: "DELETE"})
+        .then(() => {
+            card.remove();
+        })
+    });
+    unpinDiv.appendChild(unpin);
+    let fileIcon = document.createElement('i');
+    fileIcon.className = handleMimeIcon(file.mime);
+    let fileName = document.createElement('p');
+    fileName.innerHTML = file.name;
+    card.appendChild(unpinDiv);
+    card.appendChild(fileIcon);
+    card.appendChild(fileName);
+    // TODO: add click event
+    return card;
+}
+
+function buildPinnedContent(data) {
     let pinned = document.createElement('div');
     pinned.className = 'pinned';
     data.forEach((file) => {
-        let card = document.createElement('div');
-        card.className = 'card';
-        let unpinDiv = document.createElement('div');
-        unpinDiv.className = 'unpin';
-        let unpin = document.createElement('sapn');
-        unpin.className = 'material-symbols-rounded';
-        unpin.innerHTML = 'do_not_disturb_on';
-        unpinDiv.appendChild(unpin);
-        let fileIcon = document.createElement('i');
-        fileIcon.className = handleMimeIcon(file.mime);
-        let fileName = document.createElement('p');
-        fileName.innerHTML = file.name;
-        card.appendChild(unpinDiv);
-        card.appendChild(fileIcon);
-        card.appendChild(fileName);
-        pinned.appendChild(card);
+        pinned.appendChild(newPinnedElem(file));
     });
     return pinned;
 }
@@ -350,4 +362,19 @@ function renderCategory(query) {
             globalFileBucket[file.hash] = file;
         });
     })
+}
+
+function dateStringToTimestamp(dateString) {
+    let date = new Date(dateString);
+    return date.getTime();
+}
+
+function sortRecentFilesByTimeStamp(data) {
+    data = data.filter((file) => {
+        return !(file.type === 'folder');
+    });
+    data = data.sort((a, b) => {
+        return dateStringToTimestamp(b.date) - dateStringToTimestamp(a.date);
+    });
+    return data;
 }

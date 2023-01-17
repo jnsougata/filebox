@@ -130,13 +130,15 @@ homeButton.addEventListener('click', () => {
                 globalFileBucket[file.hash] = file;
             });
         }),
-        fetch("/api/recent")
+        fetch("/api/metadata")
         .then(response => response.json())
         .then(data => {
-            if (data.length > 0) {
-                recentBlock = buildRecentContent(data);
+            let sortedData = sortRecentFilesByTimeStamp(data);
+            sortedData = sortedData.slice(0, 10);
+            if (sortedData.length > 0) {
+                recentBlock = buildRecentContent(sortedData);
             }
-            data.forEach((file) => {
+            sortedData.forEach((file) => {
                 globalFileBucket[file.hash] = file;
             });
         })
@@ -226,7 +228,7 @@ videoButton.addEventListener('click', () => {
 
 let otherButton = document.querySelector('#others');
 otherButton.addEventListener('click', () => {
-    renderCategory({"mime?contains": "application/vnd"});
+    renderCategory({"mime?contains": "application", "mime?not_contains": "pdf"});
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
@@ -252,6 +254,10 @@ pinButton.addEventListener('click', () => {
     .then(() => {
         showSnack(`File pinned successfully!`);
         fileOptionsPanelCloseButton.click();
+        let pinnedSection = document.querySelector('.pinned');
+        if (pinnedSection) {
+            pinnedSection.appendChild(newPinnedElem(globalContextFile));
+        }
     })
 });
 
