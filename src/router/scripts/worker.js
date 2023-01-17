@@ -47,9 +47,11 @@ function upload(file) {
                     .then(() => {
                         bar.style.width = "100%";
                         updateToCompleted(hash)
-                        setTimeout(() => {
-                            showSnack(`Uploaded ${file.name}`);
-                        }, 500);
+                        showSnack(`Uploaded ${file.name}`);
+                        let recentFilesSection = document.querySelector(".recent-files");
+                        if (recentFilesSection) {
+                            recentFilesSection.prepend(newFileElem(body))
+                        }
                     })
                 })
             } else {
@@ -111,6 +113,10 @@ function upload(file) {
                                         updateToCompleted(hash)
                                         updateSpaceUsage(file.size);
                                         showSnack(`Uploaded ${file.name} successfully!`, colorBlue);
+                                        let recentFilesSection = document.querySelector(".recent-files");
+                                        if (recentFilesSection) {
+                                            recentFilesSection.prepend(newFileElem(body))
+                                        }
                                     })
                                 })
                             } else {

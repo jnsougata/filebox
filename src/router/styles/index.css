@@ -91,12 +91,19 @@ body {
     border-left: 5px solid transparent;
 }
 
-.option > i {
+.option > .icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 15px;
+}
+
+.option > .icon > i {
     font-size: 16px;
     color: #ccc;
     z-index: 2;
-    margin-right: 10px;
-    margin-left: 40px;
 }
 
 .option:hover {
@@ -113,7 +120,6 @@ body {
     align-items: center;
     background-color: #ffffff0c;
     font-size: 16px;
-    cursor: pointer;
 }
 
 .bottom-option > i {
