@@ -1,7 +1,9 @@
 var globalFileBucket = {};
+var globalSearchResults = {};
 var globalFolderQueue = [];
 let globalConsumption = 0;
 var globalContextFile = null;
+let globalContextOption = null;
 let totalSizeWidget = document.querySelector('.bottom-option');
 let sidebarState = false;
 let sidebar = document.querySelector('.sidebar');
@@ -14,6 +16,20 @@ const colorGreen = "#2AA850";
 const colorBlue = "#2E83F3";
 const colorOrange = "#FF6700";
 
+function getContextOptionElem(option) {
+    let options = {
+        "home" : homeButton,
+        "all-files" : allFilesButton,
+        "pdfs" : pdfButton,
+        "images" : imgButton,
+        "videos" : videoButton,
+        "audios" : audioButton,
+        "docs" : docsButton,
+        "queue" : queueButton,
+        "others" : otherButton,
+    }
+    return options[option];
+}
 
 function switchView(primary = true, secondary = false) {
     if (window.innerWidth < 768) {
@@ -113,6 +129,7 @@ folderOptionsPanelCloseButton.addEventListener('click', () => {
 
 let homeButton = document.querySelector('#home');
 homeButton.addEventListener('click', () => {
+    globalContextOption = "home";
     switchView();
     globalFileBucket = {};
     let pinnedBlock = null;
@@ -152,6 +169,7 @@ homeButton.addEventListener('click', () => {
 
 let allFilesButton = document.querySelector('#all-files');
 allFilesButton.addEventListener('click', () => {
+    globalContextOption = "all-files";
     switchView();
     globalFileBucket = {};
     globalFolderQueue = [];
@@ -181,6 +199,7 @@ allFilesButton.addEventListener('click', () => {
 
 let queueButton = document.querySelector('#queue');
 queueButton.addEventListener('click', () => {
+    globalContextOption = "queue";
     switchView(false, true);
     if (window.innerWidth < 768) {
         sidebarEventState(false);
@@ -189,6 +208,7 @@ queueButton.addEventListener('click', () => {
 
 let pdfButton = document.querySelector('#pdf');
 pdfButton.addEventListener('click', () => {
+    globalContextOption = "pdfs";
     renderCategory({"mime": "application/pdf"});
     if (window.innerWidth < 768) {
         sidebarEventState(false);
@@ -197,6 +217,7 @@ pdfButton.addEventListener('click', () => {
 
 let docsButton = document.querySelector('#docs');
 docsButton.addEventListener('click', () => {
+    globalContextOption = "docs";
     renderCategory({"mime?contains": "text"});
     if (window.innerWidth < 768) {
         sidebarEventState(false);
@@ -205,6 +226,7 @@ docsButton.addEventListener('click', () => {
 
 let imgButton = document.querySelector('#image');
 imgButton.addEventListener('click', () => {
+    globalContextOption = "images";
     renderCategory({"mime?contains": "image"});
     if (window.innerWidth < 768) {
         sidebarEventState(false);
@@ -213,6 +235,7 @@ imgButton.addEventListener('click', () => {
 
 let audioButton = document.querySelector('#audio');
 audioButton.addEventListener('click', () => {
+    globalContextOption = "audios";
     renderCategory({"mime?contains": "audio"});
     if (window.innerWidth < 768) {
         sidebarEventState(false);
@@ -221,6 +244,7 @@ audioButton.addEventListener('click', () => {
 
 let videoButton = document.querySelector('#video');
 videoButton.addEventListener('click', () => {
+    globalContextOption = "videos";
     renderCategory({"mime?contains": "video"});
     if (window.innerWidth < 768) {
         sidebarEventState(false);
@@ -229,6 +253,7 @@ videoButton.addEventListener('click', () => {
 
 let otherButton = document.querySelector('#others');
 otherButton.addEventListener('click', () => {
+    globalContextOption = "others";
     renderCategory({"mime?contains": "application", "mime?not_contains": "pdf"});
     if (window.innerWidth < 768) {
         sidebarEventState(false);
@@ -331,6 +356,39 @@ pinFolderButton.addEventListener('click', () => {
         showSnack(`File pinned successfully!`);
         fileOptionsPanelCloseButton.click();
     })
+});
+
+let searchBar = document.querySelector('#search-bar');
+let inputTimer = null;
+searchBar.addEventListener('input', () => {
+    if (inputTimer) {
+        clearTimeout(inputTimer);
+    }
+    inputTimer = setTimeout(() => {
+        let query = searchBar.value;
+        if (query.length == 0) {
+            getContextOptionElem(globalContextOption).click();
+            return;
+        }
+        fetch(`/api/query`, {
+            method: "POST",
+            body: JSON.stringify({"name?contains": query}),
+        })
+        .then(response => response.json())
+        .then(data => {
+            data = data.filter((file) => {
+                return !(file.type === 'folder');
+            });
+            data.forEach((file) => {
+                globalSearchResults[file.hash] = file;
+            });
+            let resultsPage = document.createElement('div');
+            resultsPage.className = 'my-files';
+            resultsPage.appendChild(buildAllFilesList(data));
+            mainSection.innerHTML = '';
+            mainSection.appendChild(resultsPage);
+        })
+    }, 500);
 });
 
 window.addEventListener('DOMContentLoaded', () => {

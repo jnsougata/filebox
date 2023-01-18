@@ -19,11 +19,11 @@ micros:
     public_routes:
       - "/embed/*"
       - "/assets/*"
-      - "/download/*"
+      - "/shared/*"
+      - "/styles/*"
+      - "/scripts/*"
       - "/api/embed/*"
       - "/api/shared/*"
-      - "/scripts/magic.js"
-      - "/styles/style.css"
   
   - name: api
     src: ./api/
