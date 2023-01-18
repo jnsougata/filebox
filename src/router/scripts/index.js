@@ -1,5 +1,4 @@
 var globalFileBucket = {};
-var globalSearchResults = {};
 var globalFolderQueue = [];
 let globalConsumption = 0;
 var globalContextFile = null;
@@ -37,15 +36,20 @@ function switchView(primary = true, secondary = false) {
     }
     folderOptionPanel.style.display = 'none';
     fileOptionPanel.style.display = 'none';
+    let header = document.querySelector('header');
     if (primary) {
+        header.style.display = 'flex';
         mainSection.style.display = 'flex';
     } else {
+        header.style.display = 'none';
         mainSection.style.display = 'none';
     }
     if (secondary) {
         secondarySection.style.display = 'flex';
+        header.style.display = 'none';
     } else {
         secondarySection.style.display = 'none';
+        header.style.display = 'flex';
     }
 }
 
@@ -380,13 +384,28 @@ searchBar.addEventListener('input', () => {
                 return !(file.type === 'folder');
             });
             data.forEach((file) => {
-                globalSearchResults[file.hash] = file;
+                globalFileBucket[file.hash] = file;
             });
             let resultsPage = document.createElement('div');
             resultsPage.className = 'my-files';
-            resultsPage.appendChild(buildAllFilesList(data));
-            mainSection.innerHTML = '';
-            mainSection.appendChild(resultsPage);
+            if (data.length > 0) {
+                let p = document.createElement('p');
+                p.innerHTML = `Search results for '${query}'`;
+                resultsPage.appendChild(p);
+                resultsPage.appendChild(buildAllFilesList(data));
+                mainSection.innerHTML = '';
+                mainSection.appendChild(resultsPage);
+                switchView();
+            } else {
+                mainSection.innerHTML = '';
+                let p = document.createElement('p');
+                let symbol = `<i class="fa-solid fa-circle-exclamation"></i> `;
+                p.innerHTML = `${symbol} No results found for '${query}'`;
+                p.style.color = "rgb(247, 70, 70)";
+                resultsPage.appendChild(p);
+                mainSection.appendChild(resultsPage);
+                switchView();
+            }
         })
     }, 500);
 });

@@ -467,11 +467,15 @@ body {
     background-color: #1a1c20;
 }
 .my-files > p {
-    width: 100%;
+    width: calc(100% - 20px);
     height: 50px;
     padding: 10px;
     font-size: 20px;
-    text-align: left;
+    text-align: center;
+    color: white;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     border-bottom: 1px solid #ffffff0c;
 }
 .my-files > ul {
