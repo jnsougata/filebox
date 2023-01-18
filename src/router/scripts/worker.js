@@ -221,7 +221,7 @@ function createFolder() {
                 } else {
                     let allFiles = document.querySelector('.all-files');
                     if (allFiles) {
-                        allFiles.appendChild(newFileElem(body));
+                        allFiles.prepend(newFileElem(body))
                     }
                 }   
             }

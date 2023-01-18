@@ -12,6 +12,7 @@ var taskQueueElem = document.querySelector('.queue');
 const colorRed = "#CB1446";
 const colorGreen = "#2AA850";
 const colorBlue = "#2E83F3";
+const colorOrange = "#FF6700";
 
 
 function switchView(primary = true, secondary = false) {
@@ -309,17 +310,17 @@ deleteFolderButton.addEventListener('click', () => {
         method: "POST",
         body: JSON.stringify(body),
     })
-    .then(() => {
-        showSnack(`Deleted ${folder.name}`, colorRed);
-        document.getElementById(`file-${folder.hash}`).remove();
-        folderOptionsPanelCloseButton.click();
-        fetch("/api/consumption")
-        .then(response => response.json())
-        .then(data => {
-            globalConsumption = getTotalSize(data);
-            let totalSizeString = handleSizeUnit(globalConsumption);
-            totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${totalSizeString}`;
-        })
+    .then((resp) => {
+        if (resp.status == 409) {
+            showSnack(`Folder is not empty`, colorOrange);
+            folderOptionsPanelCloseButton.click();
+            return;
+        }
+        if (resp.status == 200) {
+            showSnack(`Deleted ${folder.name}`, colorRed);
+            document.getElementById(`file-${folder.hash}`).remove();
+            folderOptionsPanelCloseButton.click();
+        } 
     })
 });
 

@@ -30,7 +30,6 @@ func main() {
 	r.HandleFunc("/rename", HandleRename).Methods("POST")
 	r.HandleFunc("/consumption", HandleSpaceUsage).Methods("GET")
 	r.HandleFunc("/pin/{hash}", HandlePin).Methods("POST", "DELETE")
-	r.HandleFunc("/recent", HandleRecent).Methods("GET")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -171,25 +170,15 @@ func HandleQuery(w http.ResponseWriter, r *http.Request) {
 func HandleFolderDelete(w http.ResponseWriter, r *http.Request) {
 	var body map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&body)
-	base.Delete(body["hash"].(string))
 	q := deta.Query()
 	q.Equals(map[string]interface{}{"parent": body["children_path"].(string)})
-	resp := base.Fetch(q, "", 0).Data["items"]
-	// TODO: fetch all items if pagination is received
-	var driveTargets []string
-	for _, item := range resp.([]interface{}) {
-		fileRecord := item.(map[string]interface{})
-		fileHash := fileRecord["hash"].(string)
-		extSplit := strings.Split(fileRecord["name"].(string), ".")
-		if len(extSplit) > 1 {
-			driveTargets = append(driveTargets, fmt.Sprintf("%s.%s", fileHash, extSplit[1]))
-		} else {
-			driveTargets = append(driveTargets, fileHash)
-		}
+	children := base.Fetch(q, "", 0).Data["items"].([]interface{})
+	if len(children) > 0 {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		base.Delete(body["hash"].(string))
+		w.WriteHeader(http.StatusOK)
 	}
-	_ = drive.Delete(driveTargets...)
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("ok"))
 }
 
 func HandleRename(w http.ResponseWriter, r *http.Request) {
@@ -228,10 +217,4 @@ func HandlePin(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
-}
-
-func HandleRecent(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	// send an empty json array
-	_, _ = w.Write([]byte("[]"))
 }
