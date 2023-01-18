@@ -185,7 +185,9 @@ function newPinnedElem(file) {
     card.appendChild(unpinDiv);
     card.appendChild(fileIcon);
     card.appendChild(fileName);
-    // TODO: add click event
+    card.addEventListener('click', () => {
+        handleMenuClick(file.hash);
+    })
     return card;
 }
 
