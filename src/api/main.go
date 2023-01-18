@@ -30,6 +30,7 @@ func main() {
 	r.HandleFunc("/rename", HandleRename).Methods("POST")
 	r.HandleFunc("/consumption", HandleSpaceUsage).Methods("GET")
 	r.HandleFunc("/pin/{hash}", HandlePin).Methods("POST", "DELETE")
+	r.HandleFunc("/file/access", HandleFileAccess).Methods("POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -117,6 +118,11 @@ func HandleEmbed(w http.ResponseWriter, r *http.Request) {
 	hash := vars["hash"]
 	resp := base.Get(hash)
 	meta := resp[0].Data
+	access, ok := meta["access"]
+	if ok && access.(string) == "private" {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	if meta["size"].(float64) < 5*1024*1024 {
 		fileName := meta["name"].(string)
 		mime := meta["mime"].(string)
@@ -126,13 +132,26 @@ func HandleEmbed(w http.ResponseWriter, r *http.Request) {
 		streamingResp := drive.Get(fmt.Sprintf("%s.%s", hash, extension))
 		content, _ := io.ReadAll(streamingResp.Reader)
 		_, _ = w.Write(content)
-		return
 	}
 }
 
 func HandleDownload(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
+	var recordHash string
+	fragments := strings.Split(hash, ".")
+	if len(fragments) > 1 {
+		recordHash = fragments[0]
+	} else {
+		recordHash = hash
+	}
+	resp := base.Get(recordHash)
+	meta := resp[0].Data
+	access, ok := meta["access"]
+	if ok && access.(string) == "private" {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	skip, _ := strconv.Atoi(vars["skip"])
 	streamingResp := drive.Get(hash)
 	ChunkSize := 4 * 1024 * 1024
@@ -217,4 +236,14 @@ func HandlePin(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
+}
+
+func HandleFileAccess(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var body map[string]interface{}
+	_ = json.NewDecoder(r.Body).Decode(&body)
+	updater := base.Update(body["hash"].(string))
+	updater.Set(map[string]interface{}{"access": body["access"].(string)})
+	updater.Do()
+	w.WriteHeader(http.StatusOK)
 }

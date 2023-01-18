@@ -131,6 +131,37 @@ folderOptionsPanelCloseButton.addEventListener('click', () => {
     blurLayer.style.display = 'none';
 });
 
+let fileAceessControlButton = document.querySelector('#file-options-panel-access');
+fileAceessControlButton.addEventListener('click', () => {
+    if (globalContextFile.access === "private") {
+        globalFileBucket[globalContextFile.hash].access = "public";
+        fetch("/api/file/access", {
+            method: 'POST',
+            body: JSON.stringify({hash: globalContextFile.hash, access: "public"}),
+        })
+        .then(() => {
+            showSnack("File access changed to public", colorGreen);
+        })
+        shareButton.innerHTML = `link`;
+        embedButton.innerHTML = `code`;
+        fileAceessControlButton.innerHTML = `<i class="fa-solid fa-eye"></i>`;
+        fileAceessControlButton.style.backgroundColor = '#0561da';
+    } else {
+        globalFileBucket[globalContextFile.hash].access = "private";
+        fetch("/api/file/access", {
+            method: 'POST',
+            body: JSON.stringify({hash: globalContextFile.hash, access: "private"}),
+        })
+        .then(() => {
+            showSnack("File access changed to private", colorOrange);
+        })
+        shareButton.innerHTML = `link_off`;
+        embedButton.innerHTML = `code_off`;
+        fileAceessControlButton.innerHTML = `<i class="fa-solid fa-eye-slash"></i>`;
+        fileAceessControlButton.style.backgroundColor = 'rgb(223, 61, 61)';
+    }
+});
+
 let homeButton = document.querySelector('#home');
 homeButton.addEventListener('click', () => {
     globalContextOption = "home";
@@ -264,6 +295,42 @@ otherButton.addEventListener('click', () => {
     }
 });
 
+let renameButton = document.querySelector('#rename-file');
+renameButton.addEventListener('click', () => {
+    let fileNameElem = document.querySelector('#options-panel-filename');
+    fileNameElem.contentEditable = true;
+    fileNameElem.spellcheck = false;
+    fileNameElem.focus();
+    fileNameElem.addEventListener('blur', (e) => {
+        let oldName = globalContextFile.name;
+        let oldNameExtension = oldName.split(".").pop();
+        let updatedName = e.target.innerHTML;
+        let updatedExtension = updatedName.split(".").pop();
+        if (oldNameExtension !== updatedExtension) {
+            e.target.innerHTML = oldName;
+            showSnack("File extension cannot be changed", colorOrange);
+            return;
+        }
+        if (updatedName === oldName) {
+            return;
+        }
+        fetch(`/api/rename`, {
+            method: "POST",
+            body: JSON.stringify({
+                hash: globalContextFile.hash,
+                name: updatedName
+            }),
+        })
+        .then((res) => {
+            if (res.status === 200) {
+                globalFileBucket[globalContextFile.hash].name = updatedName;
+                document.querySelector(`#filename-${globalContextFile.hash}`).innerHTML = updatedName;
+                showSnack(`File renamed to ${updatedName}`);
+            }
+        })
+    });
+});
+
 let deleteButton = document.querySelector('#delete-file');
 deleteButton.addEventListener('click', () => {
     fetch(`/api/metadata`, {
@@ -293,7 +360,9 @@ pinButton.addEventListener('click', () => {
 
 let embedButton = document.querySelector('#embed-file');
 embedButton.addEventListener('click', () => {
-    if (globalContextFile.size > 4 * 1024 * 1024) {
+    if (globalContextFile.access === "private") {
+        showSnack(`Make file public to embed`, colorOrange);
+    } else if (globalContextFile.size > 4 * 1024 * 1024) {
         showSnack(`File is too large to embed`, colorRed);
     } else {
         let embedUrl = `${window.location.origin}/api/embed/${globalContextFile.hash}`;
@@ -306,13 +375,15 @@ embedButton.addEventListener('click', () => {
 
 let shareButton = document.querySelector('#share-file');
 shareButton.addEventListener('click', () => {
-    if (globalContextFile.size > 30 * 1024 * 1024) {
+    if (globalContextFile.access === "private") {
+        showSnack(`Make file public to share via link`, colorOrange);
+    } else if (globalContextFile.size > 30 * 1024 * 1024) {
         showSnack(`File is too large to share via link`, colorRed);
     } else {
         let downloadUrl = `${window.location.origin}/shared/${globalContextFile.hash}`;
         window.navigator.clipboard.writeText(downloadUrl)
         .then(() => {
-            showSnack(`Copied download URL to clipboard`);
+            showSnack(`Copied sharing URL to clipboard`);
         })
     }
 });
@@ -410,6 +481,20 @@ searchBar.addEventListener('input', () => {
     }, 500);
 });
 
+mainSection.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+});
+
+mainSection.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.items) {
+        [...e.dataTransfer.items].forEach((item) => {
+            upload(item.getAsFile());
+        })
+    }
+});
+
 window.addEventListener('DOMContentLoaded', () => {
     mainSection.style.display = 'none';
     secondarySection.style.display = 'none';
@@ -433,5 +518,16 @@ window.addEventListener('resize', () => {
         floatingMenuButton.display = 'block';
         floatingMenuButton.innerHTML = `<i class="fa-solid fa-bars"></i>`;
         sidebarState = false;
+    }
+});
+
+window.addEventListener("paste", (e) => {
+    let items = e.clipboardData.items;
+    if (items) {
+        [...items].forEach((item) => {
+            if (item.kind === "file") {
+                upload(item.getAsFile());
+            }
+        })
     }
 });

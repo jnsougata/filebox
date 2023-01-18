@@ -118,7 +118,19 @@ function handleMenuClick(hash) {
         let fileNameElem = document.querySelector('#options-panel-filename');
         fileNameElem.innerHTML = globalContextFile.name;
         folderOptionPanel.style.display = 'none';
-    }   
+        let accessButton = document.querySelector('#file-options-panel-access');
+        if (globalContextFile.access === 'private'){
+            document.querySelector('#share-file').innerHTML = 'link_off';
+            document.querySelector('#embed-file').innerHTML = 'code_off';
+            accessButton.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+            accessButton.style.backgroundColor = 'rgb(223, 61, 61)';
+        } else {
+            document.querySelector('#share-file').innerHTML = 'link';
+            document.querySelector('#embed-file').innerHTML = 'code';
+            accessButton.innerHTML = '<i class="fa-solid fa-eye"></i>';
+            accessButton.style.backgroundColor = '#0561da';
+        }
+    }
 }
 
 function newFileElem(file) {
@@ -130,6 +142,7 @@ function newFileElem(file) {
     fileInfo.className = 'info';
     let fileName = document.createElement('p');
     fileName.innerHTML = file.name;
+    fileName.id = `filename-${file.hash}`;
     let fileSizeAndDate = document.createElement('p');
     fileSizeAndDate.style.fontSize = '11px';
     if (file.type === 'folder') {

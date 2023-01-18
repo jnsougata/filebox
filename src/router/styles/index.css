@@ -183,7 +183,7 @@ body {
 
 .content > header > i {
     font-size: 20px;
-    color: rgb(39, 150, 39);
+    color: #0561da;
     z-index: 2;
     margin-right: 10px;
 }
@@ -302,16 +302,16 @@ body {
     font-size: 40px;
     color: #ccc;
     margin-top: -10px;
+    margin-bottom: 8px;
 }
 .home-page > .pinned > .card > p {
-    width: 150px;
+    width: 160px;
     font-size: 12px;
     color: #ccc;
-    overflow-y: auto;
-    text-overflow: clip;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+    overflow: hidden;
     text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 .home-page > .pinned > .card > .unpin {
     width: 100%;

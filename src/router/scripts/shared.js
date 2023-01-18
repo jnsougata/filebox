@@ -36,7 +36,13 @@ function downloadByChunk(file) {
     let hashedName = file.hash + "." + extension;
     if (size < chunkSize) {
         fetch(`/api/shared/chunk/0/${hashedName}`)
-        .then(response => response.blob())
+        .then((response) => {
+            if (response.status === 403) {
+                alert(`File access denied by owner!`);
+            } else {
+                return response.blob();
+            }
+        })
         .then(blob => {
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
@@ -62,6 +68,10 @@ function downloadByChunk(file) {
             promises.push(
                 fetch(`/api/shared/chunk/${head}/${hashedName}`)
                 .then(response => {
+                    if (response.status === 403) {
+                        alert(`File access denied by owner!`);
+                        allOk = false;
+                    } else
                     if (response.status === 502) {
                         alert(`Server refused to deliver chunk ${head}`);
                         allOk = false;
