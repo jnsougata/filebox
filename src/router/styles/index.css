@@ -346,6 +346,8 @@ body {
 .home-page > ul > li > i {
     font-size: 25px;
     color: #ccc;
+    margin-left: 6px;
+    width: 25px;
 }
 .home-page > ul > li > span {
     font-size: 15px;
@@ -384,7 +386,7 @@ body {
     }
     .home-page > ul > li > i {
         font-size: 20px;
-        margin-left: 10px;
+        margin-left: 15px;
     }
     .home-page > ul > li > .info {
         height: 50px;
@@ -502,6 +504,8 @@ body {
 .my-files > ul > li > i {
     font-size: 25px;
     color: #ccc;
+    margin-left: 6px;
+    width: 25px;
 }
 .my-files > ul > li > span {
     font-size: 15px;
@@ -544,7 +548,7 @@ body {
     }
     .my-files > ul > li > i {
         font-size: 20px;
-        margin-left: 10px;
+        margin-left: 15px;
     }
     .my-files > ul > li > .info {
         height: 50px;
