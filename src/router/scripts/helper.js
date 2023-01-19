@@ -95,7 +95,10 @@ function handleFolderClick(folder) {
             globalFileBucket[file.hash] = file;
             ul.appendChild(newFileElem(file));
         });
-        updateFileView(ul);
+        let fileList = document.createElement('div');
+        fileList.className = 'file_list';
+        fileList.appendChild(ul);
+        updateFileView(fileList);
         updatePromptFragment(`~${fragment}`);
     })
 }
@@ -118,19 +121,34 @@ function handleMenuClick(hash) {
         let fileNameElem = document.querySelector('#options-panel-filename');
         fileNameElem.innerHTML = globalContextFile.name;
         folderOptionPanel.style.display = 'none';
-        let accessButton = document.querySelector('#file-options-panel-access');
         if (globalContextFile.access === 'private'){
             document.querySelector('#share-file').innerHTML = 'link_off';
             document.querySelector('#embed-file').innerHTML = 'code_off';
-            accessButton.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
-            accessButton.style.backgroundColor = 'rgb(223, 61, 61)';
         } else {
             document.querySelector('#share-file').innerHTML = 'link';
             document.querySelector('#embed-file').innerHTML = 'code';
-            accessButton.innerHTML = '<i class="fa-solid fa-eye"></i>';
-            accessButton.style.backgroundColor = '#0561da';
         }
     }
+}
+
+function handleVisibilityClick(elem, hash) {
+    let file = globalFileBucket[hash];
+    if (file.access === 'private') {
+        elem.innerHTML = 'visibility';
+        file.access = 'public';
+        showSnack("File access changed to public", colorGreen);
+    } else {
+        elem.innerHTML = 'visibility_off';
+        file.access = 'private';
+        showSnack("File access changed to private", colorOrange);
+    }
+    fetch(`/api/file/access`, {
+        method: "POST",
+        body: JSON.stringify({hash: file.hash, access: file.access})
+    })
+    .then(() => {
+        globalFileBucket[hash] = file;
+    })
 }
 
 function newFileElem(file) {
@@ -160,12 +178,26 @@ function newFileElem(file) {
     fileInfo.appendChild(fileSizeAndDate);
     li.appendChild(fileIcon);
     li.appendChild(fileInfo);
+    let visbilityOption = document.createElement('span');
+    visbilityOption.className = "material-symbols-rounded";
+    if (file.access === 'private') {
+        visbilityOption.innerHTML = 'visibility_off';
+    } else {
+        visbilityOption.innerHTML = 'visibility';
+    }
+    visbilityOption.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        handleVisibilityClick(visbilityOption, file.hash);
+    });
     let menuOptionSpan = document.createElement('span');
     menuOptionSpan.className = 'fa-solid fa-ellipsis';
     menuOptionSpan.addEventListener('click', (ev) => {
         ev.stopPropagation();
         handleMenuClick(file.hash);
     });
+    if (file.type !== 'folder') {
+        li.appendChild(visbilityOption);
+    }
     li.appendChild(menuOptionSpan);
     li.addEventListener('click', () => {
         if (file.type === 'folder') {
@@ -215,31 +247,37 @@ function buildPinnedContent(data) {
 
 function buildRecentContent(data) {
     let ul = document.createElement('ul');
-    ul.className = 'recent-files';
+    ul.className = 'recent_files';
     data.forEach((file) => {
         if (file.type !== 'folder') {
             let li = newFileElem(file);
             ul.appendChild(li);
         }
     });
-    return ul;
+    let fileList = document.createElement('div');
+    fileList.className = 'file_list';
+    fileList.appendChild(ul);
+    return fileList;
 }
 
 function buildAllFilesList(data) {
     let ul = document.createElement('ul');
-    ul.className = 'all-files';
+    ul.className = 'all_files';
     data.forEach((file) => {
         if (!file.parent) {
             let li = newFileElem(file);
             ul.appendChild(li);
         }
     });
-    return ul;
+    let fileList = document.createElement('div');
+    fileList.className = 'file_list';
+    fileList.appendChild(ul);
+    return fileList;
 }
 
 function buildHomePage(pinnedBlock, recentBlock) {
     let homePage = document.createElement('div');
-    homePage.className = 'home-page';
+    homePage.className = 'home_page';
     if (pinnedBlock) {
         let pinnedTitle = document.createElement('p');
         pinnedTitle.innerHTML = '<i class="fa-solid fa-thumbtack"></i>  Pinned';
@@ -286,7 +324,7 @@ function buildPrompt() {
 
 function buildAllFilesPage(allFilesBlock) {
     let allFilesPage = document.createElement('div');
-    allFilesPage.className = 'my-files';
+    allFilesPage.className = 'my_files';
     allFilesPage.appendChild(buildPrompt());
     allFilesPage.appendChild(allFilesBlock);
     return allFilesPage;
@@ -298,7 +336,7 @@ function updatePromptFragment(text = '~') {
 }
 
 function updateFileView(contentBlock) {
-    let fileView = document.querySelector('.my-files');
+    let fileView = document.querySelector('.my_files');
     fileView.innerHTML = '';
     fileView.appendChild(buildPrompt());
     fileView.appendChild(contentBlock);
@@ -372,7 +410,7 @@ function renderCategory(query) {
     .then(data => {
         let items = buildAllFilesList(data);
         mainSection.innerHTML = '';
-        mainSection.appendChild(buildAllFilesPage(items));
+        mainSection.appendChild(items);
         data.forEach((file) => {
             globalFileBucket[file.hash] = file;
         });

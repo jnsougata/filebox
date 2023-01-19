@@ -251,7 +251,97 @@ body {
     overflow: hidden;
 }
 
-.home-page {
+.file_list {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow-x: hidden;
+    overflow-y: auto;
+    align-items: center;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.file_list > ul {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow-y: auto;
+}
+.file_list > ul > li {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #ffffff0c;
+}
+.file_list > ul > li > i {
+    font-size: 25px;
+    color: #ccc;
+    margin-left: 6px;
+    width: 25px;
+}
+.file_list > ul > li > span {
+    font-size: 15px;
+    color: #ccc;
+    margin-left: 10px;
+    padding: 8px;
+    background-color: #ffffff0c;
+    border-radius: 50%;
+    cursor: pointer;
+}
+.file_list > ul > li > .info {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 20px;
+}
+.file_list > ul > li > .info > p {
+    max-width: 650px;
+    font-size: 15px;
+    color: #ccc;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: left;
+    text-overflow: ellipsis;
+    
+}
+@media screen and (max-width: 768px) {
+    .file_list > ul > li {
+        height: 50px;
+        padding-left: 0;
+        padding-right: 10px;
+    }
+    .file_list > ul > li > i {
+        font-size: 20px;
+        margin-left: 15px;
+    }
+    .file_list > ul > li > .info {
+        height: 50px;
+        padding-left: 10px;
+    }
+    .file_list > ul > li > .info > p {
+        width: 230px;
+        font-size: 12px;
+
+    }
+    .file_list > ul > li > span {
+        font-size: 15px;
+        margin-left: 5px;
+        padding: 7px;
+    }
+}
+
+.home_page {
     width: 100%;
     height: 100%;
     display: flex;
@@ -260,7 +350,7 @@ body {
     align-items: center;
     background-color: #1a1c20;
 }
-.home-page > p {
+.home_page > p {
     width: 100%;
     font-size: 20px;
     font-weight: 600;
@@ -269,12 +359,12 @@ body {
     padding: 5px 10px;
     border-bottom: 1px solid #ffffff0c;
 }
-.home-page > p > i {
+.home_page > p > i {
     font-size: 20px;
     color: #ccc;
     margin-right: 5px;
 }
-.home-page > .pinned {
+.home_page > .pinned {
     width: 100%;
     height: 150px;
     display: flex;
@@ -284,7 +374,7 @@ body {
     overflow-y: hidden;
     flex-shrink: 0;
 }
-.home-page > .pinned > .card {
+.home_page > .pinned > .card {
     width: 200px;
     height: 120px;
     display: flex;
@@ -298,13 +388,13 @@ body {
     padding: 10px;
     flex-shrink: 0;
 }
-.home-page > .pinned > .card > i {
+.home_page > .pinned > .card > i {
     font-size: 40px;
     color: #ccc;
     margin-top: -10px;
     margin-bottom: 8px;
 }
-.home-page > .pinned > .card > p {
+.home_page > .pinned > .card > p {
     width: 160px;
     font-size: 12px;
     color: #ccc;
@@ -313,95 +403,17 @@ body {
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-.home-page > .pinned > .card > .unpin {
+.home_page > .pinned > .card > .unpin {
     width: 100%;
     text-align: end;
     color: rgb(226, 63, 63);
 }
-.home-page > .pinned > .card > .unpin > span {
+.home_page > .pinned > .card > .unpin > span {
     font-size: 25px;
     border-radius: 50%;
     cursor: pointer;
 }
-.home-page > ul {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-    overflow-y: auto;
-}
-.home-page > ul > li {
-    width: 100%;
-    height: 60px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-left: 20px;
-    padding-right: 20px;
-    cursor: pointer;
-    border-bottom: 1px solid #ffffff0c;
-}
-.home-page > ul > li > i {
-    font-size: 25px;
-    color: #ccc;
-    margin-left: 6px;
-    width: 25px;
-}
-.home-page > ul > li > span {
-    font-size: 15px;
-    color: #ccc;
-    margin-left: 10px;
-    padding: 8px;
-    background-color: #ffffff0c;
-    border-radius: 50%;
-    cursor: pointer;
-}
-.home-page > ul > li > .info {
-    width: 100%;
-    height: 60px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    padding-left: 20px;
-}
-.home-page > ul > li > .info > p {
-    max-width: 400px;
-    font-size: 15px;
-    color: #ccc;
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    
-}
-@media screen and (max-width: 768px) {
-    .home-page > ul > li {
-        height: 50px;
-        padding-left: 0;
-        padding-right: 10px;
-    }
-    .home-page > ul > li > i {
-        font-size: 20px;
-        margin-left: 15px;
-    }
-    .home-page > ul > li > .info {
-        height: 50px;
-        padding-left: 10px;
-    }
-    .home-page > ul > li > .info > p {
-        width: 300px;
-        font-size: 12px;
-    }
-    .home-page > ul > li > span {
-        font-size: 15px;
-        margin-left: 5px;
-        padding: 7px;
-    }
-}
+
 .options-panel {
     width: 500px;
     height: 200px;
@@ -459,7 +471,7 @@ body {
     }
 }
 
-.my-files {
+.my_files {
     width: 100%;
     height: 100%;
     display: flex;
@@ -468,7 +480,7 @@ body {
     justify-content: flex-start;
     background-color: #1a1c20;
 }
-.my-files > p {
+.my_files > p {
     width: calc(100% - 20px);
     height: 50px;
     padding: 10px;
@@ -480,90 +492,7 @@ body {
     white-space: nowrap;
     border-bottom: 1px solid #ffffff0c;
 }
-.my-files > ul {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-    overflow-y: auto;
-}
-.my-files > ul > li {
-    width: 100%;
-    height: 60px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-left: 20px;
-    padding-right: 20px;
-    cursor: pointer;
-    border-bottom: 1px solid #ffffff0c;
-    flex-shrink: 0;
-}
-.my-files > ul > li > i {
-    font-size: 25px;
-    color: #ccc;
-    margin-left: 6px;
-    width: 25px;
-}
-.my-files > ul > li > span {
-    font-size: 15px;
-    color: #ccc;
-    margin-left: 10px;
-    padding: 8px;
-    background-color: #ffffff0c;
-    border-radius: 50%;
-    cursor: pointer;
-}
-.my-files > ul > li > .info {
-    width: 100%;
-    height: 60px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    padding-left: 20px;
-}
-.my-files > ul > li > .info > p {
-    max-width: 300px;  
-    font-size: 15px;
-    color: #ccc;
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    
-}
-@media screen and (max-width: 768px) {
-    .my-files > p {
-        font-size: 15px;
-        height: 40px;
-    }
-    .my-files > ul > li {
-        height: 50px;
-        padding-left: 0;
-        padding-right: 10px;
-    }
-    .my-files > ul > li > i {
-        font-size: 20px;
-        margin-left: 15px;
-    }
-    .my-files > ul > li > .info {
-        height: 50px;
-        padding-left: 10px;
-    }
-    .my-files > ul > li > .info > p {
-        width: 300px;
-        font-size: 12px;
-    }
-    .my-files > ul > li > span {
-        font-size: 13px;
-        margin-left: 5px;
-        padding: 7px;
-    }
-}
+
 .prompt {
     width: 100%;
     height: 30px;

@@ -131,37 +131,6 @@ folderOptionsPanelCloseButton.addEventListener('click', () => {
     blurLayer.style.display = 'none';
 });
 
-let fileAceessControlButton = document.querySelector('#file-options-panel-access');
-fileAceessControlButton.addEventListener('click', () => {
-    if (globalContextFile.access === "private") {
-        globalFileBucket[globalContextFile.hash].access = "public";
-        fetch("/api/file/access", {
-            method: 'POST',
-            body: JSON.stringify({hash: globalContextFile.hash, access: "public"}),
-        })
-        .then(() => {
-            showSnack("File access changed to public", colorGreen);
-        })
-        shareButton.innerHTML = `link`;
-        embedButton.innerHTML = `code`;
-        fileAceessControlButton.innerHTML = `<i class="fa-solid fa-eye"></i>`;
-        fileAceessControlButton.style.backgroundColor = '#0561da';
-    } else {
-        globalFileBucket[globalContextFile.hash].access = "private";
-        fetch("/api/file/access", {
-            method: 'POST',
-            body: JSON.stringify({hash: globalContextFile.hash, access: "private"}),
-        })
-        .then(() => {
-            showSnack("File access changed to private", colorOrange);
-        })
-        shareButton.innerHTML = `link_off`;
-        embedButton.innerHTML = `code_off`;
-        fileAceessControlButton.innerHTML = `<i class="fa-solid fa-eye-slash"></i>`;
-        fileAceessControlButton.style.backgroundColor = 'rgb(223, 61, 61)';
-    }
-});
-
 let homeButton = document.querySelector('#home');
 homeButton.addEventListener('click', () => {
     globalContextOption = "home";
@@ -187,7 +156,7 @@ homeButton.addEventListener('click', () => {
         .then(response => response.json())
         .then(data => {
             let sortedData = sortRecentFilesByTimeStamp(data);
-            sortedData = sortedData.slice(0, 10);
+            sortedData = sortedData.slice(0, 9);
             if (sortedData.length > 0) {
                 recentBlock = buildRecentContent(sortedData);
             }
@@ -202,7 +171,7 @@ homeButton.addEventListener('click', () => {
     });
 });
 
-let allFilesButton = document.querySelector('#all-files');
+let allFilesButton = document.querySelector('#my-files');
 allFilesButton.addEventListener('click', () => {
     globalContextOption = "all-files";
     switchView();

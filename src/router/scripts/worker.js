@@ -36,6 +36,7 @@ function upload(file) {
             let extension = file.name.split('.').pop();
             let qualifiedName = `${hash}.${extension}`;
             let bar = document.getElementById(`bar-${hash}`);
+            let recentFilesSection = document.querySelector(".recent_files");
             if (file.size < 10 * 1024 * 1024) {
                 fetch(`${ROOT}/${projectId}/filebox/files?name=${qualifiedName}`, {
                     method: 'POST',
@@ -48,7 +49,6 @@ function upload(file) {
                         bar.style.width = "100%";
                         updateToCompleted(hash)
                         showSnack(`Uploaded ${file.name}`);
-                        let recentFilesSection = document.querySelector(".recent-files");
                         if (recentFilesSection) {
                             recentFilesSection.prepend(newFileElem(body))
                         }
@@ -113,7 +113,6 @@ function upload(file) {
                                         updateToCompleted(hash)
                                         updateSpaceUsage(file.size);
                                         showSnack(`Uploaded ${file.name} successfully!`, colorBlue);
-                                        let recentFilesSection = document.querySelector(".recent-files");
                                         if (recentFilesSection) {
                                             recentFilesSection.prepend(newFileElem(body))
                                         }
@@ -217,12 +216,10 @@ function createFolder() {
                 if (body.parent) {
                     globalFileBucket[body.hash] = body;
                     let view = document.querySelector('#folder-view');
-                    view.appendChild(newFileElem(body));
+                    view.prepend(newFileElem(body));
                 } else {
-                    let allFiles = document.querySelector('.all-files');
-                    if (allFiles) {
-                        allFiles.prepend(newFileElem(body))
-                    }
+                    allFilesButton.click();
+                    document.querySelector('.file_list').prepend(newFileElem(body));
                 }   
             }
         })
