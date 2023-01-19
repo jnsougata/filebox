@@ -30,7 +30,7 @@ function upload(file) {
                 }
             }
             showSnack(`Uploading ${file.name}`, colorBlue);
-            globalFileBucket[hash] = file;
+            globalFileBucket[hash] = body;
             let content = ev.target.result;
             taskQueueElem.appendChild(queueElem(body));
             let extension = file.name.split('.').pop();
