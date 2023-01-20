@@ -1,3 +1,18 @@
+async function fetchItemCount(folder) {
+    let path = "";
+    if (folder.parent) {
+        path = `${folder.parent}/${folder.name}`;
+    } else {
+        path = folder.name;
+    }
+    let resp = await fetch(`/api/items/count`, {
+        method: "POST", 
+        body: JSON.stringify({"children_path": path})
+    });
+    let data = await resp.json();
+    return data.count;
+}
+
 function handleSizeUnit(size) {
     if (size === undefined) {
         return "~";
@@ -170,7 +185,10 @@ function newFileElem(file) {
         } else {
             parent = "/";
         }
-        fileSizeAndDate.innerHTML = `${parent} • ${fomatDateString(file.date)}`;
+        fetchItemCount(file)
+        .then((count) => {
+            fileSizeAndDate.innerHTML = `${count} items • ${fomatDateString(file.date)}`;
+        })
     } else {
         fileSizeAndDate.innerHTML = `${handleSizeUnit(file.size)} • ${fomatDateString(file.date)}`;
     }
@@ -212,6 +230,14 @@ function newFileElem(file) {
                 addVideoPlayer(file);
             } else if (file.mime.startsWith('application/pdf')) {
                 addPDFViewer(file);
+            } else if (file.mime.startsWith('text')) {
+                addTextViewer(file);
+            } else {
+                modalContent.innerHTML = '';
+                let p = document.createElement('p');
+                p.innerHTML = "Sorry, we don't support this file type yet!";
+                p.style.color = colorRed;
+                modalContent.appendChild(p);
             }
         }
     });
@@ -500,7 +526,6 @@ function addVideoPlayer(file) {
     fetchMediaBlob(file)
     .then((blob) => {
         let video = document.createElement('video');
-        video.id = `player-${file.hash}`;
         video.controls = true;
         video.style.width = '100%';
         video.style.height = '100%';
@@ -515,12 +540,29 @@ function addPDFViewer(file) {
     fetchMediaBlob(file)
     .then((blob) => {
         let pdf = document.createElement('embed');
-        pdf.id = `player-${file.hash}`;
         pdf.style.width = '100%';
         pdf.style.height = '100%';
         pdf.src = URL.createObjectURL(blob);
         globalMediaBlob = pdf.src;
         modalContent.innerHTML = '';
         modalContent.appendChild(pdf);
+    })
+}
+
+function addTextViewer(file) {
+    fetchMediaBlob(file)
+    .then((blob) => {
+        let reader = new FileReader();
+        reader.onload = function() {
+            let text = document.createElement('p');
+            text.style.width = '100%';
+            text.style.height = '100%';
+            text.style.overflow = 'auto';
+            text.innerHTML = reader.result;
+            text.style.color = 'white';
+            modalContent.innerHTML = '';
+            modalContent.appendChild(text);
+        }
+        reader.readAsText(blob, "UTF-8");
     })
 }

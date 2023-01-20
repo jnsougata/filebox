@@ -31,6 +31,7 @@ func main() {
 	r.HandleFunc("/consumption", HandleSpaceUsage).Methods("GET")
 	r.HandleFunc("/pin/{hash}", HandlePin).Methods("POST", "DELETE")
 	r.HandleFunc("/file/access", HandleFileAccess).Methods("POST")
+	r.HandleFunc("/items/count", HandleItemCount).Methods("POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -246,4 +247,14 @@ func HandleFileAccess(w http.ResponseWriter, r *http.Request) {
 	updater.Set(map[string]interface{}{"access": body["access"].(string)})
 	updater.Do()
 	w.WriteHeader(http.StatusOK)
+}
+
+func HandleItemCount(w http.ResponseWriter, r *http.Request) {
+	var body map[string]interface{}
+	_ = json.NewDecoder(r.Body).Decode(&body)
+	q := deta.Query()
+	q.Equals(map[string]interface{}{"parent": body["children_path"].(string)})
+	children := base.Fetch(q, "", 0).Data["items"].([]interface{})
+	ba, _ := json.Marshal(map[string]interface{}{"count": len(children)})
+	_, _ = w.Write(ba)
 }

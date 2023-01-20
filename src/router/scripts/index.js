@@ -481,6 +481,7 @@ function handleModalClose() {
     modalContent.innerHTML = '';
     if (globalMediaBlob) {
         URL.revokeObjectURL(globalMediaBlob);
+        globalMediaBlob = null;
     }
 }
 
