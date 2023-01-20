@@ -1,19 +1,21 @@
+const colorRed = "#CB1446";
+const colorGreen = "#2AA850";
+const colorBlue = "#2E83F3";
+const colorOrange = "#FF6700";
+let sidebarState = false;
+let globalSecretKey = null;
 var globalFileBucket = {};
 var globalFolderQueue = [];
 let globalConsumption = 0;
+let globalMediaBlob = null;
 var globalContextFile = null;
 let globalContextOption = null;
-let totalSizeWidget = document.querySelector('.bottom-option');
-let sidebarState = false;
 let sidebar = document.querySelector('.sidebar');
 var blurLayer = document.querySelector('.blur-layer');
 let mainSection = document.querySelector('#main');
 let secondarySection = document.querySelector('#secondary');
 var taskQueueElem = document.querySelector('.queue');
-const colorRed = "#CB1446";
-const colorGreen = "#2AA850";
-const colorBlue = "#2E83F3";
-const colorOrange = "#FF6700";
+let totalSizeWidget = document.querySelector('.bottom_option');
 
 function getContextOptionElem(option) {
     let options = {
@@ -69,7 +71,7 @@ function sidebarEventState(enable = true) {
     }
 }
 
-let floatingMenuButton = document.querySelector('.floating-menu-button');
+let floatingMenuButton = document.querySelector('.floating_menu');
 floatingMenuButton.addEventListener('click', () => {
     if (sidebarState) {
         blurLayer.style.display = 'none';
@@ -464,6 +466,24 @@ mainSection.addEventListener("drop", (e) => {
     }
 });
 
+let modal = document.querySelector('.modal');
+let modalContent = document.querySelector('.modal_content');
+modalContent.addEventListener('click', (e) => {
+    handleModalClose();
+});
+let modalCloseButton = document.querySelector('.modal_close');
+modalCloseButton.addEventListener('click', () => {
+    handleModalClose();
+});
+
+function handleModalClose() {
+    modal.style.display = 'none';
+    modalContent.innerHTML = '';
+    if (globalMediaBlob) {
+        URL.revokeObjectURL(globalMediaBlob);
+    }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     mainSection.style.display = 'none';
     secondarySection.style.display = 'none';
@@ -475,6 +495,11 @@ window.addEventListener('DOMContentLoaded', () => {
         totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${totalSizeString}`;
     })
     homeButton.click();
+    fetch("/api/secret")
+    .then(response => response.text())
+    .then(data => {
+        globalSecretKey = data;
+    })
 });
 
 window.addEventListener('resize', () => {

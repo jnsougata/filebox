@@ -47,7 +47,6 @@ body {
 .sidebar {
     width: 250px;
     height: 100%;
-    background-color: #065bc7;
     background-color: #1a1c20;
     color: white;
     display: flex;
@@ -55,8 +54,8 @@ body {
     justify-content: flex-start;
     align-items: center;
     z-index: 100;
-    box-shadow: 0 0 1px 0 rgba(204, 204, 204, 0.521);
     overflow-y: auto;
+    box-shadow: 0 0 1px 0 rgba(204, 204, 204, 0.521);
 }
 
 .sidebar > .logo {
@@ -110,9 +109,9 @@ body {
     background-color: #ffffff1c;
 }
 
-.bottom-option {
+.bottom_option {
     bottom: 0;
-    position: absolute;
+    position: fixed;
     width: 250px;
     height: 60px;
     display: flex;
@@ -122,14 +121,14 @@ body {
     font-size: 16px;
 }
 
-.bottom-option > i {
+.bottom_option > i {
     font-size: 16px;
     color: rgb(255, 71, 71);
     z-index: 2;
     margin-right: 10px;
 }
 
-.floating-menu-button {
+.floating_menu {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -142,16 +141,16 @@ body {
     align-items: center;
     cursor: pointer;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    z-index: 100;
 }
 
-.floating-menu-button > i {
+.floating_menu > i {
     font-size: 15px;
     color: white;
 }
 
 @media screen and (min-width: 768px) {
-    .floating-menu-button {
+    .floating_menu {
         display: none;
     }
 }
@@ -414,7 +413,16 @@ body {
     cursor: pointer;
 }
 
-.options-panel {
+@keyframes sildein {
+    0% {
+        bottom: -75px;
+    }
+    100% {
+        bottom: 0;
+    }
+}
+
+.options_panel {
     width: 500px;
     height: 200px;
     display: none;
@@ -428,8 +436,9 @@ body {
     z-index: 10000 !important;
     border-radius: 10px 10px 0 0;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    animation: sildein 0.5s;
 }
-.options-panel > p {
+.options_panel > p {
     max-width: 480px;
     height: 40px;
     padding-top: 5px;
@@ -443,7 +452,7 @@ body {
     text-overflow: ellipsis;
     border-bottom: 1px solid #ffffff0c;
 }
-.options-panel > div > span {
+.options_panel > div > span {
     font-size: 20px;
     color: #ccc;
     margin-left: 10px;
@@ -452,7 +461,7 @@ body {
     border-radius: 50%;
     cursor: pointer;
 }
-.options-panel > div > button {
+.options_panel > div > button {
     font-size: 15px;
     padding: 5px 30px;
     background-color: rgb(223, 61, 61);
@@ -462,10 +471,10 @@ body {
     cursor: pointer;
 }
 @media screen and (max-width: 768px) {
-    .options-panel {
+    .options_panel {
         width: 100%;
     }
-    .options-panel > p {
+    .options_panel > p {
         max-width: calc(100% - 20px);
         font-size: 15px;
     }
@@ -563,6 +572,8 @@ body {
     align-items: center;
     flex-direction: column;
     justify-content: flex-start;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 .queue > p {
     width: 100%;
@@ -583,7 +594,7 @@ body {
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-
+    flex-shrink: 0;
 }
 .queue > .task > .icon {
     font-size: 25px;
@@ -661,4 +672,62 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+}
+
+.modal {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #00000060;
+    padding: 20px;
+    padding-top: 50px;
+    overflow-y: auto;
+    backdrop-filter: blur(3px);
+}
+
+.modal > .modal_close {
+    top: 0;
+    right: 0;
+    width: 25px;
+    height: 25px;
+    margin-top: 10px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
+    position: absolute;
+    color: white;
+    background-color: rgb(255, 71, 71);
+}
+.modal > .modal_content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 5px;
+    padding: 20px;
+    padding-top: 40px;
+    overflow-y: auto;
+}
+
+.music_player {
+    width: 300px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: column;
+    background-color: #f0f3f5;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 #00000081;
+    padding: 20px;
 }

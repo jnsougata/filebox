@@ -202,6 +202,17 @@ function newFileElem(file) {
     li.addEventListener('click', () => {
         if (file.type === 'folder') {
             handleFolderClick(file);
+        } else {
+            modal.style.display = 'flex';
+            if (file.mime.startsWith('image')) {
+                addImageViewer(file);
+            } else if (file.mime.startsWith('audio')) {
+                addAudioPlayer(file);
+            } else if (file.mime.startsWith('video')) {
+                addVideoPlayer(file);
+            } else if (file.mime.startsWith('application/pdf')) {
+                addPDFViewer(file);
+            }
         }
     });
     return li;
@@ -231,7 +242,11 @@ function newPinnedElem(file) {
     card.appendChild(fileIcon);
     card.appendChild(fileName);
     card.addEventListener('click', () => {
-        handleMenuClick(file.hash);
+        if (file.type === 'folder') {
+            handleFolderClick(file);
+        } else {
+            handleMenuClick(file.hash);
+        }
     })
     return card;
 }
@@ -430,4 +445,82 @@ function sortRecentFilesByTimeStamp(data) {
         return dateStringToTimestamp(b.date) - dateStringToTimestamp(a.date);
     });
     return data;
+}
+
+async function fetchMediaBlob(file) {
+    let header = {"X-Api-Key": globalSecretKey}
+    let projectId = globalSecretKey.split("_")[0];
+    let extension = file.name.split('.').pop();
+    let qualifiedName = file.hash + "." + extension;
+    let url = `https://drive.deta.sh/v1/${projectId}/filebox/files/download?name=${qualifiedName}`;
+    let resp = await fetch(url, {method: "GET", headers: header})
+    return await resp.blob();
+}
+
+function addAudioPlayer(file) {
+    fetchMediaBlob(file)
+    .then((blob) => {
+        let audio = document.createElement('audio');
+        audio.controls = true;
+        audio.src = URL.createObjectURL(blob);
+        globalMediaBlob = audio.src;
+        modalContent.innerHTML = '';
+        let playerCard = document.createElement('div');
+        playerCard.className = 'music_player';
+        let title = document.createElement('p');
+        title.style.textAlign = 'center';
+        title.style.height = '100%';
+        title.style.width = '100%';
+        title.style.display = 'flex';
+        title.style.alignItems = 'center';
+        title.style.justifyContent = 'center';
+        title.innerHTML = file.name;
+        title.style.marginBottom = '10px';
+        playerCard.appendChild(title);
+        playerCard.appendChild(audio);
+        modalContent.appendChild(playerCard);
+    });
+}
+
+function addImageViewer(file) {
+    fetchMediaBlob(file)
+    .then((blob) => {
+        let image = document.createElement('img');
+        image.style.width = '100%';
+        image.style.height = '100%';
+        image.style.objectFit = 'contain';
+        image.src = URL.createObjectURL(blob);
+        globalMediaBlob = image.src;
+        modalContent.innerHTML = '';
+        modalContent.appendChild(image);
+    });
+}
+
+function addVideoPlayer(file) {
+    fetchMediaBlob(file)
+    .then((blob) => {
+        let video = document.createElement('video');
+        video.id = `player-${file.hash}`;
+        video.controls = true;
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.src = URL.createObjectURL(blob);
+        globalMediaBlob = video.src;
+        modalContent.innerHTML = '';
+        modalContent.appendChild(video);
+    })
+}
+
+function addPDFViewer(file) {
+    fetchMediaBlob(file)
+    .then((blob) => {
+        let pdf = document.createElement('embed');
+        pdf.id = `player-${file.hash}`;
+        pdf.style.width = '100%';
+        pdf.style.height = '100%';
+        pdf.src = URL.createObjectURL(blob);
+        globalMediaBlob = pdf.src;
+        modalContent.innerHTML = '';
+        modalContent.appendChild(pdf);
+    })
 }
