@@ -427,7 +427,7 @@ searchBar.addEventListener('input', () => {
                 globalFileBucket[file.hash] = file;
             });
             let resultsPage = document.createElement('div');
-            resultsPage.className = 'my-files';
+            resultsPage.className = 'my_files';
             if (data.length > 0) {
                 let p = document.createElement('p');
                 p.innerHTML = `Search results for '${query}'`;

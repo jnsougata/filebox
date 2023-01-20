@@ -5,7 +5,7 @@ git: "https://github.com/jnsougata/filebox"
 theme_color: "#1c42684f"
 ---
 
-Upload and store any file in your Personal Space Drive
+Upload and Organize files in your Personal Space Drive
 
 #### Features
 
