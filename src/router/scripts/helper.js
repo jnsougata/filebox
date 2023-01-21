@@ -482,6 +482,9 @@ function makeSpinnerElem() {
 }
 
 async function fetchMediaBlob(file) {
+    // this will suck at large files
+    // will implement streaming later
+    // this is just a basic implementation
     let header = {"X-Api-Key": globalSecretKey}
     let projectId = globalSecretKey.split("_")[0];
     let extension = file.name.split('.').pop();

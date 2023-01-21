@@ -65,7 +65,14 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 			q := deta.Query()
 			q.Equals(map[string]interface{}{"name": data["name"].(string)})
 			resp := base.Fetch(q, "", 0).Data["items"].([]interface{})
-			if len(resp) > 0 {
+			var temp []map[string]interface{}
+			for _, item := range resp {
+				record := item.(map[string]interface{})
+				if _, ok := record["parent"]; !ok {
+					temp = append(temp, record)
+				}
+			}
+			if len(temp) > 0 {
 				w.WriteHeader(http.StatusConflict)
 				return
 			}
@@ -74,11 +81,9 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 			q := deta.Query()
 			q.Equals(map[string]interface{}{"parent": data["parent"].(string), "name": data["name"].(string)})
 			resp := base.Fetch(q, "", 0).Data["items"].([]interface{})
-			for _, item := range resp {
-				if item.(map[string]interface{})["name"] == data["name"] {
-					w.WriteHeader(http.StatusConflict)
-					return
-				}
+			if len(resp) > 0 {
+				w.WriteHeader(http.StatusConflict)
+				return
 			}
 		}
 		resp := base.Put(data)
