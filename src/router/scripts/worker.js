@@ -203,7 +203,6 @@ function createFolder() {
         .then((resp) => {
             if (resp.status === 409) {
                 showSnack(`Folder with same name already exists`, colorRed);
-                return;
             } else if (resp.status <= 207) {
                 showSnack(`Created folder ${folderName}`, colorGreen);
                 if (body.parent) {

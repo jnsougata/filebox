@@ -1,4 +1,3 @@
-src/backend/.idea/
-src/.space/
+.idea/
 .vscode/
-src/frontend/target/
+src/.space/

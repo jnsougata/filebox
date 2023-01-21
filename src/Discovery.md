@@ -23,7 +23,7 @@ Upload and Organize files in your Personal Space Drive
 - Added some options to view files by category
 - You can now block access of shared files and embeds
 - Track your filebox usage with a space usage indicator
-- Added ability to preview images, videos, pdfs and text files
+- Added ability to preview images, videos, audios, pdfs and text files
 
 #### Coming Soon
 

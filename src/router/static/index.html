@@ -24,102 +24,132 @@
         <div class="floating_menu">
             <i class="fa-solid fa-bars"></i>
         </div>
-        <div class="options_panel" id="file-options-panel">
-            <p style="margin-top: 10px;" id="options-panel-filename"></p>
-            <div style="margin-top: 30px;">
-                <span class="material-symbols-rounded" id="delete-file">
-                    delete_forever
-                </span>
-                <span class="material-symbols-rounded" id="pin-file">
+        <div class="file_menu" id="file-options-panel">
+            <div class="file_menu_close" id="file-options-panel-close">
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="title">
+                <p id="options-panel-filename">index.html</p>
+            </div>
+            <div class="file_menu_option" id="pin-file">
+                <p>Pin</p>
+                <span class="material-symbols-rounded">
                     push_pin
                 </span>
-                <span class="material-symbols-rounded" id="embed-file">
-                    code
-                </span>
-                <span class="material-symbols-rounded" id="share-file">
-                    link
-                </span>
-                <span class="material-symbols-rounded" id="download-file">
-                    download
-                </span>
-                <span class="material-symbols-rounded" id="rename-file">
+            </div>
+            <div class="file_menu_option" id="rename-file">
+                <p>Rename</p>
+                <span class="material-symbols-rounded">
                     edit
                 </span>
             </div>
-            <div>
-                <button style="margin-top: 30px;" id="file-options-panel-close">close</button>
+            <div class="file_menu_option" id="download-file">
+                <p>Download</p>
+                <span class="material-symbols-rounded">
+                    download
+                </span>
             </div>
-        </div>
-        <div class="options_panel" id="folder-options-panel">
-            <p style="margin-top: 10px;" id="options-panel-folder_name"></p>
-            <div style="margin-top: 30px;">
-                <span class="material-symbols-rounded" id="delete-folder">
+            <div class="file_menu_option" id="share-file">
+                <p>Share</p>
+                <span class="material-symbols-rounded" id="share-file-span">
+                    link
+                </span>
+            </div>
+            <div class="file_menu_option" id="embed-file">
+                <p>Embed</p>
+                <span class="material-symbols-rounded" id="embed-file-span">
+                    code
+                </span>
+            </div>
+            <div class="file_menu_option" id="delete-file">
+                <p>Delete</p>
+                <span class="material-symbols-rounded">
                     delete_forever
                 </span>
-                <span class="material-symbols-rounded" id="pin-folder">
+            </div>
+            <div class="file_menu_option"  id="move-file">
+                <p>Move</p>
+                <span class="material-symbols-rounded">
+                    arrow_forward
+                </span>
+            </div>
+        </div>
+        <div class="file_menu" id="folder-options-panel">
+            <div class="file_menu_close" id="folder-options-panel-close">
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="title">
+                <p id="options-panel-folder_name">static</p>
+            </div>
+            <div class="file_menu_option" id="pin-folder">
+                <p>Pin</p>
+                <span class="material-symbols-rounded">
                     push_pin
                 </span>
             </div>
-            <div>
-                <button style="margin-top: 30px;" id="folder-options-panel-close">close</button>
+            <div class="file_menu_option" id="delete-folder">
+                <p>Delete</p>
+                <span class="material-symbols-rounded">
+                    delete_forever
+                </span>
             </div>
         </div>
         <div class="blur-layer"></div>
         <div class="container">
             <div class="sidebar">
-                <div class="logo">
+                <div class="sidebar_logo">
                     <img src="../assets/icon.png" alt="logo" />
                     <h3>FileBox</h3>
                 </div>
-                <div class="option" id="home">
+                <div class="sidebar_option" id="home">
                     <div class="icon">
                         <i class="fa-solid fa-home"></i>
                     </div>
                     Home
                 </div>
-                <div class="option" id="my-files">
+                <div class="sidebar_option" id="my-files">
                     <div class="icon">
                         <i class="fa-solid fa-folder"></i>
                     </div>
                     My Files
                 </div>
-                <div class="option" id="pdf">
+                <div class="sidebar_option" id="pdf">
                     <div class="icon">
                         <i class="fa-solid fa-book-open"></i>
                     </div>
                     PDFs
                 </div>
-                <div class="option" id="docs">
+                <div class="sidebar_option" id="docs">
                     <div class="icon">
                         <i class="fa-solid fa-file-lines"></i>
                     </div>
                     Docs
                 </div>
-                <div class="option" id="image">
+                <div class="sidebar_option" id="image">
                     <div class="icon">
                         <i class="fa-solid fa-image"></i>
                     </div>
                     Images
                 </div>
-                <div class="option" id="video">
+                <div class="sidebar_option" id="video">
                     <div class="icon">
                         <i class="fa-solid fa-video"></i>
                     </div>
                     Videos
                 </div>
-                <div class="option" id="audio">
+                <div class="sidebar_option" id="audio">
                     <div class="icon">
                         <i class="fa-solid fa-music"></i>
                     </div>
                     Audio
                 </div>
-                <div class="option" id="others">
+                <div class="sidebar_option" id="others">
                     <div class="icon">
                         <i class="fa-solid fa-ghost"></i>
                     </div>
                     Others
                 </div>
-                <div class="option" id="queue">
+                <div class="sidebar_option" id="queue">
                     <div class="icon">
                         <i class="fa-solid fa-clock"></i>
                     </div>

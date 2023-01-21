@@ -4,17 +4,17 @@ const colorBlue = "#2E83F3";
 const colorOrange = "#FF6700";
 let sidebarState = false;
 let globalSecretKey = null;
-var globalFileBucket = {};
-var globalFolderQueue = [];
+let globalFileBucket = {};
+let globalFolderQueue = [];
 let globalConsumption = 0;
 let globalMediaBlob = null;
-var globalContextFile = null;
+let globalContextFile = null;
 let globalContextOption = null;
 let sidebar = document.querySelector('.sidebar');
-var blurLayer = document.querySelector('.blur-layer');
+let blurLayer = document.querySelector('.blur-layer');
 let mainSection = document.querySelector('#main');
 let secondarySection = document.querySelector('#secondary');
-var taskQueueElem = document.querySelector('.queue');
+let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('.bottom_option');
 
 function getContextOptionElem(option) {
@@ -104,7 +104,7 @@ newFolderButton.addEventListener('click', () => {
     createFolder();
 });
 
-let sidebarOptions = document.querySelectorAll('.option');
+let sidebarOptions = document.querySelectorAll('.sidebar_option');
 let previousOption = null;
 for (let i = 0; i < sidebarOptions.length; i++) {
     sidebarOptions[i].addEventListener('click', () => {
@@ -382,12 +382,12 @@ deleteFolderButton.addEventListener('click', () => {
         body: JSON.stringify(body),
     })
     .then((resp) => {
-        if (resp.status == 409) {
+        if (resp.status === 409) {
             showSnack(`Folder is not empty`, colorOrange);
             folderOptionsPanelCloseButton.click();
             return;
         }
-        if (resp.status == 200) {
+        if (resp.status === 200) {
             showSnack(`Deleted ${folder.name}`, colorRed);
             document.getElementById(`file-${folder.hash}`).remove();
             folderOptionsPanelCloseButton.click();
@@ -412,7 +412,7 @@ searchBar.addEventListener('input', () => {
     }
     inputTimer = setTimeout(() => {
         let query = searchBar.value;
-        if (query.length == 0) {
+        if (query.length === 0) {
             getContextOptionElem(globalContextOption).click();
             return;
         }
@@ -468,7 +468,7 @@ mainSection.addEventListener("drop", (e) => {
 
 let modal = document.querySelector('.modal');
 let modalContent = document.querySelector('.modal_content');
-modalContent.addEventListener('click', (e) => {
+modalContent.addEventListener('click', () => {
     handleModalClose();
 });
 let modalCloseButton = document.querySelector('.modal_close');

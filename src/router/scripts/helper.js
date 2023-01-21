@@ -1,5 +1,5 @@
 async function fetchItemCount(folder) {
-    let path = "";
+    let path;
     if (folder.parent) {
         path = `${folder.parent}/${folder.name}`;
     } else {
@@ -28,7 +28,7 @@ function handleSizeUnit(size) {
     }
 }
 
-function fomatDateString(date) {
+function formatDateString(date) {
     let d = new Date(date);
     return d.getDate()
         + "/" + (d.getMonth() + 1)
@@ -41,7 +41,7 @@ function fomatDateString(date) {
 function getTotalSize(data) {
     let totalSize = 0;
     data.forEach((r) => {
-        r.Data.items.forEach((item) => {
+        r['Data'].items.forEach((item) => {
             if (item.size) {
                 totalSize += item.size;
             }
@@ -89,18 +89,18 @@ function handleFolderClick(folder) {
     } else {
         globalFolderQueue.push(folder);
     }
-    let parent = "";
-    let fragment = "";
+    let fragment;
+    let parentOf;
     if (folder.parent) {
         fragment = `/${folder.parent}/${folder.name}`;
-        parent = `${folder.parent}/${folder.name}`;
+        parentOf = `${folder.parent}/${folder.name}`;
     } else {
         fragment = `/${folder.name}`;
-        parent = folder.name;
+        parentOf = folder.name;
     }
     fetch(`/api/folder`, {
         method: "POST",
-        body: JSON.stringify({parent: parent})
+        body: JSON.stringify({parent: parentOf})
     })
     .then(res => res.json())
     .then(data => {
@@ -136,12 +136,14 @@ function handleMenuClick(hash) {
         let fileNameElem = document.querySelector('#options-panel-filename');
         fileNameElem.innerHTML = globalContextFile.name;
         folderOptionPanel.style.display = 'none';
+        let shareFileSpan = document.querySelector('#share-file-span');
+        let embedFileSpan = document.querySelector('#embed-file-span');
         if (globalContextFile.access === 'private'){
-            document.querySelector('#share-file').innerHTML = 'link_off';
-            document.querySelector('#embed-file').innerHTML = 'code_off';
+            shareFileSpan.innerHTML = 'link_off';
+            embedFileSpan.innerHTML = 'code_off';
         } else {
-            document.querySelector('#share-file').innerHTML = 'link';
-            document.querySelector('#embed-file').innerHTML = 'code';
+            shareFileSpan.innerHTML = 'link';
+            embedFileSpan.innerHTML = 'code';
         }
     }
 }
@@ -179,33 +181,27 @@ function newFileElem(file) {
     let fileSizeAndDate = document.createElement('p');
     fileSizeAndDate.style.fontSize = '11px';
     if (file.type === 'folder') {
-        let parent = "";
-        if (file.parent) {
-            parent = `/${file.parent}/`;
-        } else {
-            parent = "/";
-        }
         fetchItemCount(file)
         .then((count) => {
-            fileSizeAndDate.innerHTML = `${count} items • ${fomatDateString(file.date)}`;
+            fileSizeAndDate.innerHTML = `${count} items • ${formatDateString(file.date)}`;
         })
     } else {
-        fileSizeAndDate.innerHTML = `${handleSizeUnit(file.size)} • ${fomatDateString(file.date)}`;
+        fileSizeAndDate.innerHTML = `${handleSizeUnit(file.size)} • ${formatDateString(file.date)}`;
     }
     fileInfo.appendChild(fileName);
     fileInfo.appendChild(fileSizeAndDate);
     li.appendChild(fileIcon);
     li.appendChild(fileInfo);
-    let visbilityOption = document.createElement('span');
-    visbilityOption.className = "material-symbols-rounded";
+    let visibilityOption = document.createElement('span');
+    visibilityOption.className = "material-symbols-rounded";
     if (file.access === 'private') {
-        visbilityOption.innerHTML = 'visibility_off';
+        visibilityOption.innerHTML = 'visibility_off';
     } else {
-        visbilityOption.innerHTML = 'visibility';
+        visibilityOption.innerHTML = 'visibility';
     }
-    visbilityOption.addEventListener('click', (ev) => {
+    visibilityOption.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        handleVisibilityClick(visbilityOption, file.hash);
+        handleVisibilityClick(visibilityOption, file.hash);
     });
     let menuOptionSpan = document.createElement('span');
     menuOptionSpan.className = 'fa-solid fa-ellipsis';
@@ -214,7 +210,7 @@ function newFileElem(file) {
         handleMenuClick(file.hash);
     });
     if (file.type !== 'folder') {
-        li.appendChild(visbilityOption);
+        li.appendChild(visibilityOption);
     }
     li.appendChild(menuOptionSpan);
     li.addEventListener('click', () => {
@@ -250,7 +246,7 @@ function newPinnedElem(file) {
     card.className = 'card';
     let unpinDiv = document.createElement('div');
     unpinDiv.className = 'unpin';
-    let unpin = document.createElement('sapn');
+    let unpin = document.createElement('span');
     unpin.className = 'material-symbols-rounded';
     unpin.innerHTML = 'cancel';
     unpin.addEventListener('click', (ev) => {
