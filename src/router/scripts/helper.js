@@ -222,6 +222,7 @@ function newFileElem(file) {
             handleFolderClick(file);
         } else {
             modal.style.display = 'flex';
+            modalContent.appendChild(makeSpinnerElem());
             if (file.mime.startsWith('image')) {
                 addImageViewer(file);
             } else if (file.mime.startsWith('audio')) {
@@ -473,6 +474,13 @@ function sortRecentFilesByTimeStamp(data) {
     return data;
 }
 
+function makeSpinnerElem() {
+    let spinner = document.createElement('div');
+    spinner.className = 'spinner';
+    spinner.innerHTML = `<div></div><div></div><div></div><div></div>`;
+    return spinner;
+}
+
 async function fetchMediaBlob(file) {
     let header = {"X-Api-Key": globalSecretKey}
     let projectId = globalSecretKey.split("_")[0];
@@ -552,17 +560,12 @@ function addPDFViewer(file) {
 function addTextViewer(file) {
     fetchMediaBlob(file)
     .then((blob) => {
-        let reader = new FileReader();
-        reader.onload = function() {
-            let text = document.createElement('p');
-            text.style.width = '100%';
-            text.style.height = '100%';
-            text.style.overflow = 'auto';
-            text.innerHTML = reader.result;
-            text.style.color = 'white';
-            modalContent.innerHTML = '';
-            modalContent.appendChild(text);
-        }
-        reader.readAsText(blob, "UTF-8");
+        let textView = document.createElement('embed');
+        textView.style.width = '100%';
+        textView.style.height = '100%';
+        textView.src = URL.createObjectURL(blob);
+        globalMediaBlob = textView.src;
+        modalContent.innerHTML = '';
+        modalContent.appendChild(textView);
     })
 }
