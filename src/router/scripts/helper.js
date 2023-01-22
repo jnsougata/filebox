@@ -1,3 +1,6 @@
+let fileOptionPanel = document.querySelector('#file-options-panel');
+
+
 async function fetchItemCount(folder) {
     let path;
     if (folder.parent) {
@@ -53,6 +56,208 @@ function getTotalSize(data) {
 function updateSpaceUsage(incr) {
     globalConsumption += incr;
     totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${handleSizeUnit(globalConsumption)}`;
+}
+
+function handleFileMenuClick(file) {
+    fileOptionPanel.innerHTML = "";
+    if (window.innerWidth < 768) {
+        blurLayer.style.display = 'block';
+    }
+    let title = document.createElement("div");
+    title.className = "title";
+    let fileNameElem = document.createElement("p");
+    fileNameElem.innerHTML = file.name;
+    title.appendChild(fileNameElem);
+    let visibility = document.createElement("i");
+    if (file.access === "private") {
+        visibility.className = `fa-solid fa-eye-slash`;
+    } else {
+        visibility.className = `fa-solid fa-eye`;
+    }
+    visibility.addEventListener("click", () => {
+        if (file.access === 'private') {
+            visibility.className = `fa-solid fa-eye`;
+            file.access = 'public';
+            if (file.size > 1024 * 1024 * 30) {
+                share.style.opacity = 0.3;
+            } else {
+                share.style.opacity = 1;
+            }
+            if (file.size > 1024 * 1024 * 4) {
+                embed.style.opacity = 0.3;
+            } else {
+                embed.style.opacity = 1;
+            }
+            showSnack("File access changed to public", colorGreen);
+        } else {
+            visibility.className = `fa-solid fa-eye-slash`;
+            file.access = 'private';
+            share.style.opacity = 0.3;
+            embed.style.opacity = 0.3;
+            showSnack("File access changed to private", colorOrange);
+        }
+        fetch(`/api/file/access`, {
+            method: "POST", 
+            body: JSON.stringify({hash: file.hash, access: file.access})
+        })
+        .then(() => {
+            globalFileBucket[file.hash] = file;
+        })
+    });
+    if (file.type !== "folder") {
+        title.appendChild(visibility);
+    }
+    let close = document.createElement("i");
+    close.className = `fa-solid fa-chevron-down`;
+    close.addEventListener("click", () => {
+        fileOptionPanel.style.display = 'none';
+        blurLayer.style.display = 'none';
+    });
+    title.appendChild(close);
+    fileOptionPanel.appendChild(title);
+    let pin = document.createElement("div");
+    pin.className = "file_menu_option";
+    pin.innerHTML = `<p>Pin</p><span class="material-symbols-rounded">push_pin</span>`;
+    pin.addEventListener("click", () => {
+        fetch(`/api/pin/${file.hash}`, {method: "POST"})
+        .then(() => {
+            showSnack(`File pinned successfully!`);
+            close.click();
+            let pinnedSection = document.querySelector('.pinned');
+            if (pinnedSection) {
+                pinnedSection.appendChild(newPinnedElem(file));
+            }
+        })
+    });
+    fileOptionPanel.appendChild(pin);
+    let rename = document.createElement("div");
+    rename.className = "file_menu_option";
+    rename.innerHTML = `<p>Rename</p><span class="material-symbols-rounded">edit</span>`;
+    rename.addEventListener("click", () => {
+        fileNameElem.contentEditable = true;
+        fileNameElem.spellcheck = false;
+        fileNameElem.focus();
+        fileNameElem.addEventListener('blur', (e) => {
+            let oldName = file.name;
+            let oldNameExtension = oldName.split(".").pop();
+            let updatedName = e.target.innerHTML;
+            let updatedExtension = updatedName.split(".").pop();
+            if (oldNameExtension !== updatedExtension) {
+                e.target.innerHTML = oldName;
+                showSnack("File extension cannot be changed", colorOrange);
+                return;
+            }
+            if (updatedName === oldName) {
+                return;
+            }
+            fetch(`/api/rename`, {method: "POST", body: JSON.stringify({hash: file.hash, name: updatedName})})
+            .then((res) => {
+                if (res.status === 200) {
+                    globalFileBucket[file.hash].name = updatedName;
+                    document.querySelector(`#filename-${file.hash}`).innerHTML = updatedName;
+                    showSnack(`File renamed to ${updatedName}`);
+                }
+            })
+        });
+    });
+    let downloadButton = document.createElement("div");
+    downloadButton.className = "file_menu_option";
+    downloadButton.innerHTML = `<p>Download</p><span class="material-symbols-rounded">download</span>`;
+    downloadButton.addEventListener("click", () => {
+        close.click();
+        download(file);
+        showSnack(`Downloaded ${file.name}`);
+    });
+    let share = document.createElement("div");
+    share.className = "file_menu_option";
+    share.innerHTML = `<p>Share</p><span class="material-symbols-rounded">link</span>`;
+    share.addEventListener("click", () => {
+        if (file.access === "private") {
+            showSnack(`Make file public to share via link`, colorOrange);
+        } else if (file.size > 30 * 1024 * 1024) {
+            showSnack(`File is too large to share via link`, colorRed);
+        } else {
+            window.navigator.clipboard.writeText(`${window.location.origin}/shared/${file.hash}`)
+            .then(() => {
+                showSnack(`Copied sharing URL to clipboard`);
+            })
+        }
+    });
+    let embed = document.createElement("div");
+    embed.className = "file_menu_option";
+    embed.innerHTML = `<p>Embed</p><span class="material-symbols-rounded">code</span>`;
+    embed.addEventListener("click", () => {
+        if (file.access === "private") {
+            showSnack(`Make file public to embed`, colorOrange);
+        } else if (file.size > 4 * 1024 * 1024) {
+            showSnack(`File is too large to embed`, colorRed);
+        } else {
+            window.navigator.clipboard.writeText(`${window.location.origin}/api/embed/${file.hash}`)
+            .then(() => {
+                showSnack(`Copied embed URL to clipboard`);
+            })
+        }
+    });
+    let move = document.createElement("div");
+    move.className = "file_menu_option";
+    move.innerHTML = `<p>Move</p><span class="material-symbols-rounded">arrow_forward</span>`;
+    move.addEventListener("click", () => {
+        close.click();
+        allFilesButton.click();
+        renderFileMover(file);
+    });
+    if (file.type !== 'folder') {
+        fileOptionPanel.appendChild(rename);
+        fileOptionPanel.appendChild(downloadButton);
+        if (file.access === 'private' || file.size > 1024 * 1024 * 30) {
+            share.style.opacity = 0.3;
+            embed.style.opacity = 0.3;
+        }
+        if (file.access === 'private' || file.size > 1024 * 1024 * 4) {
+            embed.style.opacity = 0.3;
+        }
+        fileOptionPanel.appendChild(share);
+        if (file.access === 'private' || file.size > 1024 * 1024 * 4) {
+            embed.style.opacity = 0.3;
+        }
+        fileOptionPanel.appendChild(embed);
+        fileOptionPanel.appendChild(move);
+    }
+    let deleteButton = document.createElement("div");
+    deleteButton.className = "file_menu_option";
+    deleteButton.innerHTML = `<p>Delete</p><span class="material-symbols-rounded">delete_forever</span>`;
+    deleteButton.addEventListener("click", () => {
+        if (file.type === 'folder') {
+            if (file.parent) {
+                body["children_path"] = `${file.parent}/${file.name}`;
+            } else {
+                body["children_path"] = `${file.name}`;
+            }
+            fetch(`/api/remove/folder`, {method: "POST", body: JSON.stringify({"hash": file.hash})})
+            .then((resp) => {
+                if (resp.status === 409) {
+                    showSnack(`Folder is not empty`, colorOrange);
+                    close.click();
+                    return;
+                }
+                if (resp.status === 200) {
+                    showSnack(`Deleted ${file.name}`, colorRed);
+                    document.getElementById(`file-${file.hash}`).remove();
+                    close.click();
+                } 
+            })
+        } else {
+            fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+            .then(() => {
+                showSnack(`Deleted ${file.name}`, colorRed);
+                document.getElementById(`file-${file.hash}`).remove();
+                updateSpaceUsage(-file.size);
+                close.click();
+            })
+        }
+    });
+    fileOptionPanel.appendChild(deleteButton);
+    fileOptionPanel.style.display = 'flex';
 }
 
 function handleMimeIcon(mime) {
@@ -119,56 +324,6 @@ function handleFolderClick(folder) {
     })
 }
 
-
-let folderOptionPanel = document.querySelector('#folder-options-panel');
-let fileOptionPanel = document.querySelector('#file-options-panel');
-function handleMenuClick(hash) {
-    globalContextFile = globalFileBucket[hash];
-    if (window.innerWidth < 768) {
-        blurLayer.style.display = 'block';
-    }
-    if (globalContextFile.type === 'folder') {
-        folderOptionPanel.style.display = 'flex';
-        let folderNameElem = document.querySelector('#options-panel-folder_name');
-        folderNameElem.innerHTML = globalContextFile.name;
-        fileOptionPanel.style.display = 'none';
-    } else {
-        fileOptionPanel.style.display = 'flex';
-        let fileNameElem = document.querySelector('#options-panel-filename');
-        fileNameElem.innerHTML = globalContextFile.name;
-        folderOptionPanel.style.display = 'none';
-        let shareFileSpan = document.querySelector('#share-file-span');
-        let embedFileSpan = document.querySelector('#embed-file-span');
-        if (globalContextFile.access === 'private'){
-            shareFileSpan.innerHTML = 'link_off';
-            embedFileSpan.innerHTML = 'code_off';
-        } else {
-            shareFileSpan.innerHTML = 'link';
-            embedFileSpan.innerHTML = 'code';
-        }
-    }
-}
-
-function handleVisibilityClick(elem, hash) {
-    let file = globalFileBucket[hash];
-    if (file.access === 'private') {
-        elem.innerHTML = 'visibility';
-        file.access = 'public';
-        showSnack("File access changed to public", colorGreen);
-    } else {
-        elem.innerHTML = 'visibility_off';
-        file.access = 'private';
-        showSnack("File access changed to private", colorOrange);
-    }
-    fetch(`/api/file/access`, {
-        method: "POST",
-        body: JSON.stringify({hash: file.hash, access: file.access})
-    })
-    .then(() => {
-        globalFileBucket[hash] = file;
-    })
-}
-
 function newFileElem(file) {
     let li = document.createElement('li');
     li.id = `file-${file.hash}`
@@ -193,26 +348,12 @@ function newFileElem(file) {
     fileInfo.appendChild(fileSizeAndDate);
     li.appendChild(fileIcon);
     li.appendChild(fileInfo);
-    let visibilityOption = document.createElement('span');
-    visibilityOption.className = "material-symbols-rounded";
-    if (file.access === 'private') {
-        visibilityOption.innerHTML = 'visibility_off';
-    } else {
-        visibilityOption.innerHTML = 'visibility';
-    }
-    visibilityOption.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        handleVisibilityClick(visibilityOption, file.hash);
-    });
     let menuOptionSpan = document.createElement('span');
     menuOptionSpan.className = 'fa-solid fa-ellipsis';
     menuOptionSpan.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        handleMenuClick(file.hash);
+        handleFileMenuClick(file);
     });
-    if (file.type !== 'folder') {
-        li.appendChild(visibilityOption);
-    }
     li.appendChild(menuOptionSpan);
     li.addEventListener('click', () => {
         if (file.type === 'folder') {
@@ -269,7 +410,7 @@ function newPinnedElem(file) {
         if (file.type === 'folder') {
             handleFolderClick(file);
         } else {
-            handleMenuClick(file.hash);
+            handleFileMenuClick(file);
         }
     })
     return card;

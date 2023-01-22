@@ -39,7 +39,6 @@ function switchView(primary = true, secondary = false) {
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
-    folderOptionPanel.style.display = 'none';
     fileOptionPanel.style.display = 'none';
     let header = document.querySelector('header');
     if (primary) {
@@ -129,20 +128,6 @@ for (let i = 0; i < sidebarOptions.length; i++) {
         previousOption = currOption;
     });
 }
-
-let fileOptionsPanelCloseButton = document.querySelector('#file-options-panel-close');
-fileOptionsPanelCloseButton.addEventListener('click', () => {
-    let optionsPanel = document.querySelector('#file-options-panel');
-    optionsPanel.style.display = 'none';
-    blurLayer.style.display = 'none';
-});
-
-let folderOptionsPanelCloseButton = document.querySelector('#folder-options-panel-close');
-folderOptionsPanelCloseButton.addEventListener('click', () => {
-    let optionsPanel = document.querySelector('#folder-options-panel');
-    optionsPanel.style.display = 'none';
-    blurLayer.style.display = 'none';
-});
 
 let homeButton = document.querySelector('#home');
 homeButton.addEventListener('click', () => {
@@ -275,151 +260,6 @@ otherButton.addEventListener('click', () => {
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
-});
-
-let renameButton = document.querySelector('#rename-file');
-renameButton.addEventListener('click', () => {
-    let fileNameElem = document.querySelector('#options-panel-filename');
-    fileNameElem.contentEditable = true;
-    fileNameElem.spellcheck = false;
-    fileNameElem.focus();
-    fileNameElem.addEventListener('blur', (e) => {
-        let oldName = globalContextFile.name;
-        let oldNameExtension = oldName.split(".").pop();
-        let updatedName = e.target.innerHTML;
-        let updatedExtension = updatedName.split(".").pop();
-        if (oldNameExtension !== updatedExtension) {
-            e.target.innerHTML = oldName;
-            showSnack("File extension cannot be changed", colorOrange);
-            return;
-        }
-        if (updatedName === oldName) {
-            return;
-        }
-        fetch(`/api/rename`, {
-            method: "POST",
-            body: JSON.stringify({
-                hash: globalContextFile.hash,
-                name: updatedName
-            }),
-        })
-        .then((res) => {
-            if (res.status === 200) {
-                globalFileBucket[globalContextFile.hash].name = updatedName;
-                document.querySelector(`#filename-${globalContextFile.hash}`).innerHTML = updatedName;
-                showSnack(`File renamed to ${updatedName}`);
-            }
-        })
-    });
-});
-
-let deleteButton = document.querySelector('#delete-file');
-deleteButton.addEventListener('click', () => {
-    fetch(`/api/metadata`, {
-        method: "DELETE",
-        body: JSON.stringify(globalContextFile),
-    })
-    .then(() => {
-        showSnack(`Deleted ${globalContextFile.name}`, colorRed);
-        document.getElementById(`file-${globalContextFile.hash}`).remove();
-        updateSpaceUsage(-globalContextFile.size);
-        fileOptionsPanelCloseButton.click();
-    })
-});
-
-let pinButton = document.querySelector('#pin-file');
-pinButton.addEventListener('click', () => {
-    fetch(`/api/pin/${globalContextFile.hash}`, {method: "POST"})
-    .then(() => {
-        showSnack(`File pinned successfully!`);
-        fileOptionsPanelCloseButton.click();
-        let pinnedSection = document.querySelector('.pinned');
-        if (pinnedSection) {
-            pinnedSection.appendChild(newPinnedElem(globalContextFile));
-        }
-    })
-});
-
-let embedButton = document.querySelector('#embed-file');
-embedButton.addEventListener('click', () => {
-    if (globalContextFile.access === "private") {
-        showSnack(`Make file public to embed`, colorOrange);
-    } else if (globalContextFile.size > 4 * 1024 * 1024) {
-        showSnack(`File is too large to embed`, colorRed);
-    } else {
-        let embedUrl = `${window.location.origin}/api/embed/${globalContextFile.hash}`;
-        window.navigator.clipboard.writeText(embedUrl)
-        .then(() => {
-            showSnack(`Copied embed URL to clipboard`);
-        })
-    }
-});
-
-let shareButton = document.querySelector('#share-file');
-shareButton.addEventListener('click', () => {
-    if (globalContextFile.access === "private") {
-        showSnack(`Make file public to share via link`, colorOrange);
-    } else if (globalContextFile.size > 30 * 1024 * 1024) {
-        showSnack(`File is too large to share via link`, colorRed);
-    } else {
-        let downloadUrl = `${window.location.origin}/shared/${globalContextFile.hash}`;
-        window.navigator.clipboard.writeText(downloadUrl)
-        .then(() => {
-            showSnack(`Copied sharing URL to clipboard`);
-        })
-    }
-});
-
-let downloadButton = document.querySelector('#download-file');
-downloadButton.addEventListener('click', () => {
-    fileOptionsPanelCloseButton.click();
-    download(globalContextFile);
-    showSnack(`Downloaded ${globalContextFile.name}`);
-});
-
-let moveButton = document.querySelector('#move-file');
-moveButton.addEventListener('click', () => {
-    allFilesButton.click();
-    fileOptionsPanelCloseButton.click();
-    renderFileMover(globalContextFile);
-});
-
-let deleteFolderButton = document.querySelector('#delete-folder');
-deleteFolderButton.addEventListener('click', () => {
-    let folder = globalContextFile;
-    let body = {
-        "hash": folder.hash,
-    };
-    if (folder.parent) {
-        body["children_path"] = `${folder.parent}/${folder.name}`;
-    } else {
-        body["children_path"] = `${folder.name}`;
-    }
-    fetch(`/api/remove/folder`, {
-        method: "POST",
-        body: JSON.stringify(body),
-    })
-    .then((resp) => {
-        if (resp.status === 409) {
-            showSnack(`Folder is not empty`, colorOrange);
-            folderOptionsPanelCloseButton.click();
-            return;
-        }
-        if (resp.status === 200) {
-            showSnack(`Deleted ${folder.name}`, colorRed);
-            document.getElementById(`file-${folder.hash}`).remove();
-            folderOptionsPanelCloseButton.click();
-        } 
-    })
-});
-
-let pinFolderButton = document.querySelector('#pin-folder');
-pinFolderButton.addEventListener('click', () => {
-    fetch(`/api/pin/${globalContextFile.hash}`, {method: "POST"})
-    .then(() => {
-        showSnack(`File pinned successfully!`);
-        fileOptionsPanelCloseButton.click();
-    })
 });
 
 let searchBar = document.querySelector('#search-bar');

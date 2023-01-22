@@ -471,10 +471,10 @@ body {
     width: 100%;
     height: 60px;
     display: flex;
-    justify-content: flex-start;
     align-items: center;
     padding-left: 20px;
-    padding-right: 50px;
+    padding-right: 10px;
+    justify-content: space-between;
     background-color: #1d1f24;
 }
 .file_menu > .title > p {
@@ -484,6 +484,14 @@ body {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+.file_menu > .title > i {
+    font-size: 14px;
+    color: #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #0561da;
+    padding: 10px;
 }
 .file_menu > .file_menu_option {
     width: 100%;
