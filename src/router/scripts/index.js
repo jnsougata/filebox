@@ -9,6 +9,7 @@ let globalFolderQueue = [];
 let globalConsumption = 0;
 let globalMediaBlob = null;
 let globalContextFile = null;
+let globalContextFolder = null;
 let globalContextOption = null;
 let sidebar = document.querySelector('.sidebar');
 let blurLayer = document.querySelector('.blur-layer');
@@ -16,6 +17,8 @@ let mainSection = document.querySelector('#main');
 let secondarySection = document.querySelector('#secondary');
 let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('.bottom_option');
+let extraRenderingPanel = document.querySelector('.extras');
+let extraPanelState = false;
 
 function getContextOptionElem(option) {
     let options = {
@@ -42,16 +45,24 @@ function switchView(primary = true, secondary = false) {
     if (primary) {
         header.style.display = 'flex';
         mainSection.style.display = 'flex';
+        if (extraPanelState) {
+            extraRenderingPanel.style.display = 'flex';
+        }
     } else {
         header.style.display = 'none';
         mainSection.style.display = 'none';
+        extraRenderingPanel.style.display = 'none';
     }
     if (secondary) {
-        secondarySection.style.display = 'flex';
         header.style.display = 'none';
+        secondarySection.style.display = 'flex';
+        extraRenderingPanel.style.display = 'none';
     } else {
-        secondarySection.style.display = 'none';
         header.style.display = 'flex';
+        secondarySection.style.display = 'none';
+        if (extraPanelState) {
+            extraRenderingPanel.style.display = 'flex';
+        }
     }
 }
 
@@ -364,6 +375,13 @@ downloadButton.addEventListener('click', () => {
     fileOptionsPanelCloseButton.click();
     download(globalContextFile);
     showSnack(`Downloaded ${globalContextFile.name}`);
+});
+
+let moveButton = document.querySelector('#move-file');
+moveButton.addEventListener('click', () => {
+    allFilesButton.click();
+    fileOptionsPanelCloseButton.click();
+    renderFileMover(globalContextFile);
 });
 
 let deleteFolderButton = document.querySelector('#delete-folder');

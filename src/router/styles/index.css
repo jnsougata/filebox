@@ -5,6 +5,13 @@
     font-family: 'Poppins', sans-serif;
 }
 
+:root {
+    --color-blueish: #0561da;
+    --color-blackish: #1a1c20;
+    --color-blackish-light: #2d2f32;
+    --color-blackish-hover: #ffffff0c;
+} 
+
 ::-webkit-scrollbar {
     width: 5px;
     height: 8px;
@@ -23,7 +30,7 @@
 body {
     overflow: hidden;
     height: 100vh;
-    background-color: #1a1c20;
+    background-color: var(--color-blackish);
 }
 
 .container {
@@ -167,7 +174,6 @@ body {
     z-index: 1;
     overflow: hidden;
 }
-
 .content > header {
     width: 100%;
     height: 60px;
@@ -179,14 +185,12 @@ body {
     padding-left: 10px;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
 }
-
 .content > header > i {
     font-size: 20px;
     color: #0561da;
     z-index: 2;
     margin-right: 10px;
 }
-
 .content > header > input[type="text"] {
     width: 100%;
     height: calc(100% - 10px);
@@ -196,8 +200,6 @@ body {
     color: white;
     font-size: 20px;
 }
-
-
 .content > header > button {
     height: calc(100% - 20px);
     background-color: #2d2f32;
@@ -214,10 +216,20 @@ body {
     align-items: center;
     justify-content: center;
 }
-
 .content > header > button > i {
     font-size: 16px;
     margin-right: 5px;
+}
+.content > .extras {
+    width: 100%;
+    height: 60px;
+    display: none;
+    flex-shrink: 0;
+    padding: 10px 20px;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-blackish);
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
 }
 
 @media screen and (max-width: 768px) {
@@ -238,6 +250,10 @@ body {
     }
     .content > header > button {
         font-size: 14px;
+    }
+    .content > .extras {
+        padding: 5px 10px;
+        height: 50px;
     }
 }
 
@@ -449,7 +465,7 @@ body {
     cursor: pointer;
     border-radius: 50%;
     color: #0561da;
-    margin: 9px 20px 0 0;
+    margin: 10px 20px 0 0;
 }
 .file_menu > .title {
     width: 100%;
@@ -793,4 +809,25 @@ body {
     100% {
         transform: rotate(360deg);
     }
+}
+
+.file_mover {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.file_mover > button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    border: none;
+    padding: 5px 10px;
+    background-color: var(--color-blackish-light);
 }

@@ -20,7 +20,7 @@ var drive = d.Drive("filebox")
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/secret", HandleSecret).Methods("GET")
-	r.HandleFunc("/metadata", HandleMetadata).Methods("GET", "POST", "DELETE")
+	r.HandleFunc("/metadata", HandleMetadata).Methods("GET", "POST", "DELETE", "PATCH")
 	r.HandleFunc("/folder", HandleFolder).Methods("POST")
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
 	r.HandleFunc("/shared/chunk/{skip}/{hash}", HandleDownload).Methods("GET")
@@ -90,6 +90,16 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(resp[0].StatusCode)
 		ba, _ := json.Marshal(resp[0].Data)
 		_, _ = w.Write(ba)
+		return
+
+	case "PATCH":
+		w.Header().Set("Content-Type", "application/json")
+		var data map[string]interface{}
+		_ = json.NewDecoder(r.Body).Decode(&data)
+		key := data["hash"].(string)
+		data["key"] = key
+		resp := base.Put(data)
+		w.WriteHeader(resp[0].StatusCode)
 		return
 
 	case "DELETE":

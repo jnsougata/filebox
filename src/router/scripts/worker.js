@@ -19,12 +19,11 @@ function upload(file) {
             "date": new Date().toISOString(),
             "access": "private",
         }
-        if (globalFolderQueue.length > 0) {
-            let folder = globalFolderQueue[globalFolderQueue.length - 1];
-            if (folder.parent) {
-                body.parent = `${folder.parent}/${folder.name}`;
+        if (globalContextFolder) {
+            if (globalContextFolder.parent) {
+                body.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
             } else {
-                body.parent = folder.name;
+                body.parent = globalContextFolder.name;
             }
         }
         showSnack(`Uploading ${file.name}`, colorBlue);
@@ -191,12 +190,11 @@ function createFolder() {
             "hash": randId(),
             "date": new Date().toISOString(),
         }
-        if (globalFolderQueue.length > 0) {
-            let folder = globalFolderQueue[globalFolderQueue.length - 1];
-            if (folder.parent) {
-                body.parent = `${folder.parent}/${folder.name}`;
+        if (globalContextFolder) {
+            if (globalContextFolder.parent) {
+                body.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
             } else {
-                body.parent = folder.name;
+                body.parent = globalContextFolder.name;
             }
         }
         fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
@@ -212,7 +210,7 @@ function createFolder() {
                 } else {
                     allFilesButton.click();
                     document.querySelector('.file_list').prepend(newFileElem(body));
-                }   
+                }
             }
         })
     }

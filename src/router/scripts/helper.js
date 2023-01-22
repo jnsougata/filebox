@@ -81,6 +81,7 @@ function handleMimeIcon(mime) {
 }
 
 function handleFolderClick(folder) {
+    globalContextFolder = folder;
     if (globalFolderQueue.length > 0) {
         let lastFolder = globalFolderQueue[globalFolderQueue.length - 1];
         if (lastFolder.hash !== folder.hash) {
@@ -343,13 +344,14 @@ function buildPrompt() {
     backButton.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
     backButton.addEventListener('click', () => {
         if (globalFolderQueue.length === 0) {
+            globalContextFolder = null;
             return;
         }
         if (globalFolderQueue.length > 1) {
             globalFolderQueue.pop();
-            let parent = globalFolderQueue[globalFolderQueue.length - 1];
-            handleFolderClick(parent);
+            handleFolderClick(globalFolderQueue[globalFolderQueue.length - 1]);
         } else {
+            globalContextFolder = null;
             globalFolderQueue.pop();
             allFilesButton.click();
         }
@@ -567,4 +569,56 @@ function addTextViewer(file) {
         modalContent.innerHTML = '';
         modalContent.appendChild(textView);
     })
+}
+
+function renderFileMover(file) {
+    let fileMover = document.createElement('div');
+    fileMover.className = 'file_mover';
+    let cancelButton = document.createElement('button');
+    cancelButton.innerHTML = 'Cancel';
+    cancelButton.addEventListener('click', () => {
+        extraPanelState = false;
+        extraRenderingPanel.innerHTML = '';
+        extraRenderingPanel.style.display = 'none';
+    });
+    let selectButton = document.createElement('button');
+    selectButton.innerHTML = 'Select';
+    selectButton.style.backgroundColor = 'var(--color-blueish)';
+    selectButton.addEventListener('click', () => {
+        if (!globalContextFolder) {
+            delete file.parent;
+        } else {
+            if (globalContextFolder.parent) {
+                decrementFolderSize(file);
+                file.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
+            } else {
+                file.parent = globalContextFolder.name;
+            }
+        }
+        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
+        .then(() => {
+            extraPanelState = false;
+            extraRenderingPanel.innerHTML = '';
+            extraRenderingPanel.style.display = 'none';
+            showSnack('File Moved Successfully!');
+            globalFileBucket[file.hash] = file;
+            if (globalContextFolder) {
+                let view = document.querySelector('#folder-view');
+                view.prepend(newFileElem(file));
+            } else {
+                allFilesButton.click();
+                let fileList = document.querySelector('.file_list');
+                fileList.append(newFileElem(file));
+            }
+        })
+    });
+    let p = document.createElement('p');
+    p.innerHTML = 'Select Move Destination';
+    fileMover.appendChild(cancelButton);
+    fileMover.appendChild(p);
+    fileMover.appendChild(selectButton);
+    extraRenderingPanel.innerHTML = '';
+    extraRenderingPanel.appendChild(fileMover);
+    extraRenderingPanel.style.display = 'flex';
+    extraPanelState = true;
 }
