@@ -1,6 +1,5 @@
 let fileOptionPanel = document.querySelector('#file-options-panel');
 
-
 async function fetchItemCount(folder) {
     let path;
     if (folder.parent) {
@@ -228,12 +227,15 @@ function handleFileMenuClick(file) {
     deleteButton.innerHTML = `<p>Delete</p><span class="material-symbols-rounded">delete_forever</span>`;
     deleteButton.addEventListener("click", () => {
         if (file.type === 'folder') {
+            let body = {
+                "hash": file.hash,
+            };
             if (file.parent) {
                 body["children_path"] = `${file.parent}/${file.name}`;
             } else {
                 body["children_path"] = `${file.name}`;
             }
-            fetch(`/api/remove/folder`, {method: "POST", body: JSON.stringify({"hash": file.hash})})
+            fetch(`/api/remove/folder`, {method: "POST", body: JSON.stringify(body)})
             .then((resp) => {
                 if (resp.status === 409) {
                     showSnack(`Folder is not empty`, colorOrange);
@@ -616,7 +618,7 @@ function sortRecentFilesByTimeStamp(data) {
 function makeSpinnerElem() {
     let spinner = document.createElement('div');
     spinner.className = 'spinner';
-    spinner.innerHTML = `<div></div><div></div><div></div><div></div>`;
+    spinner.innerHTML = `<p id="loading-amount"></p><div></div><div></div><div></div><div></div>`;
     return spinner;
 }
 
@@ -629,8 +631,29 @@ async function fetchMediaBlob(file) {
     let extension = file.name.split('.').pop();
     let qualifiedName = file.hash + "." + extension;
     let url = `https://drive.deta.sh/v1/${projectId}/filebox/files/download?name=${qualifiedName}`;
-    let resp = await fetch(url, {method: "GET", headers: header})
-    return await resp.blob();
+    const response = await fetch(url, { method: "GET", headers: header });
+    let progress = 0;
+    let loadingLevel = document.querySelector('#loading-amount');
+    const reader = response.body.getReader();
+    const stream = new ReadableStream({
+        start(controller) {
+            return pump();
+            function pump() {
+                return reader.read().then(({ done, value }) => {
+                    if (done) {
+                        controller.close();
+                        return;
+                    }
+                    controller.enqueue(value);
+                    progress += value.length;
+                    loadingLevel.innerHTML = `${Math.round((progress / file.size) * 100)}%`;
+                    return pump();
+                });
+            }
+        }
+    });
+    const streamResp = new Response(stream);
+    return await streamResp.blob();
 }
 
 function addAudioPlayer(file) {

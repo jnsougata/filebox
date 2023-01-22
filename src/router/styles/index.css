@@ -230,6 +230,7 @@ body {
     justify-content: center;
     background-color: var(--color-blackish);
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    z-index: 100;
 }
 
 @media screen and (max-width: 768px) {
@@ -800,6 +801,14 @@ body {
     border-radius: 50%;
     animation: ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
     border-color: #0561da transparent transparent transparent;
+}
+.spinner > p {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #0561da;
+    font-size: 16px;
 }
 .spinner div:nth-child(1) {
     animation-delay: -0.45s;
