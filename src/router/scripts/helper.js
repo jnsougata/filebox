@@ -420,7 +420,13 @@ function newFileElem(file, isTrash = false) {
         if (file.type === 'folder') {
             handleFolderClick(file);
         } else {
+            fileOptionPanel.style.display = 'none';
             modal.style.display = 'flex';
+            let warning = document.createElement('p');
+            warning.innerHTML = "Preview uses progressive loading, so it may take a while to load large files.";
+            warning.className = 'warning';
+            warning.style.color = colorRed;
+            modalContent.appendChild(warning);
             modalContent.appendChild(makeSpinnerElem());
             if (file.mime.startsWith('image')) {
                 addImageViewer(file);

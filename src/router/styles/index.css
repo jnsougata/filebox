@@ -770,6 +770,14 @@ body {
     padding: 40px 20px 20px;
     overflow-y: auto;
 }
+.modal > .modal_content > .warning {
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    position: absolute;
+    text-align: center;
+    font-size: 16px;
+}
 
 .music_player {
     width: 300px;
