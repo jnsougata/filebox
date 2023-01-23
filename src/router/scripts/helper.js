@@ -151,9 +151,6 @@ function handleFileMenuClick(file) {
             method: "POST", 
             body: JSON.stringify({hash: file.hash, access: file.access})
         })
-        .then(() => {
-            globalFileBucket[file.hash] = file;
-        })
     });
     if (file.type !== "folder") {
         title.appendChild(visibility);
@@ -204,7 +201,7 @@ function handleFileMenuClick(file) {
             fetch(`/api/rename`, {method: "POST", body: JSON.stringify({hash: file.hash, name: updatedName})})
             .then((res) => {
                 if (res.status === 200) {
-                    globalFileBucket[file.hash].name = updatedName;
+                    file.name = updatedName;
                     document.querySelector(`#filename-${file.hash}`).innerHTML = updatedName;
                     showSnack(`File renamed to ${updatedName}`);
                 }
@@ -308,7 +305,6 @@ function handleFileMenuClick(file) {
             .then(() => {
                 showSnack(`Moved to trash ${file.name}`, colorRed);
                 document.getElementById(`file-${file.hash}`).remove();
-                //updateSpaceUsage(-file.size);
                 close.click();
             })
         }
@@ -369,8 +365,12 @@ function handleFolderClick(folder) {
     .then(data => {
         let ul = document.createElement('ul');
         ul.id = 'folder-view';
-        data.forEach((file) => {
-            globalFileBucket[file.hash] = file;
+        let folders = data.filter((file) => file.type === 'folder');
+        let files = data.filter((file) => file.type !== 'folder');
+        folders.forEach((folder) => {
+            ul.appendChild(newFileElem(folder));
+        });
+        files.forEach((file) => {
             ul.appendChild(newFileElem(file));
         });
         let fileList = document.createElement('div');
@@ -425,7 +425,7 @@ function newFileElem(file, isTrash = false) {
             let warning = document.createElement('p');
             warning.innerHTML = "Preview uses progressive loading, so it may take a while to load large files.";
             warning.className = 'warning';
-            warning.style.color = colorRed;
+            warning.style.color = colorOrange;
             modalContent.appendChild(warning);
             modalContent.appendChild(makeSpinnerElem());
             if (file.mime.startsWith('image')) {
@@ -584,10 +584,13 @@ function updatePromptFragment(text = '~') {
 }
 
 function updateFileView(contentBlock) {
-    let fileView = document.querySelector('.my_files');
+    let fileView = document.createElement('div');
+    fileView.className = 'my_files';
     fileView.innerHTML = '';
     fileView.appendChild(buildPrompt());
     fileView.appendChild(contentBlock);
+    mainSection.innerHTML = '';
+    mainSection.appendChild(fileView);
 }
 
 function queueElem(file, taskType="upload") {
@@ -649,7 +652,6 @@ function showSnack(text, color=colorGreen) {
 
 function renderCategory(query, isTrash = false) {
     switchView();
-    globalFileBucket = {};
     fetch("/api/query", {
         method: "POST",
         body: JSON.stringify(query),
@@ -662,7 +664,6 @@ function renderCategory(query, isTrash = false) {
         ul.className = 'all_files';
         data.forEach((file) => {
             ul.appendChild(newFileElem(file, isTrash));
-            globalFileBucket[file.hash] = file;
         });
         fileList.appendChild(ul);
         mainSection.innerHTML = '';
@@ -722,8 +723,9 @@ async function fetchMediaBlob(file) {
             }
         }
     });
-    const streamResp = new Response(stream);
-    return await streamResp.blob();
+    const blobResponse = new Response(stream);
+    let blob = await blobResponse.blob();
+    return new Blob([blob], { type: file.mime });
 }
 
 function addAudioPlayer(file) {
@@ -835,7 +837,6 @@ function renderFileMover(file) {
             extraRenderingPanel.innerHTML = '';
             extraRenderingPanel.style.display = 'none';
             showSnack('File Moved Successfully!');
-            globalFileBucket[file.hash] = file;
             if (globalContextFolder) {
                 let view = document.querySelector('#folder-view');
                 view.prepend(newFileElem(file));

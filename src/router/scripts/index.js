@@ -4,7 +4,6 @@ const colorBlue = "#2E83F3";
 const colorOrange = "#FF6700";
 let sidebarState = false;
 let globalSecretKey = null;
-let globalFileBucket = {};
 let globalFolderQueue = [];
 let globalConsumption = 0;
 let globalMediaBlob = null;
@@ -141,7 +140,6 @@ let homeButton = document.querySelector('#home');
 homeButton.addEventListener('click', () => {
     globalContextOption = "home";
     switchView();
-    globalFileBucket = {};
     let pinnedBlock = null;
     let recentBlock = null;
     Promise.all([
@@ -155,9 +153,6 @@ homeButton.addEventListener('click', () => {
             if (data.length > 0) {
                 pinnedBlock = buildPinnedContent(data);
             }
-            data.forEach((file) => {
-                globalFileBucket[file.hash] = file;
-            });
         }),
         fetch("/api/metadata")
         .then(response => response.json())
@@ -168,9 +163,6 @@ homeButton.addEventListener('click', () => {
             if (sortedData.length > 0) {
                 recentBlock = buildRecentContent(sortedData);
             }
-            sortedData.forEach((file) => {
-                globalFileBucket[file.hash] = file;
-            });
         })
     ]).then(() => {
         let homePage = buildHomePage(pinnedBlock, recentBlock);
@@ -184,7 +176,6 @@ allFilesButton.addEventListener('click', () => {
     globalContextOption = "all-files";
     globalContextFolder = null;
     switchView();
-    globalFileBucket = {};
     globalFolderQueue = [];
     fetch("/api/metadata")
     .then(response => response.json())
@@ -193,7 +184,6 @@ allFilesButton.addEventListener('click', () => {
         let folders = [];
         let files = [];
         data.forEach((file) => {
-            globalFileBucket[file.hash] = file;
             if (file.type === 'folder') {
                 folders.push(file);
             } else {
@@ -316,7 +306,6 @@ searchBar.addEventListener('input', () => {
                 ul.className = 'all_files';
                 data.forEach((file) => {
                     ul.appendChild(newFileElem(file));
-                    globalFileBucket[file.hash] = file;
                 });
                 fileList.appendChild(ul);
                 resultsPage.appendChild(fileList);

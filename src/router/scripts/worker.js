@@ -27,7 +27,6 @@ function upload(file) {
             }
         }
         showSnack(`Uploading ${file.name}`, colorBlue);
-        globalFileBucket[hash] = body;
         let content = ev.target.result;
         taskQueueElem.appendChild(queueElem(body));
         let extension = file.name.split('.').pop();
@@ -204,7 +203,6 @@ function createFolder() {
             } else if (resp.status <= 207) {
                 showSnack(`Created folder ${folderName}`, colorGreen);
                 if (body.parent) {
-                    globalFileBucket[body.hash] = body;
                     let view = document.querySelector('#folder-view');
                     view.prepend(newFileElem(body));
                 } else {
