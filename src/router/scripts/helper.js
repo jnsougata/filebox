@@ -57,6 +57,58 @@ function updateSpaceUsage(incr) {
     totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${handleSizeUnit(globalConsumption)}`;
 }
 
+function handleTrashFileMenuClick(file) {
+    fileOptionPanel.innerHTML = "";
+    if (window.innerWidth < 768) {
+        blurLayer.style.display = 'block';
+    }
+    let title = document.createElement("div");
+    title.className = "title";
+    let fileNameElem = document.createElement("p");
+    fileNameElem.innerHTML = file.name;
+    title.appendChild(fileNameElem);
+    let close = document.createElement("i");
+    close.className = `fa-solid fa-chevron-down`;
+    close.addEventListener("click", () => {
+        fileOptionPanel.style.display = 'none';
+        blurLayer.style.display = 'none';
+    });
+    title.appendChild(close);
+    fileOptionPanel.appendChild(title);
+    let restore = document.createElement("div");
+    restore.className = "file_menu_option";
+    restore.innerHTML = `<p>Restore to Root</p><span class="material-symbols-rounded">replay</span>`;
+    restore.addEventListener("click", () => {
+        if (file.parent) {
+            delete file.deleted;
+            delete file.parent;
+        } else {
+            delete file.deleted;
+        }
+        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
+        .then(() => {
+            showSnack(`Restored ${file.name}`, colorGreen);
+            document.getElementById(`file-${file.hash}`).remove();
+            close.click();
+        })
+    });
+    let deleteButton = document.createElement("div");
+    deleteButton.className = "file_menu_option";
+    deleteButton.innerHTML = `<p>Delete Permanently</p><span class="material-symbols-rounded">delete_forever</span>`;
+    deleteButton.addEventListener("click", () => {
+        fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+        .then(() => {
+            showSnack(`Permanently deleted ${file.name}`, colorRed);
+            document.getElementById(`file-${file.hash}`).remove();
+            updateSpaceUsage(-file.size);
+            close.click();
+        })
+    });
+    fileOptionPanel.appendChild(restore);
+    fileOptionPanel.appendChild(deleteButton);
+    fileOptionPanel.style.display = 'flex';
+}
+
 function handleFileMenuClick(file) {
     fileOptionPanel.innerHTML = "";
     if (window.innerWidth < 768) {
@@ -222,14 +274,16 @@ function handleFileMenuClick(file) {
         fileOptionPanel.appendChild(embed);
         fileOptionPanel.appendChild(move);
     }
-    let deleteButton = document.createElement("div");
-    deleteButton.className = "file_menu_option";
-    deleteButton.innerHTML = `<p>Delete</p><span class="material-symbols-rounded">delete_forever</span>`;
-    deleteButton.addEventListener("click", () => {
+    let trashButton = document.createElement("div");
+    trashButton.className = "file_menu_option";
+    if (file.type === 'folder') {
+        trashButton.innerHTML = `<p>Delete</p><span class="material-symbols-rounded">delete_forever</span>`;
+    } else {
+        trashButton.innerHTML = `<p>Trash</p><span class="material-symbols-rounded">delete_forever</span>`;
+    }
+    trashButton.addEventListener("click", () => {
         if (file.type === 'folder') {
-            let body = {
-                "hash": file.hash,
-            };
+            let body = {"hash": file.hash};
             if (file.parent) {
                 body["children_path"] = `${file.parent}/${file.name}`;
             } else {
@@ -243,22 +297,23 @@ function handleFileMenuClick(file) {
                     return;
                 }
                 if (resp.status === 200) {
-                    showSnack(`Deleted ${file.name}`, colorRed);
+                    showSnack(`Permanently Deleted ${file.name}`, colorRed);
                     document.getElementById(`file-${file.hash}`).remove();
                     close.click();
                 } 
             })
         } else {
-            fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+            file.deleted = true;
+            fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
             .then(() => {
-                showSnack(`Deleted ${file.name}`, colorRed);
+                showSnack(`Moved to trash ${file.name}`, colorRed);
                 document.getElementById(`file-${file.hash}`).remove();
-                updateSpaceUsage(-file.size);
+                //updateSpaceUsage(-file.size);
                 close.click();
             })
         }
     });
-    fileOptionPanel.appendChild(deleteButton);
+    fileOptionPanel.appendChild(trashButton);
     fileOptionPanel.style.display = 'flex';
 }
 
@@ -326,7 +381,7 @@ function handleFolderClick(folder) {
     })
 }
 
-function newFileElem(file) {
+function newFileElem(file, isTrash = false) {
     let li = document.createElement('li');
     li.id = `file-${file.hash}`
     let fileIcon = document.createElement('i');
@@ -354,7 +409,11 @@ function newFileElem(file) {
     menuOptionSpan.className = 'fa-solid fa-ellipsis';
     menuOptionSpan.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        handleFileMenuClick(file);
+        if (isTrash) {
+            handleTrashFileMenuClick(file);
+        } else {
+            handleFileMenuClick(file);
+        }
     });
     li.appendChild(menuOptionSpan);
     li.addEventListener('click', () => {
@@ -582,7 +641,7 @@ function showSnack(text, color=colorGreen) {
     }, 3000);
 }
 
-function renderCategory(query) {
+function renderCategory(query, isTrash = false) {
     switchView();
     globalFileBucket = {};
     fetch("/api/query", {
@@ -591,12 +650,17 @@ function renderCategory(query) {
     })
     .then(response => response.json())
     .then(data => {
-        let items = buildAllFilesList(data);
-        mainSection.innerHTML = '';
-        mainSection.appendChild(items);
+        let fileList = document.createElement('div');
+        fileList.className = 'file_list';
+        let ul = document.createElement('ul');
+        ul.className = 'all_files';
         data.forEach((file) => {
+            ul.appendChild(newFileElem(file, isTrash));
             globalFileBucket[file.hash] = file;
         });
+        fileList.appendChild(ul);
+        mainSection.innerHTML = '';
+        mainSection.appendChild(fileList);
     })
 }
 

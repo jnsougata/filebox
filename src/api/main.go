@@ -108,8 +108,14 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 		_ = json.Unmarshal(metadata, &file)
 		hash := file["hash"].(string)
 		_ = base.Delete(hash)
-		extension := strings.Split(file["name"].(string), ".")[1]
-		_ = drive.Delete(fmt.Sprintf("%s.%s", hash, extension))
+		fragment := strings.Split(file["name"].(string), ".")
+		var driveFilename string
+		if len(fragment) > 1 {
+			driveFilename = fmt.Sprintf("%s.%s", hash, fragment[len(fragment)-1])
+		} else {
+			driveFilename = hash
+		}
+		_ = drive.Delete(driveFilename)
 		return
 
 	default:
@@ -207,6 +213,7 @@ func HandleFolderDelete(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&body)
 	q := deta.Query()
 	q.Equals(map[string]interface{}{"parent": body["children_path"].(string)})
+	q.NotEquals(map[string]interface{}{"deleted": true})
 	children := base.Fetch(q, "", 0).Data["items"].([]interface{})
 	if len(children) > 0 {
 		w.WriteHeader(http.StatusConflict)
@@ -269,6 +276,7 @@ func HandleItemCount(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&body)
 	q := deta.Query()
 	q.Equals(map[string]interface{}{"parent": body["children_path"].(string)})
+	q.NotEquals(map[string]interface{}{"deleted": true})
 	children := base.Fetch(q, "", 0).Data["items"].([]interface{})
 	ba, _ := json.Marshal(map[string]interface{}{"count": len(children)})
 	_, _ = w.Write(ba)

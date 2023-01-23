@@ -20,6 +20,14 @@ let totalSizeWidget = document.querySelector('.bottom_option');
 let extraRenderingPanel = document.querySelector('.extras');
 let extraPanelState = false;
 
+function filterNonDeletedFiles(files) {
+    return files.filter((file) => {
+        if (file.deleted !== true) {
+            return true;
+        }
+    });
+}
+
 function getContextOptionElem(option) {
     let options = {
         "home" : homeButton,
@@ -143,6 +151,7 @@ homeButton.addEventListener('click', () => {
         })
         .then(response => response.json())
         .then(data => {
+            data = filterNonDeletedFiles(data);
             if (data.length > 0) {
                 pinnedBlock = buildPinnedContent(data);
             }
@@ -153,6 +162,7 @@ homeButton.addEventListener('click', () => {
         fetch("/api/metadata")
         .then(response => response.json())
         .then(data => {
+            data = filterNonDeletedFiles(data);
             let sortedData = sortRecentFilesByTimeStamp(data);
             sortedData = sortedData.slice(0, 9);
             if (sortedData.length > 0) {
@@ -172,12 +182,14 @@ homeButton.addEventListener('click', () => {
 let allFilesButton = document.querySelector('#my-files');
 allFilesButton.addEventListener('click', () => {
     globalContextOption = "all-files";
+    globalContextFolder = null;
     switchView();
     globalFileBucket = {};
     globalFolderQueue = [];
     fetch("/api/metadata")
     .then(response => response.json())
     .then(data => {
+        data = filterNonDeletedFiles(data);
         let folders = [];
         let files = [];
         data.forEach((file) => {
@@ -262,6 +274,15 @@ otherButton.addEventListener('click', () => {
     }
 });
 
+let trashButton = document.querySelector('#trash');
+trashButton.addEventListener('click', () => {
+    globalContextOption = "trash";
+    renderCategory({"deleted": true}, true);
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
+});
+
 let searchBar = document.querySelector('#search-bar');
 let inputTimer = null;
 searchBar.addEventListener('input', () => {
@@ -283,16 +304,22 @@ searchBar.addEventListener('input', () => {
             data = data.filter((file) => {
                 return !(file.type === 'folder');
             });
-            data.forEach((file) => {
-                globalFileBucket[file.hash] = file;
-            });
             let resultsPage = document.createElement('div');
             resultsPage.className = 'my_files';
             if (data.length > 0) {
                 let p = document.createElement('p');
                 p.innerHTML = `Search results for '${query}'`;
                 resultsPage.appendChild(p);
-                resultsPage.appendChild(buildAllFilesList(data));
+                let fileList = document.createElement('div');
+                fileList.className = 'file_list';
+                let ul = document.createElement('ul');
+                ul.className = 'all_files';
+                data.forEach((file) => {
+                    ul.appendChild(newFileElem(file));
+                    globalFileBucket[file.hash] = file;
+                });
+                fileList.appendChild(ul);
+                resultsPage.appendChild(fileList);
                 mainSection.innerHTML = '';
                 mainSection.appendChild(resultsPage);
                 switchView();
