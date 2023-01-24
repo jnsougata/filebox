@@ -10,6 +10,7 @@ let globalMediaBlob = null;
 let globalContextFile = null;
 let globalContextFolder = null;
 let globalContextOption = null;
+let globalTrashFiles = null;
 let sidebar = document.querySelector('.sidebar');
 let blurLayer = document.querySelector('.blur-layer');
 let mainSection = document.querySelector('#main');
@@ -53,6 +54,8 @@ function switchView(primary = true, secondary = false) {
         mainSection.style.display = 'flex';
         if (extraPanelState) {
             extraRenderingPanel.style.display = 'flex';
+        } else {
+            extraRenderingPanel.style.display = 'none';
         }
     } else {
         header.style.display = 'none';
@@ -68,6 +71,8 @@ function switchView(primary = true, secondary = false) {
         secondarySection.style.display = 'none';
         if (extraPanelState) {
             extraRenderingPanel.style.display = 'flex';
+        } else {
+            extraRenderingPanel.style.display = 'none';
         }
     }
 }
@@ -266,11 +271,57 @@ otherButton.addEventListener('click', () => {
 
 let trashButton = document.querySelector('#trash');
 trashButton.addEventListener('click', () => {
+    switchView();
     globalContextOption = "trash";
-    renderCategory({"deleted": true}, true);
+    fetch("/api/query", {method: "POST", body: JSON.stringify({"deleted": true})})
+    .then(response => response.json())
+    .then(data => {
+        let fileList = document.createElement('div');
+        fileList.className = 'file_list';
+        let ul = document.createElement('ul');
+        ul.className = 'all_files';
+        globalTrashFiles = data;
+        data.forEach((file) => {
+            ul.appendChild(newFileElem(file, true));
+        });
+        fileList.appendChild(ul);
+        let trashOptios = document.createElement('div');
+        trashOptios.className = ('trash_options');
+        let p = document.createElement('p');
+        p.innerHTML = 'Empty trash?';
+        p.style.color = 'white';
+        p.style.fontSize = '14px';
+        trashOptios.appendChild(p);
+        let emptyTrash = document.createElement('button');
+        emptyTrash.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i>';
+        if (data.length === 0) {
+            extraRenderingPanel.style.display = 'none';
+            showSnack("There's nothing in the trash!", colorOrange);
+        }
+        emptyTrash.addEventListener('click', () => {
+            if (globalTrashFiles.length === 0) {
+                extraRenderingPanel.style.display = 'none';
+            }
+            fetch('/api/bulk', {method: 'DELETE', body: JSON.stringify(globalTrashFiles)})
+            .then(() => {
+                showSnack('Trash Emptied Successfully!');
+                fileList.innerHTML = '';
+                extraRenderingPanel.style.display = 'none';
+            })
+        });
+        mainSection.innerHTML = '';
+        if (data.length > 0) {
+            trashOptios.appendChild(emptyTrash);
+            extraRenderingPanel.innerHTML = '';
+            extraRenderingPanel.appendChild(trashOptios);
+            extraRenderingPanel.style.display = 'flex';
+            mainSection.appendChild(fileList);
+            extraPanelState = false;
+        }
+    });
     if (window.innerWidth < 768) {
         sidebarEventState(false);
-    }
+    }    
 });
 
 let searchBar = document.querySelector('#search-bar');

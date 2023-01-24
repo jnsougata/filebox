@@ -90,6 +90,10 @@ function handleTrashFileMenuClick(file) {
             showSnack(`Restored ${file.name}`, colorGreen);
             document.getElementById(`file-${file.hash}`).remove();
             close.click();
+            globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
+            if (globalTrashFiles.length === 0) {
+                extraRenderingPanel.style.display = 'none';
+            }
         })
     });
     let deleteButton = document.createElement("div");
@@ -102,6 +106,10 @@ function handleTrashFileMenuClick(file) {
             document.getElementById(`file-${file.hash}`).remove();
             updateSpaceUsage(-file.size);
             close.click();
+            globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
+            if (globalTrashFiles.length === 0) {
+                extraRenderingPanel.style.display = 'none';
+            }
         })
     });
     fileOptionPanel.appendChild(restore);
@@ -650,12 +658,9 @@ function showSnack(text, color=colorGreen) {
     }, 3000);
 }
 
-function renderCategory(query, isTrash = false) {
+function renderCategory(query) {
     switchView();
-    fetch("/api/query", {
-        method: "POST",
-        body: JSON.stringify(query),
-    })
+    fetch("/api/query", {method: "POST", body: JSON.stringify(query)})
     .then(response => response.json())
     .then(data => {
         let fileList = document.createElement('div');
@@ -663,12 +668,12 @@ function renderCategory(query, isTrash = false) {
         let ul = document.createElement('ul');
         ul.className = 'all_files';
         data.forEach((file) => {
-            ul.appendChild(newFileElem(file, isTrash));
+            ul.appendChild(newFileElem(file));
         });
         fileList.appendChild(ul);
         mainSection.innerHTML = '';
         mainSection.appendChild(fileList);
-    })
+    });
 }
 
 function dateStringToTimestamp(dateString) {

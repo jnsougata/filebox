@@ -32,6 +32,7 @@ func main() {
 	r.HandleFunc("/pin/{hash}", HandlePin).Methods("POST", "DELETE")
 	r.HandleFunc("/file/access", HandleFileAccess).Methods("POST")
 	r.HandleFunc("/items/count", HandleItemCount).Methods("POST")
+	r.HandleFunc("/bulk", HandleBulkFileOps).Methods("POST", "DELETE", "PATCH")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -280,4 +281,33 @@ func HandleItemCount(w http.ResponseWriter, r *http.Request) {
 	children := base.Fetch(q, "", 0).Data["items"].([]interface{})
 	ba, _ := json.Marshal(map[string]interface{}{"count": len(children)})
 	_, _ = w.Write(ba)
+}
+
+func fileToDriveSavedName(file map[string]interface{}) string {
+	hash := file["hash"].(string)
+	fragment := strings.Split(file["name"].(string), ".")
+	var driveFilename string
+	if len(fragment) > 1 {
+		driveFilename = fmt.Sprintf("%s.%s", hash, fragment[len(fragment)-1])
+	} else {
+		driveFilename = hash
+	}
+	return driveFilename
+}
+
+func HandleBulkFileOps(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "DELETE":
+		var body []map[string]interface{}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		var hashes []string
+		var driveNames []string
+		for _, item := range body {
+			hashes = append(hashes, item["hash"].(string))
+			driveNames = append(driveNames, fileToDriveSavedName(item))
+		}
+		base.Delete(hashes...)
+		drive.Delete(driveNames...)
+		w.WriteHeader(http.StatusOK)
+	}
 }
