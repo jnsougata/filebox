@@ -384,7 +384,13 @@ function handleFolderClick(folder) {
         let fileList = document.createElement('div');
         fileList.className = 'file_list';
         fileList.appendChild(ul);
-        updateFileView(fileList);
+        let fileView = document.createElement('div');
+        fileView.className = 'my_files';
+        fileView.innerHTML = '';
+        fileView.appendChild(buildPrompt());
+        fileView.appendChild(fileList);
+        mainSection.innerHTML = '';
+        mainSection.appendChild(fileView);
         updatePromptFragment(`~${fragment}`);
     })
 }
@@ -399,19 +405,121 @@ function newFileElem(file, isTrash = false) {
         if (file.type === 'folder') {
             return ;
         }
-        if (globalMultiSelectedFiles.length === 25) {
+        if (extraRenderingPanel.style.display === 'none') {
+            let multiSelecOptions = document.createElement('div');
+            multiSelecOptions.className = 'multi_select_options';
+            let moveButton = document.createElement('button');
+            moveButton.innerHTML = 'Move';
+            moveButton.addEventListener("click", () => {
+                globalMultiSelectBucketUpdate = false;
+                extraPanelState = true;
+                allFilesButton.click();
+                let fileMover = document.createElement('div');
+                fileMover.className = 'file_mover';
+                let cancelButton = document.createElement('button');
+                cancelButton.innerHTML = 'Cancel';
+                cancelButton.addEventListener('click', () => {
+                    globalMultiSelectBucket = [];
+                    extraPanelState = false;
+                    extraRenderingPanel.innerHTML = '';
+                    extraRenderingPanel.style.display = 'none';
+                });
+                let selectButton = document.createElement('button');
+                selectButton.innerHTML = 'Select';
+                selectButton.style.backgroundColor = 'var(--color-blueish)';
+                selectButton.addEventListener('click', () => {
+                    if (!globalContextFolder) {
+                        globalMultiSelectBucket.forEach((file) => {
+                            delete file.parent;
+                        });
+                    } else {
+                        globalMultiSelectBucket.forEach((file) => {
+                            if (globalContextFolder.parent) {
+                                file.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
+                            } else {
+                                file.parent = globalContextFolder.name;
+                            }
+                        });
+                    }
+                    fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
+                    .then(() => {
+                        extraPanelState = false;
+                        globalMultiSelectBucket = [];
+                        globalMultiSelectBucketUpdate = true;
+                        extraRenderingPanel.innerHTML = '';
+                        extraRenderingPanel.style.display = 'none';
+                        showSnack('Files Moved Successfully!');
+                        if (globalContextFolder) {
+                            handleFolderClick(globalContextFolder);
+                        } else {
+                            allFilesButton.click();
+                        }
+                    })
+                });
+                let p = document.createElement('p');
+                p.innerHTML = 'Select Move Destination';
+                fileMover.appendChild(cancelButton);
+                fileMover.appendChild(p);
+                fileMover.appendChild(selectButton);
+                extraRenderingPanel.innerHTML = '';
+                extraRenderingPanel.appendChild(fileMover);
+            });
+            let privateButton = document.createElement('button');
+            privateButton.innerHTML = 'Private';
+            privateButton.addEventListener("click", () => {
+                globalMultiSelectBucket.forEach((file) => {
+                    file.access = 'private';
+                });
+                fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(file)})
+                .then(() => {
+                    showSnack(`Made selected files private`, colorOrange);
+                })
+            });
+            let publicButton = document.createElement('button');
+            publicButton.innerHTML = 'Public';
+            publicButton.addEventListener("click", () => {
+                globalMultiSelectBucket.forEach((file) => {
+                    file.access = 'public';
+                });
+                fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(file)})
+                .then(() => {
+                    showSnack(`Made selected files public`, colorGreen);
+                })
+            });
+            let deleteButton = document.createElement('button');
+            deleteButton.innerHTML = 'Delete';
+            deleteButton.style.backgroundColor = colorRed;
+            deleteButton.addEventListener("click", () => {
+                fetch(`/api/bulk`, {method: "DELETE", body: JSON.stringify(file)})
+                .then(() => {
+                    showSnack(`Deleted selected files`, colorOrange);
+                    extraRenderingPanel.style.display = 'none';
+                })
+            });
+            multiSelecOptions.appendChild(moveButton);
+            multiSelecOptions.appendChild(privateButton);
+            multiSelecOptions.appendChild(publicButton);
+            multiSelecOptions.appendChild(deleteButton);
+            extraRenderingPanel.innerHTML = '';
+            extraRenderingPanel.appendChild(multiSelecOptions);
+            extraRenderingPanel.style.display = 'flex';
+        }
+        if (globalMultiSelectBucket.length === 25) {
             showSnack(`Can't select more than 25 items`, colorOrange);
             return;
         } else {
             li.style.backgroundColor = "rgba(255, 255, 255, 0.055)";
             fileIcon.className = "fa-solid fa-check";
-            let index = globalMultiSelectedFiles.findIndex((f) => f.hash === file.hash);
+            let index = globalMultiSelectBucket.findIndex((f) => f.hash === file.hash);
             if (index === -1) {
-                globalMultiSelectedFiles.push(file);
+                globalMultiSelectBucket.push(file);
             } else {
-                globalMultiSelectedFiles.splice(index, 1);
+                globalMultiSelectBucket.splice(index, 1);
                 li.style.backgroundColor = "transparent";
                 fileIcon.className = handleMimeIcon(file.mime);
+            }
+            if (globalMultiSelectBucket.length === 0) {
+                extraRenderingPanel.style.display = 'none';
             }
         }
     });
@@ -608,18 +716,7 @@ function buildAllFilesPage(allFilesBlock) {
 }
 
 function updatePromptFragment(text = '~') {
-    let fragment = document.querySelector('.fragment');
-    fragment.innerHTML = text;
-}
-
-function updateFileView(contentBlock) {
-    let fileView = document.createElement('div');
-    fileView.className = 'my_files';
-    fileView.innerHTML = '';
-    fileView.appendChild(buildPrompt());
-    fileView.appendChild(contentBlock);
-    mainSection.innerHTML = '';
-    mainSection.appendChild(fileView);
+    document.querySelector('.fragment').innerHTML = text;
 }
 
 function queueElem(file, taskType="upload") {
@@ -851,7 +948,6 @@ function renderFileMover(file) {
             delete file.parent;
         } else {
             if (globalContextFolder.parent) {
-                decrementFolderSize(file);
                 file.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
             } else {
                 file.parent = globalContextFolder.name;
@@ -865,11 +961,9 @@ function renderFileMover(file) {
             showSnack('File Moved Successfully!');
             if (globalContextFolder) {
                 let view = document.querySelector('#folder-view');
-                view.prepend(newFileElem(file));
+                view.appendChild(newFileElem(file));
             } else {
                 allFilesButton.click();
-                let fileList = document.querySelector('.file_list');
-                fileList.append(newFileElem(file));
             }
         })
     });

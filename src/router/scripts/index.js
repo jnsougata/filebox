@@ -11,7 +11,9 @@ let globalContextFile = null;
 let globalContextFolder = null;
 let globalContextOption = null;
 let globalTrashFiles = null;
-let globalMultiSelectedFiles = [];
+let extraPanelState = false;
+let globalMultiSelectBucket = [];
+let globalMultiSelectBucketUpdate = true;
 let sidebar = document.querySelector('.sidebar');
 let blurLayer = document.querySelector('.blur-layer');
 let mainSection = document.querySelector('#main');
@@ -19,7 +21,6 @@ let secondarySection = document.querySelector('#secondary');
 let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('.bottom_option');
 let extraRenderingPanel = document.querySelector('.extras');
-let extraPanelState = false;
 
 function filterNonDeletedFiles(files) {
     return files.filter((file) => {
@@ -40,17 +41,18 @@ function getContextOptionElem(option) {
         "docs" : docsButton,
         "queue" : queueButton,
         "others" : otherButton,
+        "trash": trashButton,
     }
     return options[option];
 }
 
-function switchView(primary = true, secondary = false) {
+function switchView(main = true) {
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
     fileOptionPanel.style.display = 'none';
     let header = document.querySelector('header');
-    if (primary) {
+    if (main) {
         header.style.display = 'flex';
         mainSection.style.display = 'flex';
         if (extraPanelState) {
@@ -58,23 +60,14 @@ function switchView(primary = true, secondary = false) {
         } else {
             extraRenderingPanel.style.display = 'none';
         }
+        if (globalMultiSelectBucketUpdate) {
+            globalMultiSelectBucket = [];
+            globalMultiSelectBucketUpdate = false;
+        }
     } else {
         header.style.display = 'none';
         mainSection.style.display = 'none';
         extraRenderingPanel.style.display = 'none';
-    }
-    if (secondary) {
-        header.style.display = 'none';
-        secondarySection.style.display = 'flex';
-        extraRenderingPanel.style.display = 'none';
-    } else {
-        header.style.display = 'flex';
-        secondarySection.style.display = 'none';
-        if (extraPanelState) {
-            extraRenderingPanel.style.display = 'flex';
-        } else {
-            extraRenderingPanel.style.display = 'none';
-        }
     }
 }
 
@@ -210,7 +203,7 @@ allFilesButton.addEventListener('click', () => {
 let queueButton = document.querySelector('#queue');
 queueButton.addEventListener('click', () => {
     globalContextOption = "queue";
-    switchView(false, true);
+    switchView(false);
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }

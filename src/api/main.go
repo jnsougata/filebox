@@ -32,7 +32,7 @@ func main() {
 	r.HandleFunc("/pin/{hash}", HandlePin).Methods("POST", "DELETE")
 	r.HandleFunc("/file/access", HandleFileAccess).Methods("POST")
 	r.HandleFunc("/items/count", HandleItemCount).Methods("POST")
-	r.HandleFunc("/bulk", HandleBulkFileOps).Methods("POST", "DELETE", "PATCH")
+	r.HandleFunc("/bulk", HandleBulkFileOps).Methods("DELETE", "PATCH")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -308,6 +308,15 @@ func HandleBulkFileOps(w http.ResponseWriter, r *http.Request) {
 		}
 		base.Delete(hashes...)
 		drive.Delete(driveNames...)
+		w.WriteHeader(http.StatusOK)
+		return
+	case "PATCH":
+		var body []map[string]interface{}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		for _, item := range body {
+			item["key"] = item["hash"].(string)
+		}
+		base.Put(body...)
 		w.WriteHeader(http.StatusOK)
 	}
 }
