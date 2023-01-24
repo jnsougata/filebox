@@ -28,11 +28,11 @@ function upload(file) {
         }
         showSnack(`Uploading ${file.name}`, colorBlue);
         let content = ev.target.result;
-        taskQueueElem.appendChild(queueElem(body));
+        prependQueueElem(body, true)
         let extension = file.name.split('.').pop();
         let qualifiedName = `${hash}.${extension}`;
         let bar = document.getElementById(`bar-${hash}`);
-        let recentFilesSection = document.querySelector(".recent_files");
+        let percentageElem = document.getElementById(`percentage-${hash}`);
         if (file.size < 10 * 1024 * 1024) {
             fetch(`${ROOT}/${projectId}/filebox/files?name=${qualifiedName}`, {
                 method: 'POST',
@@ -43,10 +43,13 @@ function upload(file) {
                 fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
                 .then(() => {
                     bar.style.width = "100%";
-                    updateToCompleted(hash)
+                    percentageElem.innerHTML = "100%";
                     showSnack(`Uploaded ${file.name}`);
-                    if (recentFilesSection) {
-                        recentFilesSection.prepend(newFileElem(body))
+                    if (globalContextFolder) {
+                        handleFolderClick(globalContextFolder)
+                    } else {
+                        if (globalContextOption === "all-files" || globalContextOption === "home")
+                        getContextOptionElem(globalContextOption).click();
                     }
                 })
             })
@@ -68,7 +71,6 @@ function upload(file) {
                 let name = data.name;
                 let allOk = true;
                 let promises = [];
-                bar.style.width = "1%";
                 let progressIndex = 0;
                 chunks.forEach((chunk, index) => {
                     promises.push(
@@ -81,7 +83,9 @@ function upload(file) {
                                 allOk = false;
                             }
                             progressIndex ++;
-                            bar.style.width = `${Math.round((progressIndex / finalIndex) * 100)}%`;
+                            let percentage = Math.round((progressIndex / finalIndex) * 100);
+                            bar.style.width = `${percentage}%`;
+                            percentageElem.innerHTML = `${percentage}%`;
                         })
                     )
                 })
@@ -106,11 +110,14 @@ function upload(file) {
                                 fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
                                 .then(() => {
                                     bar.style.width = "100%";
-                                    updateToCompleted(hash)
+                                    percentageElem.innerHTML = "100%";
                                     updateSpaceUsage(file.size);
                                     showSnack(`Uploaded ${file.name} successfully!`, colorBlue);
-                                    if (recentFilesSection) {
-                                        recentFilesSection.prepend(newFileElem(body))
+                                    if (globalContextFolder) {
+                                        handleFolderClick(globalContextFolder)
+                                    } else {
+                                        if (globalContextOption === "all-files" || globalContextOption === "home")
+                                        getContextOptionElem(globalContextOption).click();
                                     }
                                 })
                             })
@@ -121,7 +128,6 @@ function upload(file) {
                                 method: 'DELETE', 
                                 headers: header
                             })
-                            .then(() => {})
                         }
                     })
                 })
@@ -133,13 +139,14 @@ function upload(file) {
 
 function download(file) {
     showSnack(`Downloading ${file.name}`);
-    taskQueueElem.appendChild(queueElem(file, "download"));
+    prependQueueElem(file, false);
     let header = {"X-Api-Key": globalSecretKey}
     let projectId = globalSecretKey.split("_")[0];
     const ROOT = 'https://drive.deta.sh/v1';
     let extension = file.name.split('.').pop();
     let qualifiedName = file.hash + "." + extension;
     let bar = document.getElementById(`bar-${file.hash}`);
+    let percentageElem = document.getElementById(`percentage-${file.hash}`);
     fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
         method: 'GET',
         headers: header
@@ -158,7 +165,9 @@ function download(file) {
                         }
                         controller.enqueue(value);
                         progress += value.length;
-                        bar.style.width = `${Math.round((progress / file.size) * 100)}%`;
+                        let percentage = Math.round((progress / file.size) * 100);
+                        bar.style.width = `${percentage}%`;
+                        percentageElem.innerHTML = `${percentage}%`;
                         return pump();
                     });
                 }
@@ -173,7 +182,7 @@ function download(file) {
         a.href = url;
         a.download = file.name;
         bar.style.width = "100%";
-        updateToCompleted(file.hash)
+        percentageElem.innerHTML = "100%";
         showSnack(`Downloaded ${file.name}`);
         a.click();
     })
@@ -203,11 +212,9 @@ function createFolder() {
             } else if (resp.status <= 207) {
                 showSnack(`Created folder ${folderName}`, colorGreen);
                 if (body.parent) {
-                    let view = document.querySelector('#folder-view');
-                    view.prepend(newFileElem(body));
+                    handleFolderClick(globalContextFolder);
                 } else {
                     allFilesButton.click();
-                    document.querySelector('.file_list').prepend(newFileElem(body));
                 }
             }
         })

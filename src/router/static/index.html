@@ -15,6 +15,15 @@
     </head>
     <body>
         <div class="snackbar"></div>
+        <div class="queue">
+            <div class="queue_close">
+                <i class="fa-solid fa-times"></i>
+            </div>
+            <div class="queue_content">
+                <p>Upload or Download Tasks</p>
+                <ul id="queue-task-list"></ul>
+            </div>
+        </div>
         <div class="modal">
             <div class="modal_close">
                 <i class="fa-solid fa-times"></i>
@@ -80,17 +89,17 @@
                     </div>
                     Others
                 </div>
-                <div class="sidebar_option" id="queue">
-                    <div class="icon">
-                        <i class="fa-solid fa-clock"></i>
-                    </div>
-                    Queue
-                </div>
                 <div class="sidebar_option" id="trash">
                     <div class="icon">
                         <i class="fa-solid fa-trash"></i>
                     </div>
                     Trash
+                </div>
+                <div class="sidebar_option" id="queue">
+                    <div class="icon">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    Queue
                 </div>
                 <div class="bottom_option">
                 </div>
@@ -111,11 +120,6 @@
                 </header>
                 <div class="extras"></div>
                 <section id="main"></section>
-                <section id="secondary">
-                    <div class="queue">
-                        <p><i class="fa-solid fa-clock"></i> Tasks</p>
-                    </div>
-                </section>
             </div>
         </div>
         <script src="../scripts/index.js"></script>

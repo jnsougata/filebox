@@ -17,7 +17,6 @@ let globalMultiSelectBucketUpdate = true;
 let sidebar = document.querySelector('.sidebar');
 let blurLayer = document.querySelector('.blur-layer');
 let mainSection = document.querySelector('#main');
-let secondarySection = document.querySelector('#secondary');
 let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('.bottom_option');
 let extraRenderingPanel = document.querySelector('.extras');
@@ -46,34 +45,6 @@ function getContextOptionElem(option) {
     return options[option];
 }
 
-function switchView(main = true) {
-    if (window.innerWidth < 768) {
-        sidebarEventState(false);
-    }
-    globalContextFolder = null;
-    fileOptionPanel.style.display = 'none';
-    let header = document.querySelector('header');
-    if (main) {
-        header.style.display = 'flex';
-        mainSection.style.display = 'flex';
-        secondarySection.style.display = 'none';
-        if (extraPanelState) {
-            extraRenderingPanel.style.display = 'flex';
-        } else {
-            extraRenderingPanel.style.display = 'none';
-        }
-        if (globalMultiSelectBucketUpdate) {
-            globalMultiSelectBucket = [];
-            globalMultiSelectBucketUpdate = false;
-        }
-    } else {
-        header.style.display = 'none';
-        mainSection.style.display = 'none';
-        extraRenderingPanel.style.display = 'none';
-        secondarySection.style.display = 'flex';
-    }
-}
-
 function sidebarEventState(enable = true) {
     if (!enable) {
         blurLayer.style.display = 'none';
@@ -87,6 +58,23 @@ function sidebarEventState(enable = true) {
         sidebar.style.display = 'flex';
         floatingMenuButton.innerHTML = `<i class="fa-solid fa-times"></i>`;
         sidebarState = true;
+    }
+}
+
+function sidebarOptionSwitch() {
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
+    globalContextFolder = null;
+    fileOptionPanel.style.display = 'none';
+    if (extraPanelState) {
+        extraRenderingPanel.style.display = 'flex';
+    } else {
+        extraRenderingPanel.style.display = 'none';
+    }
+    if (globalMultiSelectBucketUpdate) {
+        globalMultiSelectBucket = [];
+        globalMultiSelectBucketUpdate = false;
     }
 }
 
@@ -113,6 +101,7 @@ uploadButton.addEventListener('click', () => {
     fileInput.click();
 });
 fileInput.addEventListener('change', () => {
+    queueButton.click();
     for (let i = 0; i < fileInput.files.length; i++) {
         upload(fileInput.files[i]);
     }
@@ -141,7 +130,7 @@ for (let i = 0; i < sidebarOptions.length; i++) {
 let homeButton = document.querySelector('#home');
 homeButton.addEventListener('click', () => {
     globalContextOption = "home";
-    switchView();
+    sidebarOptionSwitch();
     let pinnedBlock = null;
     let recentBlock = null;
     Promise.all([
@@ -178,7 +167,7 @@ let allFilesButton = document.querySelector('#my-files');
 allFilesButton.addEventListener('click', () => {
     globalContextOption = "all-files";
     globalContextFolder = null;
-    switchView();
+    sidebarOptionSwitch();
     globalFolderQueue = [];
     fetch("/api/metadata")
     .then(response => response.json())
@@ -204,13 +193,15 @@ allFilesButton.addEventListener('click', () => {
     })
 });
 
+let queueModal = document.querySelector('.queue');
+let queueModalCloseButton = document.querySelector('.queue_close');
+queueModalCloseButton.addEventListener('click', () => {
+    queueModal.style.display = 'none';
+});
 let queueButton = document.querySelector('#queue');
 queueButton.addEventListener('click', () => {
     globalContextOption = "queue";
-    switchView(false);
-    if (window.innerWidth < 768) {
-        sidebarEventState(false);
-    }
+    queueModal.style.display = 'block';
 });
 
 let pdfButton = document.querySelector('#pdf');
@@ -269,7 +260,7 @@ otherButton.addEventListener('click', () => {
 
 let trashButton = document.querySelector('#trash');
 trashButton.addEventListener('click', () => {
-    switchView();
+    sidebarOptionSwitch();
     globalContextOption = "trash";
     fetch("/api/query", {method: "POST", body: JSON.stringify({"deleted": true})})
     .then(response => response.json())
@@ -360,7 +351,7 @@ searchBar.addEventListener('input', () => {
                 resultsPage.appendChild(fileList);
                 mainSection.innerHTML = '';
                 mainSection.appendChild(resultsPage);
-                switchView();
+                sidebarOptionSwitch();
             } else {
                 mainSection.innerHTML = '';
                 let p = document.createElement('p');
@@ -369,7 +360,7 @@ searchBar.addEventListener('input', () => {
                 p.style.color = "rgb(247, 70, 70)";
                 resultsPage.appendChild(p);
                 mainSection.appendChild(resultsPage);
-                switchView();
+                sidebarOptionSwitch();
             }
         })
     }, 500);
@@ -409,8 +400,6 @@ function handleModalClose() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    mainSection.style.display = 'none';
-    secondarySection.style.display = 'none';
     fetch("/api/consumption")
     .then(response => response.json())
     .then(data => {
@@ -442,6 +431,7 @@ window.addEventListener('resize', () => {
 window.addEventListener("paste", (e) => {
     let items = e.clipboardData.items;
     if (items) {
+        queueButton.click();
         [...items].forEach((item) => {
             if (item.kind === "file") {
                 upload(item.getAsFile());

@@ -1,4 +1,9 @@
 let fileOptionPanel = document.querySelector('#file-options-panel');
+let queueTaskList = document.querySelector('#queue-task-list');
+let queueContent = document.querySelector('.queue_content');
+queueContent.addEventListener('click', () => {
+    queueModalCloseButton.click();
+});
 
 async function fetchItemCount(folder) {
     let path;
@@ -221,8 +226,9 @@ function handleFileMenuClick(file) {
     downloadButton.innerHTML = `<p>Download</p><span class="material-symbols-rounded">download</span>`;
     downloadButton.addEventListener("click", () => {
         close.click();
+        showSnack(`Downloading ${file.name}`);
+        queueButton.click();
         download(file);
-        showSnack(`Downloaded ${file.name}`);
     });
     let share = document.createElement("div");
     share.className = "file_menu_option";
@@ -725,39 +731,36 @@ function updatePromptFragment(text = '~') {
     document.querySelector('.fragment').innerHTML = text;
 }
 
-function queueElem(file, taskType="upload") {
-    let task = document.createElement('div');
-    task.className = 'task';
+function prependQueueElem(file, isUpload = true) {
+    let li = document.createElement('li');
     let icon = document.createElement('div');
     icon.className = 'icon';
-    let fileIcon = document.createElement('i');
-    fileIcon.id = `icon-${file.hash}`;
-    if (taskType === "upload") {
-        fileIcon.className = 'fa-solid fa-circle-up';
-        fileIcon.style.color = colorBlue;
-    } else {
-        fileIcon.className = 'fa-solid fa-circle-down';
-        fileIcon.style.color = colorGreen;
-    }
-    icon.appendChild(fileIcon);
-    let fileName = document.createElement('p');
-    fileName.innerHTML = file.name;
+    icon.innerHTML = `<i class="${handleMimeIcon(file.mime)}"></i>`;
+    let info = document.createElement('div');
+    info.className = 'info';
+    let name = document.createElement('p');
+    name.innerHTML = file.name;
     let progress = document.createElement('div');
     progress.className = 'progress';
-    let progressBar = document.createElement('div');
-    progressBar.className = 'bar';
-    progressBar.style.width = '0%';
-    progressBar.id = `bar-${file.hash}`;
-    if (taskType === "upload") {
-        progressBar.style.backgroundColor = colorBlue;
+    let bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.width = '0%';
+    if (isUpload) {
+        bar.style.backgroundColor = colorBlue;
     } else {
-        progressBar.style.backgroundColor = colorGreen;
+        bar.style.backgroundColor = colorGreen;
     }
-    progress.appendChild(progressBar);
-    task.appendChild(icon);
-    task.appendChild(fileName);
-    task.appendChild(progress);
-    return task;
+    bar.id = `bar-${file.hash}`;
+    progress.appendChild(bar);
+    info.appendChild(name);
+    info.appendChild(progress);
+    let percentage = document.createElement('p');
+    percentage.innerHTML = '0%';
+    percentage.id = `percentage-${file.hash}`;
+    li.appendChild(icon);
+    li.appendChild(info);
+    li.appendChild(percentage);
+    queueTaskList.prepend(li);
 }
 
 function updateToCompleted(hash) {
@@ -783,7 +786,7 @@ function showSnack(text, color=colorGreen) {
 }
 
 function renderCategory(query) {
-    switchView();
+    sidebarOptionSwitch();
     fetch("/api/query", {method: "POST", body: JSON.stringify(query)})
     .then(response => response.json())
     .then(data => {
