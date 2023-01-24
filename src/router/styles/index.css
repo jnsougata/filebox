@@ -909,6 +909,6 @@ body {
 @media screen and (max-width: 768px) {
     .multi_select_options > button {
         justify-content: space-evenly;
-        margin-right: 5px;
+        margin-right: none;
     }
 }

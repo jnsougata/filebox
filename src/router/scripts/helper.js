@@ -490,9 +490,15 @@ function newFileElem(file, isTrash = false) {
             deleteButton.innerHTML = 'Delete';
             deleteButton.style.backgroundColor = colorRed;
             deleteButton.addEventListener("click", () => {
-                fetch(`/api/bulk`, {method: "DELETE", body: JSON.stringify(file)})
+                fetch(`/api/bulk`, {method: "DELETE", body: JSON.stringify(globalMultiSelectBucket)})
                 .then(() => {
-                    showSnack(`Deleted selected files`, colorOrange);
+                    globalMultiSelectBucket.forEach((file) => {
+                        let fileElem = document.getElementById(`file-${file.hash}`);
+                        fileElem.remove();
+                    });
+                    globalMultiSelectBucket = [];
+                    globalMultiSelectBucketUpdate = true;
+                    showSnack(`Deleted selected files`, colorRed);
                     extraRenderingPanel.style.display = 'none';
                 })
             });

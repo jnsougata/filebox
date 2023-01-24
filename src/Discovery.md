@@ -23,9 +23,6 @@ Upload and Organize files in your Personal Space Drive
 - Added some options to view files by category
 - You can now block access of shared files and embeds
 - Track your filebox usage with a space usage indicator
+- Added ability to move files to different folders
 - Added ability to preview images, videos, audios, pdfs and text files
-
-#### Coming Soon
-
-- Delete multiple files and folders at once
-- Ability to move files to different folders
+- Select and delete / move / public / private multiple files at once

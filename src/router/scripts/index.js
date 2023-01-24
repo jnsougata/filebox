@@ -50,11 +50,13 @@ function switchView(main = true) {
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
+    globalContextFolder = null;
     fileOptionPanel.style.display = 'none';
     let header = document.querySelector('header');
     if (main) {
         header.style.display = 'flex';
         mainSection.style.display = 'flex';
+        secondarySection.style.display = 'none';
         if (extraPanelState) {
             extraRenderingPanel.style.display = 'flex';
         } else {
@@ -68,6 +70,7 @@ function switchView(main = true) {
         header.style.display = 'none';
         mainSection.style.display = 'none';
         extraRenderingPanel.style.display = 'none';
+        secondarySection.style.display = 'flex';
     }
 }
 
@@ -163,7 +166,8 @@ homeButton.addEventListener('click', () => {
                 recentBlock = buildRecentContent(sortedData);
             }
         })
-    ]).then(() => {
+    ])
+    .then(() => {
         let homePage = buildHomePage(pinnedBlock, recentBlock);
         mainSection.innerHTML = '';
         mainSection.appendChild(homePage);
