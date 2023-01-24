@@ -394,6 +394,27 @@ function newFileElem(file, isTrash = false) {
     li.id = `file-${file.hash}`
     let fileIcon = document.createElement('i');
     fileIcon.className = handleMimeIcon(file.mime);
+    fileIcon.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        if (file.type === 'folder') {
+            return ;
+        }
+        if (globalMultiSelectedFiles.length === 25) {
+            showSnack(`Can't select more than 25 items`, colorOrange);
+            return;
+        } else {
+            li.style.backgroundColor = "rgba(255, 255, 255, 0.055)";
+            fileIcon.className = "fa-solid fa-check";
+            let index = globalMultiSelectedFiles.findIndex((f) => f.hash === file.hash);
+            if (index === -1) {
+                globalMultiSelectedFiles.push(file);
+            } else {
+                globalMultiSelectedFiles.splice(index, 1);
+                li.style.backgroundColor = "transparent";
+                fileIcon.className = handleMimeIcon(file.mime);
+            }
+        }
+    });
     let fileInfo = document.createElement('div');
     fileInfo.className = 'info';
     let fileName = document.createElement('p');

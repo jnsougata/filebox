@@ -11,6 +11,7 @@ let globalContextFile = null;
 let globalContextFolder = null;
 let globalContextOption = null;
 let globalTrashFiles = null;
+let globalMultiSelectedFiles = [];
 let sidebar = document.querySelector('.sidebar');
 let blurLayer = document.querySelector('.blur-layer');
 let mainSection = document.querySelector('#main');
