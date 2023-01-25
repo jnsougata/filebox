@@ -749,8 +749,8 @@ body {
     font-size: 15px;
     color: white;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-start;
+    justify-content: center;
     flex-direction: column;
 }
 .queue > .queue_content > ul > li > .info > p {
@@ -764,17 +764,17 @@ body {
     margin-bottom: 3px;
 }
 .queue > .queue_content > ul > li > .info > .progress {
-    height: 5px;
+    height: 3px;
     width: 100%;
     border-radius: 10px;
     background-color: #2d2f32;
 }
 .queue > .queue_content > ul > li > .info > .progress > .bar {
-    height: 5px;
+    width: 0;
+    height: 100%;
     background-color: var(--color-blueish);
     transition: width 0.5s;
     border-radius: 10px;
-    width: 20%;
 }
 @media screen and (max-width: 768px) {
     .queue > .queue_content > p {

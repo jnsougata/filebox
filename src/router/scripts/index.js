@@ -282,7 +282,7 @@ trashButton.addEventListener('click', () => {
         p.style.fontSize = '14px';
         trashOptios.appendChild(p);
         let emptyTrash = document.createElement('button');
-        emptyTrash.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i>';
+        emptyTrash.innerHTML = '<i class="fa-solid fa-trash"></i>';
         if (data.length === 0) {
             extraRenderingPanel.style.display = 'none';
             showSnack("There's nothing in the trash!", colorOrange);
@@ -294,6 +294,11 @@ trashButton.addEventListener('click', () => {
             fetch('/api/bulk', {method: 'DELETE', body: JSON.stringify(globalTrashFiles)})
             .then(() => {
                 showSnack('Trash Emptied Successfully!');
+                let totalSpaceFreed = 0;
+                globalTrashFiles.forEach((file) => {
+                    totalSpaceFreed += file.size;
+                });
+                updateSpaceUsage(-totalSpaceFreed);
                 fileList.innerHTML = '';
                 extraRenderingPanel.style.display = 'none';
             })

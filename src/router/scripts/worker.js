@@ -16,8 +16,8 @@ function upload(file) {
             "name": file.name,
             "size": file.size,
             "mime": file.type,
-            "date": new Date().toISOString(),
             "access": "private",
+            "date": new Date().toISOString(),
         }
         if (globalContextFolder) {
             if (globalContextFolder.parent) {
@@ -29,12 +29,17 @@ function upload(file) {
         showSnack(`Uploading ${file.name}`, colorBlue);
         let content = ev.target.result;
         prependQueueElem(body, true)
-        let extension = file.name.split('.').pop();
-        let qualifiedName = `${hash}.${extension}`;
+        let nameFragments = file.name.split('.');
+        let saveAs = "";
+        if (nameFragments.length > 1) {
+            saveAs = `${hash}.${nameFragments.pop()}`;
+        } else {
+            saveAs = `${hash}`;
+        }
         let bar = document.getElementById(`bar-${hash}`);
         let percentageElem = document.getElementById(`percentage-${hash}`);
         if (file.size < 10 * 1024 * 1024) {
-            fetch(`${ROOT}/${projectId}/filebox/files?name=${qualifiedName}`, {
+            fetch(`${ROOT}/${projectId}/filebox/files?name=${saveAs}`, {
                 method: 'POST',
                 body: content,
                 headers: header
@@ -43,7 +48,7 @@ function upload(file) {
                 fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
                 .then(() => {
                     bar.style.width = "100%";
-                    percentageElem.innerHTML = "100%";
+                    percentageElem.innerHTML = "✓";
                     showSnack(`Uploaded ${file.name}`);
                     if (globalContextFolder) {
                         handleFolderClick(globalContextFolder)
@@ -51,27 +56,24 @@ function upload(file) {
                         if (globalContextOption === "all-files" || globalContextOption === "home")
                         getContextOptionElem(globalContextOption).click();
                     }
+                    updateSpaceUsage(file.size);
                 })
             })
         } else {
-            let chunkSize = 10 * 1024 * 1024;
-            let chunks = [];
-            for (let i = 0; i < content.byteLength; i += chunkSize) {
-                chunks.push(content.slice(i, i + chunkSize));
-            }
-            fetch(`${ROOT}/${projectId}/filebox/uploads?name=${qualifiedName}`, {
-                method: 'POST',
-                headers: header
-            })
+            fetch(`${ROOT}/${projectId}/filebox/uploads?name=${saveAs}`, {method: 'POST', headers: header})
             .then(response => response.json())
             .then(data => {
-                let finalChunk = chunks.pop();
-                let finalIndex = chunks.length + 1;
-                let uploadId = data["upload_id"];
-                let name = data.name;
+                let chunks = [];
+                let chunkSize = 10 * 1024 * 1024;
+                for (let i = 0; i < content.byteLength; i += chunkSize) {
+                    chunks.push(content.slice(i, i + chunkSize));
+                }
                 let allOk = true;
                 let promises = [];
                 let progressIndex = 0;
+                let name = data.name;
+                let uploadId = data["upload_id"];
+                let finalIndex = chunks.length + 1;
                 chunks.forEach((chunk, index) => {
                     promises.push(
                         fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${index+1}`, {
@@ -91,45 +93,37 @@ function upload(file) {
                 })
                 Promise.all(promises)
                 .then(() => {
-                    fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${finalIndex}`, {
-                        method: 'POST',
-                        body: finalChunk,
-                        headers: header
-                    })
-                    .then(response => {
-                        if (response.status !== 200) {
-                            allOk = false;
-                        }
-                        if (allOk) {
-                            fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
-                                method: 'PATCH',
-                                headers: header,
-                            })
-                            .then(response => response.json())
+                    if (allOk) {
+                        fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
+                            method: 'PATCH',
+                            headers: header,
+                        })
+                        .then(response => response.json())
+                        .then(() => {
+                            fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
                             .then(() => {
-                                fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
-                                .then(() => {
-                                    bar.style.width = "100%";
-                                    percentageElem.innerHTML = "100%";
-                                    updateSpaceUsage(file.size);
-                                    showSnack(`Uploaded ${file.name} successfully!`, colorBlue);
-                                    if (globalContextFolder) {
-                                        handleFolderClick(globalContextFolder)
-                                    } else {
-                                        if (globalContextOption === "all-files" || globalContextOption === "home")
-                                        getContextOptionElem(globalContextOption).click();
-                                    }
-                                })
+                                bar.style.width = "100%";
+                                percentageElem.innerHTML = "✓";
+                                updateSpaceUsage(file.size);
+                                showSnack(`Uploaded ${file.name} successfully!`, colorBlue);
+                                if (globalContextFolder) {
+                                    handleFolderClick(globalContextFolder)
+                                } else {
+                                    if (globalContextOption === "all-files" || globalContextOption === "home")
+                                    getContextOptionElem(globalContextOption).click();
+                                }
                             })
-                        } else {
-                            showSnack(`Failed to upload ${file.name}`, colorRed);
-                            document.getElementById(`${hash}`).remove();
-                            fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
-                                method: 'DELETE', 
-                                headers: header
-                            })
-                        }
-                    })
+                        })
+                    } else {
+                        showSnack(`Failed to upload ${file.name}`, colorRed);
+                        bar.style.width = "100%";
+                        percentageElem.innerHTML = "✕";
+                        bar.style.backgroundColor = colorRed;
+                        fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
+                            method: 'DELETE', 
+                            headers: header
+                        })
+                    }
                 })
             })
         }

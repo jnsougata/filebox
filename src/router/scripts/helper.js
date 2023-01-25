@@ -200,23 +200,35 @@ function handleFileMenuClick(file) {
         fileNameElem.focus();
         fileNameElem.addEventListener('blur', (e) => {
             let oldName = file.name;
-            let oldNameExtension = oldName.split(".").pop();
-            let updatedName = e.target.innerHTML;
-            let updatedExtension = updatedName.split(".").pop();
-            if (oldNameExtension !== updatedExtension) {
+            let oldExtension = "";
+            let oldNameFragments = oldName.split(".");
+            if (oldNameFragments.length > 1) {
+                oldExtension = oldNameFragments.pop();
+            } else {
+                oldExtension = "";
+            }
+            let newName = e.target.innerText;
+            let newExtension = "";
+            let newNameFragments = newName.split(".");
+            if (newNameFragments.length > 1) {
+                newExtension = newNameFragments.pop();
+            } else {
+                newExtension = "";
+            }
+            if (oldExtension !== newExtension) {
                 e.target.innerHTML = oldName;
                 showSnack("File extension cannot be changed", colorOrange);
                 return;
             }
-            if (updatedName === oldName) {
+            if (newName === oldName) {
                 return;
             }
-            fetch(`/api/rename`, {method: "POST", body: JSON.stringify({hash: file.hash, name: updatedName})})
+            fetch(`/api/rename`, {method: "POST", body: JSON.stringify({hash: file.hash, name: newName})})
             .then((res) => {
                 if (res.status === 200) {
-                    file.name = updatedName;
-                    document.querySelector(`#filename-${file.hash}`).innerHTML = updatedName;
-                    showSnack(`File renamed to ${updatedName}`);
+                    file.name = newName;
+                    document.querySelector(`#filename-${file.hash}`).innerHTML = newName;
+                    showSnack(`File renamed to ${newName}`);
                 }
             })
         });
