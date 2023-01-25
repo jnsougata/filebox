@@ -432,7 +432,7 @@ body {
 
 @keyframes sildein {
     0% {
-        bottom: -75px;
+        bottom: -150px;
     }
     100% {
         bottom: 0;

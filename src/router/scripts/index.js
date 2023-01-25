@@ -265,6 +265,10 @@ trashButton.addEventListener('click', () => {
     fetch("/api/query", {method: "POST", body: JSON.stringify({"deleted": true})})
     .then(response => response.json())
     .then(data => {
+        mainSection.innerHTML = '';
+        if (!data) {
+            return;
+        }
         let fileList = document.createElement('div');
         fileList.className = 'file_list';
         let ul = document.createElement('ul');
@@ -303,7 +307,6 @@ trashButton.addEventListener('click', () => {
                 extraRenderingPanel.style.display = 'none';
             })
         });
-        mainSection.innerHTML = '';
         if (data.length > 0) {
             trashOptios.appendChild(emptyTrash);
             extraRenderingPanel.innerHTML = '';
