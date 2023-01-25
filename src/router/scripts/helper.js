@@ -1,4 +1,4 @@
-let fileOptionPanel = document.querySelector('#file-options-panel');
+let fileOptionPanel = document.querySelector('.file_menu');
 let queueTaskList = document.querySelector('#queue-task-list');
 let queueContent = document.querySelector('.queue_content');
 queueContent.addEventListener('click', () => {
@@ -64,6 +64,7 @@ function updateSpaceUsage(incr) {
 
 function handleTrashFileMenuClick(file) {
     fileOptionPanel.innerHTML = "";
+    fileOptionPanel.id = `panel-${file.hash}`;
     if (window.innerWidth < 768) {
         blurLayer.style.display = 'block';
     }
@@ -124,6 +125,7 @@ function handleTrashFileMenuClick(file) {
 
 function handleFileMenuClick(file) {
     fileOptionPanel.innerHTML = "";
+    fileOptionPanel.id = `panel-${file.hash}`;
     if (window.innerWidth < 768) {
         blurLayer.style.display = 'block';
     }
@@ -570,6 +572,10 @@ function newFileElem(file, isTrash = false) {
     menuOptionSpan.className = 'fa-solid fa-ellipsis';
     menuOptionSpan.addEventListener('click', (ev) => {
         ev.stopPropagation();
+        if (fileOptionPanel.style.display === 'flex' && fileOptionPanel.id === `panel-${file.hash}`) {
+            fileOptionPanel.style.display = 'none';
+            return;
+        }
         if (isTrash) {
             handleTrashFileMenuClick(file);
         } else {
