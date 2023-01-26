@@ -422,10 +422,10 @@ body {
 .home_page > .pinned > .card > .unpin {
     width: 100%;
     text-align: end;
-    color: rgb(226, 63, 63);
+    color: #ffffff57;
 }
 .home_page > .pinned > .card > .unpin > span {
-    font-size: 25px;
+    font-size: 20px;
     border-radius: 50%;
     cursor: pointer;
 }
