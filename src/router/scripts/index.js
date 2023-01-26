@@ -186,9 +186,7 @@ allFilesButton.addEventListener('click', () => {
         let allFiles = buildAllFilesList(allFilesData);
         mainSection.innerHTML = '';
         mainSection.appendChild(buildAllFilesPage(allFiles));
-        if (window.innerWidth < 768) {
-            sidebarEventState(false);
-        }
+        updateFolderStats(folders);
         updatePromptFragment();
     })
 });
@@ -267,6 +265,7 @@ trashButton.addEventListener('click', () => {
     .then(data => {
         mainSection.innerHTML = '';
         if (!data) {
+            showSnack("There's nothing in the trash!", colorOrange);
             return;
         }
         let fileList = document.createElement('div');
@@ -411,7 +410,7 @@ window.addEventListener('DOMContentLoaded', () => {
     fetch("/api/consumption")
     .then(response => response.json())
     .then(data => {
-        globalConsumption = getTotalSize(data);
+        globalConsumption = data.size;
         let totalSizeString = handleSizeUnit(globalConsumption);
         totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${totalSizeString}`;
     })

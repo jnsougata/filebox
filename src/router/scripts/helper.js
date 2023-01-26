@@ -5,19 +5,21 @@ queueContent.addEventListener('click', () => {
     queueModalCloseButton.click();
 });
 
-async function fetchItemCount(folder) {
-    let path;
-    if (folder.parent) {
-        path = `${folder.parent}/${folder.name}`;
-    } else {
-        path = folder.name;
+function updateFolderStats(folders) {
+    if (folders.length === 0) {
+        return;
     }
-    let resp = await fetch(`/api/items/count`, {
-        method: "POST", 
-        body: JSON.stringify({"children_path": path})
-    });
-    let data = await resp.json();
-    return data.count;
+    fetch(`/api/items/count`, {method: "POST", body: JSON.stringify(folders)})
+    .then((resp) => resp.json())
+    .then((stats) => {
+        stats.forEach((stat) => {
+            let statElem = document.getElementById(`stat-${stat.hash}`);
+            if (statElem) {
+                let old = statElem.innerHTML;
+                statElem.innerHTML = `${stat.count} items • ${old}`
+            }
+        }); 
+    })  
 }
 
 function handleSizeUnit(size) {
@@ -43,18 +45,6 @@ function formatDateString(date) {
         + " " + d.getHours()
         + ":" + d.getMinutes()
         + ":" + d.getSeconds();
-}
-
-function getTotalSize(data) {
-    let totalSize = 0;
-    data.forEach((r) => {
-        r['Data'].items.forEach((item) => {
-            if (item.size) {
-                totalSize += item.size;
-            }
-        });
-    });
-    return totalSize;
 }
 
 function updateSpaceUsage(incr) {
@@ -308,13 +298,7 @@ function handleFileMenuClick(file) {
     }
     trashButton.addEventListener("click", () => {
         if (file.type === 'folder') {
-            let body = {"hash": file.hash};
-            if (file.parent) {
-                body["children_path"] = `${file.parent}/${file.name}`;
-            } else {
-                body["children_path"] = `${file.name}`;
-            }
-            fetch(`/api/remove/folder`, {method: "POST", body: JSON.stringify(body)})
+            fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
             .then((resp) => {
                 if (resp.status === 409) {
                     showSnack(`Folder is not empty`, colorOrange);
@@ -367,6 +351,7 @@ function handleMimeIcon(mime) {
 }
 
 function handleFolderClick(folder) {
+    fileOptionPanel.style.display = 'none';
     globalContextFolder = folder;
     if (globalFolderQueue.length > 0) {
         let lastFolder = globalFolderQueue[globalFolderQueue.length - 1];
@@ -411,6 +396,7 @@ function handleFolderClick(folder) {
         fileView.appendChild(fileList);
         mainSection.innerHTML = '';
         mainSection.appendChild(fileView);
+        updateFolderStats(folders);
         updatePromptFragment(`~${fragment}`);
     })
 }
@@ -556,11 +542,9 @@ function newFileElem(file, isTrash = false) {
     fileName.id = `filename-${file.hash}`;
     let fileSizeAndDate = document.createElement('p');
     fileSizeAndDate.style.fontSize = '11px';
+    fileSizeAndDate.id = `stat-${file.hash}`;
     if (file.type === 'folder') {
-        fetchItemCount(file)
-        .then((count) => {
-            fileSizeAndDate.innerHTML = `${count} items • ${formatDateString(file.date)}`;
-        })
+        fileSizeAndDate.innerHTML = `${formatDateString(file.date)}`;
     } else {
         fileSizeAndDate.innerHTML = `${handleSizeUnit(file.size)} • ${formatDateString(file.date)}`;
     }

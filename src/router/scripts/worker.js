@@ -184,10 +184,10 @@ function download(file) {
 }
 
 function createFolder() {
-    let folderName = prompt("Enter folder name", "New Folder");
-    if (folderName) {
+    let name = prompt("Enter folder name", "New Folder");
+    if (name) {
         let body = {
-            "name": folderName,
+            "name": name,
             "type": "folder",
             "hash": randId(),
             "date": new Date().toISOString(),
@@ -204,7 +204,7 @@ function createFolder() {
             if (resp.status === 409) {
                 showSnack(`Folder with same name already exists`, colorRed);
             } else if (resp.status <= 207) {
-                showSnack(`Created folder ${folderName}`, colorGreen);
+                showSnack(`Created folder ${name}`, colorGreen);
                 if (body.parent) {
                     handleFolderClick(globalContextFolder);
                 } else {

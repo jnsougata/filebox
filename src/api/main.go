@@ -13,7 +13,7 @@ import (
 	"github.com/jnsougata/deta-go/deta"
 )
 
-var d = deta.New()
+var d = deta.New(nil)
 var base = d.Base("filebox_metadata")
 var drive = d.Drive("filebox")
 
@@ -26,12 +26,11 @@ func main() {
 	r.HandleFunc("/shared/chunk/{skip}/{hash}", HandleDownload).Methods("GET")
 	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")
 	r.HandleFunc("/query", HandleQuery).Methods("POST")
-	r.HandleFunc("/remove/folder", HandleFolderDelete).Methods("POST")
 	r.HandleFunc("/rename", HandleRename).Methods("POST")
 	r.HandleFunc("/consumption", HandleSpaceUsage).Methods("GET")
 	r.HandleFunc("/pin/{hash}", HandlePin).Methods("POST", "DELETE")
 	r.HandleFunc("/file/access", HandleFileAccess).Methods("POST")
-	r.HandleFunc("/items/count", HandleItemCount).Methods("POST")
+	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
 	r.HandleFunc("/bulk", HandleBulkFileOps).Methods("DELETE", "PATCH")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
@@ -48,8 +47,8 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 
 	case "GET":
 		w.Header().Set("Content-Type", "application/json")
-		resps := base.Get()
-		items := resps[0].Data["items"]
+		resp := base.FetchUntilEnd(deta.NewQuery())
+		items := resp.Data["items"]
 		ba, _ := json.Marshal(items)
 		_, _ = w.Write(ba)
 		return
@@ -63,14 +62,13 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 		_, hasPrent := data["parent"]
 		_, isFolder := data["type"]
 		if !hasPrent && isFolder {
-			q := deta.Query()
-			q.Equals(map[string]interface{}{"name": data["name"].(string)})
-			resp := base.Fetch(q, "", 0).Data["items"].([]interface{})
+			q := deta.NewQuery()
+			q.Equals("name", data["name"].(string))
+			resp := base.FetchUntilEnd(q).Data["items"].([]map[string]interface{})
 			var temp []map[string]interface{}
 			for _, item := range resp {
-				record := item.(map[string]interface{})
-				if _, ok := record["parent"]; !ok {
-					temp = append(temp, record)
+				if _, ok := item["parent"]; !ok {
+					temp = append(temp, item)
 				}
 			}
 			if len(temp) > 0 {
@@ -79,17 +77,18 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if hasPrent && isFolder {
-			q := deta.Query()
-			q.Equals(map[string]interface{}{"parent": data["parent"].(string), "name": data["name"].(string)})
-			resp := base.Fetch(q, "", 0).Data["items"].([]interface{})
+			q := deta.NewQuery()
+			q.Equals("parent", data["parent"].(string))
+			q.Equals("name", data["name"].(string))
+			resp := base.FetchUntilEnd(q).Data["items"].([]map[string]interface{})
 			if len(resp) > 0 {
 				w.WriteHeader(http.StatusConflict)
 				return
 			}
 		}
-		resp := base.Put(data)
-		w.WriteHeader(resp[0].StatusCode)
-		ba, _ := json.Marshal(resp[0].Data)
+		resp := base.Put(deta.Record{Key: key, Value: data})
+		w.WriteHeader(resp.StatusCode)
+		ba, _ := json.Marshal(resp.Data)
 		_, _ = w.Write(ba)
 		return
 
@@ -99,24 +98,41 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewDecoder(r.Body).Decode(&data)
 		key := data["hash"].(string)
 		data["key"] = key
-		resp := base.Put(data)
-		w.WriteHeader(resp[0].StatusCode)
+		resp := base.Put(deta.Record{Key: key, Value: data})
+		w.WriteHeader(resp.StatusCode)
 		return
 
 	case "DELETE":
 		metadata, _ := io.ReadAll(r.Body)
 		var file map[string]interface{}
 		_ = json.Unmarshal(metadata, &file)
+		_, isFolder := file["type"]
+		if isFolder {
+			var childrenPath string
+			_, hasParent := file["parent"]
+			if hasParent {
+				childrenPath = fmt.Sprintf("%s/%s", file["parent"].(string), file["name"].(string))
+			} else {
+				childrenPath = file["name"].(string)
+			}
+			q := deta.NewQuery()
+			q.Equals("parent", childrenPath)
+			q.NotEquals("deleted", true)
+			resp := base.FetchUntilEnd(q)
+			children := resp.Data["items"].([]map[string]interface{})
+			if len(children) > 0 {
+				w.WriteHeader(http.StatusConflict)
+				return
+			} else {
+				base.Delete(file["hash"].(string))
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+		}
 		hash := file["hash"].(string)
 		_ = base.Delete(hash)
-		fragment := strings.Split(file["name"].(string), ".")
-		var driveFilename string
-		if len(fragment) > 1 {
-			driveFilename = fmt.Sprintf("%s.%s", hash, fragment[len(fragment)-1])
-		} else {
-			driveFilename = hash
-		}
-		_ = drive.Delete(driveFilename)
+		_ = drive.Delete(fileToDriveSavedName(file))
+		w.WriteHeader(http.StatusOK)
 		return
 
 	default:
@@ -129,9 +145,9 @@ func HandleFolder(w http.ResponseWriter, r *http.Request) {
 	var body map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&body)
 	parent := body["parent"].(string)
-	q := deta.Query()
-	q.Equals(map[string]interface{}{"parent": parent})
-	resp := base.Fetch(q, "", 0).Data["items"]
+	q := deta.NewQuery()
+	q.Equals("parent", parent)
+	resp := base.Fetch(q).Data["items"]
 	ba, _ := json.Marshal(resp)
 	_, _ = w.Write(ba)
 }
@@ -140,15 +156,14 @@ func HandleEmbed(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
 	resp := base.Get(hash)
-	meta := resp[0].Data
-	access, ok := meta["access"]
+	access, ok := resp.Data["access"]
 	if ok && access.(string) == "private" {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-	if meta["size"].(float64) < 5*1024*1024 {
-		fileName := meta["name"].(string)
-		mime := meta["mime"].(string)
+	if resp.Data["size"].(float64) < 5*1024*1024 {
+		fileName := resp.Data["name"].(string)
+		mime := resp.Data["mime"].(string)
 		w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=%s", fileName))
 		w.Header().Set("Content-Type", mime)
 		extension := strings.Split(fileName, ".")[1]
@@ -161,16 +176,15 @@ func HandleEmbed(w http.ResponseWriter, r *http.Request) {
 func HandleDownload(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
-	var recordHash string
+	var driveSavedName string
 	fragments := strings.Split(hash, ".")
 	if len(fragments) > 1 {
-		recordHash = fragments[0]
+		driveSavedName = fragments[0]
 	} else {
-		recordHash = hash
+		driveSavedName = hash
 	}
-	resp := base.Get(recordHash)
-	meta := resp[0].Data
-	access, ok := meta["access"]
+	resp := base.Get(driveSavedName)
+	access, ok := resp.Data["access"]
 	if ok && access.(string) == "private" {
 		w.WriteHeader(http.StatusForbidden)
 		return
@@ -194,7 +208,7 @@ func HandleSharedMetadata(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
 	resp := base.Get(hash)
-	ba, _ := json.Marshal(resp[0].Data)
+	ba, _ := json.Marshal(resp.Data)
 	_, _ = w.Write(ba)
 }
 
@@ -202,40 +216,39 @@ func HandleQuery(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var body map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&body)
-	q := deta.Query()
-	q.Equals(body)
-	resp := base.Fetch(q, "", 0).Data["items"]
+	q := deta.NewQuery()
+	for k, v := range body {
+		q.Equals(k, v)
+	}
+	resp := base.FetchUntilEnd(q).Data["items"]
 	ba, _ := json.Marshal(resp)
 	_, _ = w.Write(ba)
-}
-
-func HandleFolderDelete(w http.ResponseWriter, r *http.Request) {
-	var body map[string]interface{}
-	_ = json.NewDecoder(r.Body).Decode(&body)
-	q := deta.Query()
-	q.Equals(map[string]interface{}{"parent": body["children_path"].(string)})
-	q.NotEquals(map[string]interface{}{"deleted": true})
-	children := base.Fetch(q, "", 0).Data["items"].([]interface{})
-	if len(children) > 0 {
-		w.WriteHeader(http.StatusConflict)
-	} else {
-		base.Delete(body["hash"].(string))
-		w.WriteHeader(http.StatusOK)
-	}
 }
 
 func HandleRename(w http.ResponseWriter, r *http.Request) {
 	var body map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&body)
-	updater := base.Update(body["hash"].(string))
-	updater.Set(map[string]interface{}{"name": body["name"].(string)})
-	updater.Do()
+	u := deta.NewUpdater(body["hash"].(string))
+	u.Set("name", body["name"].(string))
+	resp := base.Update(u)
+	w.WriteHeader(resp.StatusCode)
 }
 
 func HandleSpaceUsage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	resp := base.Get()
-	ba, _ := json.Marshal(resp)
+	q := deta.NewQuery()
+	q.NotEquals("type", "folder")
+	q.NotEquals("deleted", true)
+	resp := base.FetchUntilEnd(q)
+	size := 0
+	files := resp.Data["items"].([]map[string]interface{})
+	for _, file := range files {
+		size += int(file["size"].(float64))
+	}
+	ba, _ := json.Marshal(map[string]interface{}{
+		"size": size,
+	})
+	w.WriteHeader(resp.StatusCode)
 	_, _ = w.Write(ba)
 }
 
@@ -246,16 +259,16 @@ func HandlePin(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 
 	case "POST":
-		updater := base.Update(hash)
-		updater.Set(map[string]interface{}{"pinned": true})
-		updater.Do()
-		w.WriteHeader(http.StatusOK)
+		updater := deta.NewUpdater(hash)
+		updater.Set("pinned", true)
+		resp := base.Update(updater)
+		w.WriteHeader(resp.StatusCode)
 		return
 	case "DELETE":
-		updater := base.Update(hash)
+		updater := deta.NewUpdater(hash)
 		updater.Delete("pinned")
-		updater.Do()
-		w.WriteHeader(http.StatusOK)
+		resp := base.Update(updater)
+		w.WriteHeader(resp.StatusCode)
 		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -266,20 +279,58 @@ func HandleFileAccess(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var body map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&body)
-	updater := base.Update(body["hash"].(string))
-	updater.Set(map[string]interface{}{"access": body["access"].(string)})
-	updater.Do()
-	w.WriteHeader(http.StatusOK)
+	updater := deta.NewUpdater(body["hash"].(string))
+	updater.Set("access", body["access"].(string))
+	resp := base.Update(updater)
+	w.WriteHeader(resp.StatusCode)
 }
 
-func HandleItemCount(w http.ResponseWriter, r *http.Request) {
-	var body map[string]interface{}
-	_ = json.NewDecoder(r.Body).Decode(&body)
-	q := deta.Query()
-	q.Equals(map[string]interface{}{"parent": body["children_path"].(string)})
-	q.NotEquals(map[string]interface{}{"deleted": true})
-	children := base.Fetch(q, "", 0).Data["items"].([]interface{})
-	ba, _ := json.Marshal(map[string]interface{}{"count": len(children)})
+func folderToAsParentPath(folder map[string]interface{}) string {
+	var path string
+	_, ok := folder["parent"]
+	if ok {
+		path = folder["parent"].(string) + "/" + folder["name"].(string)
+	} else {
+		path = folder["name"].(string)
+	}
+	return path
+}
+
+func HandleFolderItemCountBulk(w http.ResponseWriter, r *http.Request) {
+	var folders []map[string]interface{}
+	_ = json.NewDecoder(r.Body).Decode(&folders)
+	parentMap := map[string]interface{}{}
+	for _, folder := range folders {
+		parentMap[folderToAsParentPath(folder)] = map[string]interface{}{
+			"hash":  folder["hash"],
+			"count": 0,
+		}
+	}
+	q := deta.NewQuery()
+	q.Value = []map[string]interface{}{}
+	var queries []deta.Query
+	for parentPath := range parentMap {
+		nq := deta.NewQuery()
+		nq.Equals("parent", parentPath)
+		nq.NotEquals("deleted", true)
+		queries = append(queries, *nq)
+	}
+	q.Union(queries...)
+	resp := base.FetchUntilEnd(q)
+	items := resp.Data["items"].([]map[string]interface{})
+	for _, item := range items {
+		path := item["parent"].(string)
+		record, ok := parentMap[path]
+		if ok {
+			parentMap[path].(map[string]interface{})["count"] = record.(map[string]interface{})["count"].(int) + 1
+		}
+	}
+	counts := []map[string]interface{}{}
+	for _, v := range parentMap {
+		counts = append(counts, v.(map[string]interface{}))
+	}
+	ba, _ := json.Marshal(counts)
+	w.WriteHeader(resp.StatusCode)
 	_, _ = w.Write(ba)
 }
 
@@ -313,10 +364,15 @@ func HandleBulkFileOps(w http.ResponseWriter, r *http.Request) {
 	case "PATCH":
 		var body []map[string]interface{}
 		_ = json.NewDecoder(r.Body).Decode(&body)
+		var files []deta.Record
 		for _, item := range body {
-			item["key"] = item["hash"].(string)
+			record := deta.Record{
+				Key:   item["hash"].(string),
+				Value: item,
+			}
+			files = append(files, record)
 		}
-		base.Put(body...)
+		base.Put(files...)
 		w.WriteHeader(http.StatusOK)
 	}
 }

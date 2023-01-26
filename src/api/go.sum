@@ -1,4 +1,4 @@
 github.com/gorilla/mux v1.8.0 h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=
 github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
-github.com/jnsougata/deta-go v0.0.8 h1:IdZ10ye3yILDIRxN5RazlJvZHAGBI5yJ1wGLqbVAyis=
-github.com/jnsougata/deta-go v0.0.8/go.mod h1:CDIzYyEygjKHaz0QDOeFNACVHr+CxMkfaKo710v6F/s=
+github.com/jnsougata/deta-go v0.1.1 h1:8wW/Zv04i/1SE2We4FbKNxgCrOL1tym0/SJy1hG8Qi4=
+github.com/jnsougata/deta-go v0.1.1/go.mod h1:CDIzYyEygjKHaz0QDOeFNACVHr+CxMkfaKo710v6F/s=
