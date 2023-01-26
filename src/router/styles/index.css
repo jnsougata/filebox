@@ -637,7 +637,7 @@ body {
     animation: sildein 0.5s;
 }
 .snackbar > .content {
-    width: 500px;
+    width: 550px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -650,11 +650,20 @@ body {
     font-size: 16px;
     max-width: 480px;
     text-align: left;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
-
+@media screen and (max-width: 768px) {
+    .snackbar > .content {
+        width: 400px;
+    }
+    .snackbar > .content > p {
+        font-size: 14px;
+        max-width: 300px;
+    }
+}
+    
 .queue {
     width: 100vw;
     height: 100vh;
