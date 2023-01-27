@@ -21,6 +21,15 @@ let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('.bottom_option');
 let extraRenderingPanel = document.querySelector('.extras');
 
+let nativeFetch = window.fetch;
+window.fetch = async (...args) => {
+    const response = await nativeFetch(...args);
+    if (response.status === 502) {
+        showSnack("Bad Gateway! Try again.", colorOrange, 'warning');
+    }
+    return response;
+};
+
 function filterNonDeletedFiles(files) {
     return files.filter((file) => {
         if (file.deleted !== true) {
@@ -265,7 +274,7 @@ trashButton.addEventListener('click', () => {
     .then(data => {
         mainSection.innerHTML = '';
         if (!data) {
-            showSnack("There's nothing in the trash!", colorOrange);
+            showSnack("There's nothing in the trash!", colorOrange, 'info');
             return;
         }
         let fileList = document.createElement('div');
@@ -288,7 +297,7 @@ trashButton.addEventListener('click', () => {
         emptyTrash.innerHTML = '<i class="fa-solid fa-trash"></i>';
         if (data.length === 0) {
             extraRenderingPanel.style.display = 'none';
-            showSnack("There's nothing in the trash!", colorOrange);
+            showSnack("There's nothing in the trash!", colorOrange, 'info');
         }
         emptyTrash.addEventListener('click', () => {
             if (globalTrashFiles.length === 0) {
@@ -296,7 +305,7 @@ trashButton.addEventListener('click', () => {
             }
             fetch('/api/bulk', {method: 'DELETE', body: JSON.stringify(globalTrashFiles)})
             .then(() => {
-                showSnack('Trash Emptied Successfully!');
+                showSnack('Trash Emptied Successfully!', colorGreen, 'success');
                 let totalSpaceFreed = 0;
                 globalTrashFiles.forEach((file) => {
                     totalSpaceFreed += file.size;

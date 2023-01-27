@@ -629,24 +629,24 @@ body {
     display: none;
     align-items: center;
     justify-content: center;
-    color: #ccc;
+    color: white;
     font-size: 20px;
     transition: bottom 0.5s;
     z-index: 1100 !important;
     background-color: transparent;
-    animation: sildein 0.5s;
 }
-.snackbar > .content {
+.snackbar > .snack_content {
     width: 550px;
+    height: 55px;
     display: flex;
+    flex-grow: 0;
     align-items: center;
     justify-content: center;
-    background-color: #2d2f32;
+    background-color: rgb(30, 112, 30);
     box-shadow: 0 0 10px 0 #000000;
     border-radius: 5px;
-    flex-grow: 0;
 }
-.snackbar > .content > p {
+.snackbar > .snack_content > p {
     font-size: 16px;
     max-width: 480px;
     text-align: left;
@@ -654,11 +654,24 @@ body {
     white-space: nowrap;
     text-overflow: ellipsis;
 }
+.snackbar > .snack_content > i {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: white;
+    padding: 5px;
+    border-radius: 50%;
+    background-color: #ffffff3f;
+    margin-right: 10px;
+}
 @media screen and (max-width: 768px) {
-    .snackbar > .content {
+    .snackbar > .snack_content {
         width: 400px;
     }
-    .snackbar > .content > p {
+    .snackbar > .snack_content > p {
         font-size: 14px;
         max-width: 300px;
     }

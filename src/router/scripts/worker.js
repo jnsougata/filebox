@@ -26,7 +26,7 @@ function upload(file) {
                 body.parent = globalContextFolder.name;
             }
         }
-        showSnack(`Uploading ${file.name}`, colorBlue);
+        showSnack(`Uploading ${file.name}`, colorBlue, 'info');
         let content = ev.target.result;
         prependQueueElem(body, true)
         let nameFragments = file.name.split('.');
@@ -49,7 +49,7 @@ function upload(file) {
                 .then(() => {
                     bar.style.width = "100%";
                     percentageElem.innerHTML = "✓";
-                    showSnack(`Uploaded ${file.name}`);
+                    showSnack(`Uploaded ${file.name}`, colorBlue, 'success');
                     if (globalContextFolder) {
                         handleFolderClick(globalContextFolder)
                     } else {
@@ -105,7 +105,7 @@ function upload(file) {
                                 bar.style.width = "100%";
                                 percentageElem.innerHTML = "✓";
                                 updateSpaceUsage(file.size);
-                                showSnack(`Uploaded ${file.name} successfully!`, colorBlue);
+                                showSnack(`Uploaded ${file.name} successfully!`, colorBlue, 'success');
                                 if (globalContextFolder) {
                                     handleFolderClick(globalContextFolder)
                                 } else {
@@ -115,7 +115,7 @@ function upload(file) {
                             })
                         })
                     } else {
-                        showSnack(`Failed to upload ${file.name}`, colorRed);
+                        showSnack(`Failed to upload ${file.name}`, colorRed, 'error');
                         bar.style.width = "100%";
                         percentageElem.innerHTML = "✕";
                         bar.style.backgroundColor = colorRed;
@@ -132,7 +132,7 @@ function upload(file) {
 }
 
 function download(file) {
-    showSnack(`Downloading ${file.name}`);
+    showSnack(`Downloading ${file.name}`, colorGreen, 'info');
     prependQueueElem(file, false);
     let header = {"X-Api-Key": globalSecretKey}
     let projectId = globalSecretKey.split("_")[0];
@@ -177,7 +177,7 @@ function download(file) {
         a.download = file.name;
         bar.style.width = "100%";
         percentageElem.innerHTML = "100%";
-        showSnack(`Downloaded ${file.name}`);
+        showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
         a.click();
     })
     .catch((err) => console.error(err));
@@ -202,9 +202,9 @@ function createFolder() {
         fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
         .then((resp) => {
             if (resp.status === 409) {
-                showSnack(`Folder with same name already exists`, colorRed);
+                showSnack(`Folder with same name already exists`, colorRed, 'error');
             } else if (resp.status <= 207) {
-                showSnack(`Created folder ${name}`, colorGreen);
+                showSnack(`Created folder ${name}`, colorGreen, 'success');
                 if (body.parent) {
                     handleFolderClick(globalContextFolder);
                 } else {

@@ -5,6 +5,26 @@ queueContent.addEventListener('click', () => {
     queueModalCloseButton.click();
 });
 
+async function checkFileParentExists(file) {
+    let body = {"type": "folder"}
+    if (!file.parent) {
+        return false;
+    }
+    let fragments = file.parent.split("/");
+    if (fragments.length === 1) {
+        body["name"] = file.parent;
+    } else {
+        body["name"] = fragments[fragments.length - 1];
+        body["parent"] = fragments.slice(0, fragments.length - 1).join("/");
+    }
+    let resp = await fetch(`/api/query`, {method: "POST", body: JSON.stringify(body)});
+    let data = await resp.json();
+    if (!data) {
+        return false;
+    }
+    return true;
+}
+
 function updateFolderStats(folders) {
     if (folders.length === 0) {
         return;
@@ -73,23 +93,27 @@ function handleTrashFileMenuClick(file) {
     fileOptionPanel.appendChild(title);
     let restore = document.createElement("div");
     restore.className = "file_menu_option";
-    restore.innerHTML = `<p>Restore to Root</p><span class="material-symbols-rounded">replay</span>`;
+    restore.innerHTML = `<p>Restore</p><span class="material-symbols-rounded">replay</span>`;
     restore.addEventListener("click", () => {
-        if (file.parent) {
-            delete file.deleted;
-            delete file.parent;
-        } else {
-            delete file.deleted;
-        }
-        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
-        .then(() => {
-            showSnack(`Restored ${file.name}`, colorGreen);
-            document.getElementById(`file-${file.hash}`).remove();
-            close.click();
-            globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
-            if (globalTrashFiles.length === 0) {
-                extraRenderingPanel.style.display = 'none';
+        checkFileParentExists(file)
+        .then((exists) => {
+            if (!exists && file.parent !== undefined) {
+                showSnack(`Parent not found. Restoring to root!`, colorOrange, 'warning');
+                delete file.parent;
+                delete file.deleted;
+            } else {
+                delete file.deleted;
             }
+            fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
+            .then((resp) => {
+                showSnack(`Restored ${file.name}`, colorGreen, 'success');
+                document.getElementById(`file-${file.hash}`).remove();
+                close.click();
+                globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
+                if (globalTrashFiles.length === 0) {
+                    extraRenderingPanel.style.display = 'none';
+                }
+            })
         })
     });
     let deleteButton = document.createElement("div");
@@ -98,7 +122,7 @@ function handleTrashFileMenuClick(file) {
     deleteButton.addEventListener("click", () => {
         fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
         .then(() => {
-            showSnack(`Permanently deleted ${file.name}`, colorRed);
+            showSnack(`Permanently deleted ${file.name}`, colorRed, 'info');
             document.getElementById(`file-${file.hash}`).remove();
             updateSpaceUsage(-file.size);
             close.click();
@@ -144,13 +168,13 @@ function handleFileMenuClick(file) {
             } else {
                 embed.style.opacity = 1;
             }
-            showSnack("File access changed to public", colorGreen);
+            showSnack("File access changed to public", colorGreen, 'info');
         } else {
             visibility.className = `fa-solid fa-eye-slash`;
             file.access = 'private';
             share.style.opacity = 0.3;
             embed.style.opacity = 0.3;
-            showSnack("File access changed to private", colorOrange);
+            showSnack("File access changed to private", colorOrange, 'info');
         }
         fetch(`/api/file/access`, {
             method: "POST", 
@@ -172,9 +196,14 @@ function handleFileMenuClick(file) {
     pin.className = "file_menu_option";
     pin.innerHTML = `<p>Pin</p><span class="material-symbols-rounded">push_pin</span>`;
     pin.addEventListener("click", () => {
+        let exists = document.getElementById(`card-${file.hash}`);
+        if (exists) {
+            showSnack(`File already pinned!`, colorOrange, 'warning');
+            return;
+        }
         fetch(`/api/pin/${file.hash}`, {method: "POST"})
         .then(() => {
-            showSnack(`File pinned successfully!`);
+            showSnack(`File pinned successfully!`, colorGreen, 'success');
             close.click();
             let pinnedSection = document.querySelector('.pinned');
             if (pinnedSection) {
@@ -209,7 +238,7 @@ function handleFileMenuClick(file) {
             }
             if (oldExtension !== newExtension) {
                 e.target.innerHTML = oldName;
-                showSnack("File extension cannot be changed", colorOrange);
+                showSnack("File extension cannot be changed", colorOrange, 'warning');
                 return;
             }
             if (newName === oldName) {
@@ -220,7 +249,7 @@ function handleFileMenuClick(file) {
                 if (res.status === 200) {
                     file.name = newName;
                     document.querySelector(`#filename-${file.hash}`).innerHTML = newName;
-                    showSnack(`File renamed to ${newName}`);
+                    showSnack(`File renamed to ${newName}`, colorGreen, 'success');
                 }
             })
         });
@@ -230,7 +259,7 @@ function handleFileMenuClick(file) {
     downloadButton.innerHTML = `<p>Download</p><span class="material-symbols-rounded">download</span>`;
     downloadButton.addEventListener("click", () => {
         close.click();
-        showSnack(`Downloading ${file.name}`);
+        showSnack(`Downloading ${file.name}`, colorGreen, 'info');
         queueButton.click();
         download(file);
     });
@@ -239,13 +268,13 @@ function handleFileMenuClick(file) {
     share.innerHTML = `<p>Share</p><span class="material-symbols-rounded">link</span>`;
     share.addEventListener("click", () => {
         if (file.access === "private") {
-            showSnack(`Make file public to share via link`, colorOrange);
+            showSnack(`Make file public to share via link`, colorOrange, 'warning');
         } else if (file.size > 30 * 1024 * 1024) {
-            showSnack(`File is too large to share via link`, colorRed);
+            showSnack(`File is too large to share via link`, colorRed, 'error');
         } else {
             window.navigator.clipboard.writeText(`${window.location.origin}/shared/${file.hash}`)
             .then(() => {
-                showSnack(`Copied sharing URL to clipboard`);
+                showSnack(`Copied sharing URL to clipboard`, colorGreen, 'success');
             })
         }
     });
@@ -254,13 +283,13 @@ function handleFileMenuClick(file) {
     embed.innerHTML = `<p>Embed</p><span class="material-symbols-rounded">code</span>`;
     embed.addEventListener("click", () => {
         if (file.access === "private") {
-            showSnack(`Make file public to embed`, colorOrange);
+            showSnack(`Make file public to embed`, colorOrange, 'warning');
         } else if (file.size > 4 * 1024 * 1024) {
-            showSnack(`File is too large to embed`, colorRed);
+            showSnack(`File is too large to embed`, colorRed, 'error');
         } else {
             window.navigator.clipboard.writeText(`${window.location.origin}/api/embed/${file.hash}`)
             .then(() => {
-                showSnack(`Copied embed URL to clipboard`);
+                showSnack(`Copied embed URL to clipboard`, colorGreen, 'success');
             })
         }
     });
@@ -301,12 +330,12 @@ function handleFileMenuClick(file) {
             fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
             .then((resp) => {
                 if (resp.status === 409) {
-                    showSnack(`Folder is not empty`, colorOrange);
+                    showSnack(`Folder is not empty`, colorOrange, 'warning');
                     close.click();
                     return;
                 }
                 if (resp.status === 200) {
-                    showSnack(`Permanently Deleted ${file.name}`, colorRed);
+                    showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
                     document.getElementById(`file-${file.hash}`).remove();
                     close.click();
                 } 
@@ -315,7 +344,7 @@ function handleFileMenuClick(file) {
             file.deleted = true;
             fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
             .then(() => {
-                showSnack(`Moved to trash ${file.name}`, colorRed);
+                showSnack(`Moved to trash ${file.name}`, colorRed, 'warning');
                 document.getElementById(`file-${file.hash}`).remove();
                 close.click();
             })
@@ -454,7 +483,7 @@ function newFileElem(file, isTrash = false) {
                         globalMultiSelectBucketUpdate = true;
                         extraRenderingPanel.innerHTML = '';
                         extraRenderingPanel.style.display = 'none';
-                        showSnack('Files Moved Successfully!');
+                        showSnack('Files Moved Successfully!', colorRed, 'success');
                         if (globalContextFolder) {
                             handleFolderClick(globalContextFolder);
                         } else {
@@ -478,7 +507,7 @@ function newFileElem(file, isTrash = false) {
                 });
                 fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(file)})
                 .then(() => {
-                    showSnack(`Made selected files private`, colorOrange);
+                    showSnack(`Made selected files private`, colorOrange, 'info');
                 })
             });
             let publicButton = document.createElement('button');
@@ -489,7 +518,7 @@ function newFileElem(file, isTrash = false) {
                 });
                 fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(file)})
                 .then(() => {
-                    showSnack(`Made selected files public`, colorGreen);
+                    showSnack(`Made selected files public`, colorGreen, 'info');
                 })
             });
             let deleteButton = document.createElement('button');
@@ -504,7 +533,7 @@ function newFileElem(file, isTrash = false) {
                     });
                     globalMultiSelectBucket = [];
                     globalMultiSelectBucketUpdate = true;
-                    showSnack(`Deleted selected files`, colorRed);
+                    showSnack(`Deleted selected files`, colorRed, 'info');
                     extraRenderingPanel.style.display = 'none';
                 })
             });
@@ -517,7 +546,7 @@ function newFileElem(file, isTrash = false) {
             extraRenderingPanel.style.display = 'flex';
         }
         if (globalMultiSelectBucket.length === 25) {
-            showSnack(`Can't select more than 25 items`, colorOrange);
+            showSnack(`Can't select more than 25 items`, colorOrange, 'warning');
             return;
         } else {
             li.style.backgroundColor = "rgba(255, 255, 255, 0.055)";
@@ -604,6 +633,7 @@ function newFileElem(file, isTrash = false) {
 function newPinnedElem(file) {
     let card = document.createElement('div');
     card.className = 'card';
+    card.id = `card-${file.hash}`;
     let unpinDiv = document.createElement('div');
     unpinDiv.className = 'unpin';
     let unpin = document.createElement('span');
@@ -772,11 +802,18 @@ function updateToCompleted(hash) {
 }
 
 let snackTimer = null;
-function showSnack(text, color=colorGreen) {
+function showSnack(text, color=colorGreen, type='success') {
+    let icons = {
+        success: 'fa-solid fa-check-circle',
+        error: 'fa-solid fa-xmark',
+        warning: 'fa-solid fa-exclamation-triangle',
+        info: 'fa-solid fa-info-circle'
+    }
     let snackbar = document.querySelector('.snackbar');
     snackbar.style.display = 'flex';
     snackbar.innerHTML = `
-    <div class="content" style="background-color: ${color}">
+    <div class="snack_content" style="background-color: ${color}">
+        <i class="${icons[type]}"></i>
         <p>${text}</p>
     </div>`;
     if (snackTimer) {
@@ -969,7 +1006,7 @@ function renderFileMover(file) {
             extraPanelState = false;
             extraRenderingPanel.innerHTML = '';
             extraRenderingPanel.style.display = 'none';
-            showSnack('File Moved Successfully!');
+            showSnack('File Moved Successfully!', colorGreen, 'success');
             if (globalContextFolder) {
                 let view = document.querySelector('#folder-view');
                 view.appendChild(newFileElem(file));
