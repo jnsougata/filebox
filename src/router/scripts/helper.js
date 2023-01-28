@@ -111,7 +111,7 @@ function handleTrashFileMenuClick(file) {
                 close.click();
                 globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
                 if (globalTrashFiles.length === 0) {
-                    extraRenderingPanel.style.display = 'none';
+                    renderOriginalHeader();
                 }
             })
         })
@@ -128,7 +128,7 @@ function handleTrashFileMenuClick(file) {
             close.click();
             globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
             if (globalTrashFiles.length === 0) {
-                extraRenderingPanel.style.display = 'none';
+                renderOriginalHeader();
             }
         })
     });
@@ -299,7 +299,7 @@ function handleFileMenuClick(file) {
     move.addEventListener("click", () => {
         close.click();
         allFilesButton.click();
-        renderFileMover(file);
+        renderOtherHeader(fileMover(file));
     });
     if (file.type !== 'folder') {
         fileOptionPanel.appendChild(rename);
@@ -433,31 +433,28 @@ function handleFolderClick(folder) {
 function newFileElem(file, isTrash = false) {
     let li = document.createElement('li');
     li.id = `file-${file.hash}`
-    let fileIcon = document.createElement('i');
-    fileIcon.className = handleMimeIcon(file.mime);
+    let fileIcon = document.createElement('div');
+    fileIcon.className = 'file_icon';
+    fileIcon.innerHTML = `<i class="${handleMimeIcon(file.mime)}"></i>`
     fileIcon.addEventListener("click", (ev) => {
         ev.stopPropagation();
         if (file.type === 'folder') {
             return ;
         }
-        if (extraRenderingPanel.style.display === 'none') {
+        if (!document.querySelector('.multi_select_options')) {
             let multiSelecOptions = document.createElement('div');
             multiSelecOptions.className = 'multi_select_options';
             let moveButton = document.createElement('button');
             moveButton.innerHTML = 'Move';
             moveButton.addEventListener("click", () => {
-                globalMultiSelectBucketUpdate = false;
-                extraPanelState = true;
+                globalMultiSelectBucketUpdated = false;
                 allFilesButton.click();
                 let fileMover = document.createElement('div');
                 fileMover.className = 'file_mover';
                 let cancelButton = document.createElement('button');
                 cancelButton.innerHTML = 'Cancel';
                 cancelButton.addEventListener('click', () => {
-                    globalMultiSelectBucket = [];
-                    extraPanelState = false;
-                    extraRenderingPanel.innerHTML = '';
-                    extraRenderingPanel.style.display = 'none';
+                    renderOriginalHeader();
                 });
                 let selectButton = document.createElement('button');
                 selectButton.innerHTML = 'Select';
@@ -478,12 +475,8 @@ function newFileElem(file, isTrash = false) {
                     }
                     fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
                     .then(() => {
-                        extraPanelState = false;
-                        globalMultiSelectBucket = [];
-                        globalMultiSelectBucketUpdate = true;
-                        extraRenderingPanel.innerHTML = '';
-                        extraRenderingPanel.style.display = 'none';
-                        showSnack('Files Moved Successfully!', colorRed, 'success');
+                        showSnack('Files Moved Successfully!', colorGreen, 'success');
+                        renderOriginalHeader();
                         if (globalContextFolder) {
                             handleFolderClick(globalContextFolder);
                         } else {
@@ -496,8 +489,8 @@ function newFileElem(file, isTrash = false) {
                 fileMover.appendChild(cancelButton);
                 fileMover.appendChild(p);
                 fileMover.appendChild(selectButton);
-                extraRenderingPanel.innerHTML = '';
-                extraRenderingPanel.appendChild(fileMover);
+                renderOtherHeader(fileMover);
+                globalMultiSelectBucketUpdated = true;
             });
             let privateButton = document.createElement('button');
             privateButton.innerHTML = 'Private';
@@ -531,36 +524,32 @@ function newFileElem(file, isTrash = false) {
                         let fileElem = document.getElementById(`file-${file.hash}`);
                         fileElem.remove();
                     });
-                    globalMultiSelectBucket = [];
-                    globalMultiSelectBucketUpdate = true;
                     showSnack(`Deleted selected files`, colorRed, 'info');
-                    extraRenderingPanel.style.display = 'none';
+                    renderOriginalHeader();
                 })
             });
             multiSelecOptions.appendChild(moveButton);
             multiSelecOptions.appendChild(privateButton);
             multiSelecOptions.appendChild(publicButton);
             multiSelecOptions.appendChild(deleteButton);
-            extraRenderingPanel.innerHTML = '';
-            extraRenderingPanel.appendChild(multiSelecOptions);
-            extraRenderingPanel.style.display = 'flex';
+            renderOtherHeader(multiSelecOptions);
         }
         if (globalMultiSelectBucket.length === 25) {
             showSnack(`Can't select more than 25 items`, colorOrange, 'warning');
             return;
         } else {
             li.style.backgroundColor = "rgba(255, 255, 255, 0.055)";
-            fileIcon.className = "fa-solid fa-check";
+            fileIcon.innerHTML = `                                    <i class="fa-solid fa-square-check"></i>`;
             let index = globalMultiSelectBucket.findIndex((f) => f.hash === file.hash);
             if (index === -1) {
                 globalMultiSelectBucket.push(file);
             } else {
                 globalMultiSelectBucket.splice(index, 1);
                 li.style.backgroundColor = "transparent";
-                fileIcon.className = handleMimeIcon(file.mime);
+                fileIcon.innerHTML = `<i class="${handleMimeIcon(file.mime)}"></i>`;
             }
             if (globalMultiSelectBucket.length === 0) {
-                extraRenderingPanel.style.display = 'none';
+                renderOriginalHeader();
             }
         }
     });
@@ -677,10 +666,7 @@ function buildRecentContent(data) {
     let ul = document.createElement('ul');
     ul.className = 'recent_files';
     data.forEach((file) => {
-        if (file.type !== 'folder') {
-            let li = newFileElem(file);
-            ul.appendChild(li);
-        }
+        ul.appendChild(newFileElem(file));
     });
     let fileList = document.createElement('div');
     fileList.className = 'file_list';
@@ -708,13 +694,13 @@ function buildHomePage(pinnedBlock, recentBlock) {
     homePage.className = 'home_page';
     if (pinnedBlock) {
         let pinnedTitle = document.createElement('p');
-        pinnedTitle.innerHTML = '<i class="fa-solid fa-thumbtack"></i>  Pinned';
+        pinnedTitle.innerHTML = 'Pinned';
         homePage.appendChild(pinnedTitle);
         homePage.appendChild(pinnedBlock);
     }
     if (recentBlock) {
         let recentTitle = document.createElement('p');
-        recentTitle.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>  Recent files';
+        recentTitle.innerHTML = 'Recent';
         homePage.appendChild(recentTitle);
         homePage.appendChild(recentBlock);
     }
@@ -978,15 +964,13 @@ function addTextViewer(file) {
     })
 }
 
-function renderFileMover(file) {
+function fileMover(file) {
     let fileMover = document.createElement('div');
     fileMover.className = 'file_mover';
     let cancelButton = document.createElement('button');
     cancelButton.innerHTML = 'Cancel';
     cancelButton.addEventListener('click', () => {
-        extraPanelState = false;
-        extraRenderingPanel.innerHTML = '';
-        extraRenderingPanel.style.display = 'none';
+        renderOriginalHeader();
     });
     let selectButton = document.createElement('button');
     selectButton.innerHTML = 'Select';
@@ -1003,14 +987,16 @@ function renderFileMover(file) {
         }
         fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
-            extraPanelState = false;
-            extraRenderingPanel.innerHTML = '';
-            extraRenderingPanel.style.display = 'none';
-            showSnack('File Moved Successfully!', colorGreen, 'success');
             if (globalContextFolder) {
-                let view = document.querySelector('#folder-view');
-                view.appendChild(newFileElem(file));
+                if (document.querySelector(`#file-${file.hash}`)) {
+                    showSnack('File is already here!', colorOrange, 'info');
+                    renderOriginalHeader();
+                    return;
+                }   
+                showSnack('File Moved Successfully!', colorGreen, 'success');
+                document.querySelector('#folder-view').appendChild(newFileElem(file))
             } else {
+                renderOriginalHeader();
                 allFilesButton.click();
             }
         })
@@ -1020,8 +1006,107 @@ function renderFileMover(file) {
     fileMover.appendChild(cancelButton);
     fileMover.appendChild(p);
     fileMover.appendChild(selectButton);
-    extraRenderingPanel.innerHTML = '';
-    extraRenderingPanel.appendChild(fileMover);
-    extraRenderingPanel.style.display = 'flex';
-    extraPanelState = true;
+    return fileMover;
+}
+
+function renderOriginalHeader() {
+    globalMultiSelectBucket = [];
+    let header = document.querySelector('header');
+    header.style.paddingLeft = '10px';
+    header.style.paddingRight = '10px';
+    let icon = document.createElement('i');
+    icon.className = 'fa-solid fa-magnifying-glass';
+    let inputBar = document.createElement('input');
+    inputBar.type = 'text';
+    inputBar.placeholder = 'search files';
+    inputBar.spellcheck = false;
+    inputBar.autocomplete = 'on'; 
+    let inputTimer = null;
+    inputBar.addEventListener('input', (ev) => {
+        if (inputTimer) {
+            clearTimeout(inputTimer);
+        }
+        inputTimer = setTimeout(() => {
+            let query = ev.target.value;
+            if (query.length === 0) {
+                getContextOptionElem(globalContextOption).click();
+                return;
+            }
+            fetch(`/api/query`, {
+                method: "POST",
+                body: JSON.stringify({"name?contains": query}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                let resultsPage = document.createElement('div');
+                resultsPage.className = 'my_files';
+                if (!data) {
+                    mainSection.innerHTML = '';
+                    let p = document.createElement('p');
+                    let symbol = `<i class="fa-solid fa-circle-exclamation"></i> `;
+                    p.innerHTML = `${symbol} No results found for '${query}'`;
+                    p.style.color = "rgb(247, 70, 70)";
+                    resultsPage.appendChild(p);
+                    mainSection.appendChild(resultsPage);
+                    sidebarOptionSwitch();
+                    return;
+                }
+                data = data.filter((file) => {
+                    return !(file.type === 'folder');
+                });
+                let p = document.createElement('p');
+                p.innerHTML = `Search results for '${query}'`;
+                resultsPage.appendChild(p);
+                let fileList = document.createElement('div');
+                fileList.className = 'file_list';
+                let ul = document.createElement('ul');
+                ul.className = 'all_files';
+                data.forEach((file) => {
+                    ul.appendChild(newFileElem(file));
+                });
+                fileList.appendChild(ul);
+                resultsPage.appendChild(fileList);
+                mainSection.innerHTML = '';
+                mainSection.appendChild(resultsPage);
+                sidebarOptionSwitch();
+            })
+        }, 500);
+    });
+    let newFolderButton = document.createElement('button');
+    newFolderButton.innerHTML = '<i class="fa-solid fa-plus"></i>Folder';
+    newFolderButton.addEventListener('click', () => {
+        createFolder();
+    });
+    let newHiddenFileInput = document.createElement('input');
+    newHiddenFileInput.type = 'file';
+    newHiddenFileInput.multiple = true;
+    newHiddenFileInput.style.display = 'none';
+    let newFileButton = document.createElement('button');
+    newFileButton.innerHTML = '<i class="fa-solid fa-paperclip"></i>Upload';
+    newFileButton.addEventListener('click', () => {
+        newHiddenFileInput.click();
+    });
+    newHiddenFileInput.addEventListener('change', (ev) => {
+        queueButton.click();
+        for (let i = 0; i < ev.target.files.length; i++) {
+            upload(ev.target.files[i]);
+        }
+    });
+    header.innerHTML = '';
+    header.appendChild(icon);
+    header.appendChild(inputBar);
+    header.appendChild(newFolderButton);
+    header.appendChild(newFileButton);
+    header.appendChild(newHiddenFileInput);
+}
+
+function renderOtherHeader(elem){
+    switchToOriginalHeader = true;
+    let header = document.querySelector('header');
+    header.style.padding = '0p';
+    let wrapper = document.createElement('div');
+    wrapper.className = 'other';
+    header.innerHTML = '';
+    wrapper.appendChild(elem);
+    header.appendChild(wrapper);
 }

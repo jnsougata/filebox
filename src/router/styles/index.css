@@ -179,10 +179,10 @@ body {
     height: 60px;
     display: flex;
     flex-shrink: 0;
-    justify-content: space-between;
     align-items: center;
     padding-right: 10px;
     padding-left: 10px;
+    justify-content: space-between;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
 }
 .content > header > i {
@@ -220,17 +220,13 @@ body {
     font-size: 16px;
     margin-right: 5px;
 }
-.content > .extras {
+.content > header > .other {
     width: 100%;
-    height: 60px;
-    display: none;
-    flex-shrink: 0;
+    height: 100%;
+    display: flex;
     padding: 10px 20px;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-blackish);
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    z-index: 100;
 }
 
 @media screen and (max-width: 768px) {
@@ -252,9 +248,8 @@ body {
     .content > header > button {
         font-size: 14px;
     }
-    .content > .extras {
-        padding: 5px 10px;
-        height: 50px;
+    .content > header > .other {
+        padding: 0;
     }
 }
 
@@ -290,18 +285,22 @@ body {
     width: 100%;
     height: 60px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding-left: 20px;
     padding-right: 20px;
+    padding-left: 5px;
     cursor: pointer;
+    justify-content: space-between;
     border-bottom: 1px solid #ffffff0c;
 }
-.file_list > ul > li > i {
+.file_list > ul > li > .file_icon {
+    width: 60px;
+    height: 50px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 25px;
     color: #ccc;
-    margin-left: 6px;
-    width: 25px;
 }
 .file_list > ul > li > span {
     font-size: 15px;
@@ -319,7 +318,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
-    padding-left: 20px;
+    padding-left: 5px;
 }
 .file_list > ul > li > .info > p {
     max-width: 650px;
@@ -343,12 +342,10 @@ body {
     }
     .file_list > ul > li > .info {
         height: 50px;
-        padding-left: 10px;
     }
     .file_list > ul > li > .info > p {
         width: 230px;
         font-size: 12px;
-
     }
     .file_list > ul > li > span {
         font-size: 15px;
@@ -555,6 +552,13 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
     border-bottom: 1px solid #ffffff0c;
+}
+@media screen and (max-width: 768px) {
+    .my_files > p {
+        width: calc(100% - 10px);
+        height: 45px;
+        font-size: 16px;
+    }
 }
 
 .prompt {
@@ -926,7 +930,6 @@ body {
     align-items: center;
     justify-content: space-between;
 }
-
 .file_mover > button {
     display: flex;
     align-items: center;

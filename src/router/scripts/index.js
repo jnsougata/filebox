@@ -11,15 +11,12 @@ let globalContextFile = null;
 let globalContextFolder = null;
 let globalContextOption = null;
 let globalTrashFiles = null;
-let extraPanelState = false;
 let globalMultiSelectBucket = [];
-let globalMultiSelectBucketUpdate = true;
 let sidebar = document.querySelector('.sidebar');
 let blurLayer = document.querySelector('.blur-layer');
 let mainSection = document.querySelector('#main');
 let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('.bottom_option');
-let extraRenderingPanel = document.querySelector('.extras');
 
 let nativeFetch = window.fetch;
 window.fetch = async (...args) => {
@@ -74,17 +71,9 @@ function sidebarOptionSwitch() {
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
+    renderOriginalHeader();
     globalContextFolder = null;
     fileOptionPanel.style.display = 'none';
-    if (extraPanelState) {
-        extraRenderingPanel.style.display = 'flex';
-    } else {
-        extraRenderingPanel.style.display = 'none';
-    }
-    if (globalMultiSelectBucketUpdate) {
-        globalMultiSelectBucket = [];
-        globalMultiSelectBucketUpdate = false;
-    }
 }
 
 let floatingMenuButton = document.querySelector('.floating_menu');
@@ -102,23 +91,6 @@ floatingMenuButton.addEventListener('click', () => {
         floatingMenuButton.innerHTML = `<i class="fa-solid fa-times"></i>`;
         sidebarState = true;
     }
-});
-
-let uploadButton = document.querySelector('#upload-file');
-let fileInput = document.querySelector('#input-file');
-uploadButton.addEventListener('click', () => {
-    fileInput.click();
-});
-fileInput.addEventListener('change', () => {
-    queueButton.click();
-    for (let i = 0; i < fileInput.files.length; i++) {
-        upload(fileInput.files[i]);
-    }
-});
-
-let newFolderButton = document.querySelector('#new-folder');
-newFolderButton.addEventListener('click', () => {
-    createFolder();
 });
 
 let sidebarOptions = document.querySelectorAll('.sidebar_option');
@@ -139,7 +111,12 @@ for (let i = 0; i < sidebarOptions.length; i++) {
 let homeButton = document.querySelector('#home');
 homeButton.addEventListener('click', () => {
     globalContextOption = "home";
-    sidebarOptionSwitch();
+    globalContextFolder = null;
+    fileOptionPanel.style.display = 'none';
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
+    renderOriginalHeader();
     let pinnedBlock = null;
     let recentBlock = null;
     Promise.all([
@@ -174,9 +151,15 @@ homeButton.addEventListener('click', () => {
 
 let allFilesButton = document.querySelector('#my-files');
 allFilesButton.addEventListener('click', () => {
+    fileOptionPanel.style.display = 'none';
     globalContextOption = "all-files";
     globalContextFolder = null;
-    sidebarOptionSwitch();
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
+    if (globalMultiSelectBucket === 0) {
+        renderOriginalHeader();
+    }
     globalFolderQueue = [];
     fetch("/api/metadata")
     .then(response => response.json())
@@ -274,6 +257,7 @@ trashButton.addEventListener('click', () => {
     .then(data => {
         mainSection.innerHTML = '';
         if (!data) {
+            renderOriginalHeader();
             showSnack("There's nothing in the trash!", colorOrange, 'info');
             return;
         }
@@ -295,14 +279,7 @@ trashButton.addEventListener('click', () => {
         trashOptios.appendChild(p);
         let emptyTrash = document.createElement('button');
         emptyTrash.innerHTML = '<i class="fa-solid fa-trash"></i>';
-        if (data.length === 0) {
-            extraRenderingPanel.style.display = 'none';
-            showSnack("There's nothing in the trash!", colorOrange, 'info');
-        }
         emptyTrash.addEventListener('click', () => {
-            if (globalTrashFiles.length === 0) {
-                extraRenderingPanel.style.display = 'none';
-            }
             fetch('/api/bulk', {method: 'DELETE', body: JSON.stringify(globalTrashFiles)})
             .then(() => {
                 showSnack('Trash Emptied Successfully!', colorGreen, 'success');
@@ -312,74 +289,16 @@ trashButton.addEventListener('click', () => {
                 });
                 updateSpaceUsage(-totalSpaceFreed);
                 fileList.innerHTML = '';
-                extraRenderingPanel.style.display = 'none';
+                renderOriginalHeader();
             })
         });
-        if (data.length > 0) {
-            trashOptios.appendChild(emptyTrash);
-            extraRenderingPanel.innerHTML = '';
-            extraRenderingPanel.appendChild(trashOptios);
-            extraRenderingPanel.style.display = 'flex';
-            mainSection.appendChild(fileList);
-            extraPanelState = false;
-        }
+        trashOptios.appendChild(emptyTrash);
+        renderOtherHeader(trashOptios);
+        mainSection.appendChild(fileList);
     });
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }    
-});
-
-let searchBar = document.querySelector('#search-bar');
-let inputTimer = null;
-searchBar.addEventListener('input', () => {
-    if (inputTimer) {
-        clearTimeout(inputTimer);
-    }
-    inputTimer = setTimeout(() => {
-        let query = searchBar.value;
-        if (query.length === 0) {
-            getContextOptionElem(globalContextOption).click();
-            return;
-        }
-        fetch(`/api/query`, {
-            method: "POST",
-            body: JSON.stringify({"name?contains": query}),
-        })
-        .then(response => response.json())
-        .then(data => {
-            data = data.filter((file) => {
-                return !(file.type === 'folder');
-            });
-            let resultsPage = document.createElement('div');
-            resultsPage.className = 'my_files';
-            if (data.length > 0) {
-                let p = document.createElement('p');
-                p.innerHTML = `Search results for '${query}'`;
-                resultsPage.appendChild(p);
-                let fileList = document.createElement('div');
-                fileList.className = 'file_list';
-                let ul = document.createElement('ul');
-                ul.className = 'all_files';
-                data.forEach((file) => {
-                    ul.appendChild(newFileElem(file));
-                });
-                fileList.appendChild(ul);
-                resultsPage.appendChild(fileList);
-                mainSection.innerHTML = '';
-                mainSection.appendChild(resultsPage);
-                sidebarOptionSwitch();
-            } else {
-                mainSection.innerHTML = '';
-                let p = document.createElement('p');
-                let symbol = `<i class="fa-solid fa-circle-exclamation"></i> `;
-                p.innerHTML = `${symbol} No results found for '${query}'`;
-                p.style.color = "rgb(247, 70, 70)";
-                resultsPage.appendChild(p);
-                mainSection.appendChild(resultsPage);
-                sidebarOptionSwitch();
-            }
-        })
-    }, 500);
 });
 
 mainSection.addEventListener("dragover", (e) => {
@@ -416,6 +335,7 @@ function handleModalClose() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+    renderOriginalHeader();
     fetch("/api/consumption")
     .then(response => response.json())
     .then(data => {
