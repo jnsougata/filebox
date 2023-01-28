@@ -105,7 +105,7 @@ function handleTrashFileMenuClick(file) {
                 delete file.deleted;
             }
             fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
-            .then((resp) => {
+            .then(() => {
                 showSnack(`Restored ${file.name}`, colorGreen, 'success');
                 document.getElementById(`file-${file.hash}`).remove();
                 close.click();
