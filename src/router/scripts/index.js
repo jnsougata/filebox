@@ -10,6 +10,7 @@ let globalMediaBlob = null;
 let globalContextFile = null;
 let globalContextFolder = null;
 let globalContextOption = null;
+let isFileMoving = false;
 let globalTrashFiles = null;
 let globalMultiSelectBucket = [];
 let sidebar = document.querySelector('.sidebar');
@@ -157,7 +158,7 @@ allFilesButton.addEventListener('click', () => {
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
-    if (globalMultiSelectBucket === 0) {
+    if (!isFileMoving) {
         renderOriginalHeader();
     }
     globalFolderQueue = [];

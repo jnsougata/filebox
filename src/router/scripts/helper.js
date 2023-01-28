@@ -298,8 +298,9 @@ function handleFileMenuClick(file) {
     move.innerHTML = `<p>Move</p><span class="material-symbols-rounded">arrow_forward</span>`;
     move.addEventListener("click", () => {
         close.click();
-        allFilesButton.click();
         renderOtherHeader(fileMover(file));
+        isFileMoving = true;
+        allFilesButton.click();
     });
     if (file.type !== 'folder') {
         fileOptionPanel.appendChild(rename);
@@ -447,7 +448,7 @@ function newFileElem(file, isTrash = false) {
             let moveButton = document.createElement('button');
             moveButton.innerHTML = 'Move';
             moveButton.addEventListener("click", () => {
-                globalMultiSelectBucketUpdated = false;
+                isFileMoving = true;
                 allFilesButton.click();
                 let fileMover = document.createElement('div');
                 fileMover.className = 'file_mover';
@@ -476,10 +477,11 @@ function newFileElem(file, isTrash = false) {
                     fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
                     .then(() => {
                         showSnack('Files Moved Successfully!', colorGreen, 'success');
-                        renderOriginalHeader();
                         if (globalContextFolder) {
+                            renderOriginalHeader();
                             handleFolderClick(globalContextFolder);
                         } else {
+                            isFileMoving = false;
                             allFilesButton.click();
                         }
                     })
@@ -539,7 +541,7 @@ function newFileElem(file, isTrash = false) {
             return;
         } else {
             li.style.backgroundColor = "rgba(255, 255, 255, 0.055)";
-            fileIcon.innerHTML = `                                    <i class="fa-solid fa-square-check"></i>`;
+            fileIcon.innerHTML = `<i class="fa-solid fa-square-check"></i>`;
             let index = globalMultiSelectBucket.findIndex((f) => f.hash === file.hash);
             if (index === -1) {
                 globalMultiSelectBucket.push(file);
@@ -988,15 +990,15 @@ function fileMover(file) {
         fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             if (globalContextFolder) {
+                renderOriginalHeader();
                 if (document.querySelector(`#file-${file.hash}`)) {
                     showSnack('File is already here!', colorOrange, 'info');
-                    renderOriginalHeader();
                     return;
                 }   
                 showSnack('File Moved Successfully!', colorGreen, 'success');
                 document.querySelector('#folder-view').appendChild(newFileElem(file))
             } else {
-                renderOriginalHeader();
+                isFileMoving = false;
                 allFilesButton.click();
             }
         })
@@ -1010,6 +1012,7 @@ function fileMover(file) {
 }
 
 function renderOriginalHeader() {
+    isFileMoving = false;
     globalMultiSelectBucket = [];
     let header = document.querySelector('header');
     header.style.paddingLeft = '10px';
