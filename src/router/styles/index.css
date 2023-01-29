@@ -437,8 +437,8 @@ body {
 }
 
 .file_menu {
-    bottom: 0;
     right: 0;
+    bottom: 0;
     width: 500px;
     height: max-content;
     display: none;
@@ -447,9 +447,10 @@ body {
     align-items: center;
     background-color: #1a1c20;
     position: fixed;
+    border-radius:  20px 20px 0 0;
     z-index: 10000 !important;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
     animation: sildein 0.5s;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.425);
 }
 .file_menu > .file_menu_close {
     position: absolute;
@@ -472,6 +473,7 @@ body {
     align-items: center;
     padding-left: 20px;
     padding-right: 10px;
+    border-radius:  20px 20px 0 0;
     justify-content: space-between;
     background-color: #1d1f24;
 }

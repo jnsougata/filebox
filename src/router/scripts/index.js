@@ -19,7 +19,7 @@ let mainSection = document.querySelector('#main');
 let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('.bottom_option');
 
-let nativeFetch = window.fetch;
+const nativeFetch = window.fetch;
 window.fetch = async (...args) => {
     const response = await nativeFetch(...args);
     if (response.status === 502) {

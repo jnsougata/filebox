@@ -541,7 +541,7 @@ function newFileElem(file, isTrash = false) {
             return;
         } else {
             li.style.backgroundColor = "rgba(255, 255, 255, 0.055)";
-            fileIcon.innerHTML = `<i class="fa-solid fa-square-check"></i>`;
+            fileIcon.innerHTML = `<i class="fa-solid fa-square-check" style="color: var(--color-blueish)"></i>`;
             let index = globalMultiSelectBucket.findIndex((f) => f.hash === file.hash);
             if (index === -1) {
                 globalMultiSelectBucket.push(file);
