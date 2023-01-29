@@ -1041,6 +1041,9 @@ function renderOriginalHeader() {
             })
             .then(response => response.json())
             .then(data => {
+                if (window.innerWidth < 768) {
+                    sidebarEventState(false);
+                }
                 let resultsPage = document.createElement('div');
                 resultsPage.className = 'my_files';
                 if (!data) {
@@ -1051,7 +1054,7 @@ function renderOriginalHeader() {
                     p.style.color = "rgb(247, 70, 70)";
                     resultsPage.appendChild(p);
                     mainSection.appendChild(resultsPage);
-                    sidebarOptionSwitch();
+                    fileOptionPanel.style.display = 'none';
                     return;
                 }
                 data = data.filter((file) => {
@@ -1071,7 +1074,7 @@ function renderOriginalHeader() {
                 resultsPage.appendChild(fileList);
                 mainSection.innerHTML = '';
                 mainSection.appendChild(resultsPage);
-                sidebarOptionSwitch();
+                fileOptionPanel.style.display = 'none';
             })
         }, 500);
     });
