@@ -123,23 +123,22 @@ homeButton.addEventListener('click', () => {
     Promise.all([
         fetch("/api/query", {
             method: 'POST',
-            body: JSON.stringify({"pinned": true}),
+            body: JSON.stringify({"pinned": true, "deleted?ne": true}),
         })
         .then(response => response.json())
         .then(data => {
-            data = filterNonDeletedFiles(data);
-            if (data.length > 0) {
+            if (data) {
                 pinnedBlock = buildPinnedContent(data);
             }
         }),
         fetch("/api/metadata")
         .then(response => response.json())
         .then(data => {
-            data = filterNonDeletedFiles(data);
-            let sortedData = sortRecentFilesByTimeStamp(data);
-            sortedData = sortedData.slice(0, 9);
-            if (sortedData.length > 0) {
-                recentBlock = buildRecentContent(sortedData);
+            if (data) {
+                data = sortFileByTimestamp(data)
+                if (data.length > 0) {
+                    recentBlock = buildRecentUL(data.slice(0, 9));
+                }
             }
         })
     ])
@@ -165,9 +164,8 @@ allFilesButton.addEventListener('click', () => {
     fetch("/api/metadata")
     .then(response => response.json())
     .then(data => {
-        data = filterNonDeletedFiles(data);
-        let folders = [];
         let files = [];
+        let folders = [];
         data.forEach((file) => {
             if (file.type === 'folder') {
                 folders.push(file);
@@ -175,10 +173,8 @@ allFilesButton.addEventListener('click', () => {
                 files.push(file);
             }
         });
-        let allFilesData = folders.concat(files);
-        let allFiles = buildAllFilesList(allFilesData);
         mainSection.innerHTML = '';
-        mainSection.appendChild(buildAllFilesPage(allFiles));
+        mainSection.appendChild(buildAllFilesPage(buildAllFileUL(folders.concat(files))));
         updateFolderStats(folders);
         updatePromptFragment();
     })

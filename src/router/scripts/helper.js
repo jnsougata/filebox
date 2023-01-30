@@ -664,7 +664,7 @@ function buildPinnedContent(data) {
     return pinned;
 }
 
-function buildRecentContent(data) {
+function buildRecentUL(data) {
     let ul = document.createElement('ul');
     ul.className = 'recent_files';
     data.forEach((file) => {
@@ -676,7 +676,7 @@ function buildRecentContent(data) {
     return fileList;
 }
 
-function buildAllFilesList(data) {
+function buildAllFileUL(data) {
     let ul = document.createElement('ul');
     ul.className = 'all_files';
     data.forEach((file) => {
@@ -835,7 +835,7 @@ function dateStringToTimestamp(dateString) {
     return date.getTime();
 }
 
-function sortRecentFilesByTimeStamp(data) {
+function sortFileByTimestamp(data) {
     data = data.filter((file) => {
         return !(file.type === 'folder');
     });

@@ -28,6 +28,8 @@ micros:
   - name: api
     src: ./api/
     engine: custom
+    presets:
+      api_keys: true
     commands:
       - go get
       - go build main.go

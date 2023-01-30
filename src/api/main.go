@@ -47,7 +47,9 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 
 	case "GET":
 		w.Header().Set("Content-Type", "application/json")
-		resp := base.FetchUntilEnd(deta.NewQuery())
+		q := deta.NewQuery()
+		q.NotEquals("deleted", true)
+		resp := base.FetchUntilEnd(q)
 		items := resp.Data["items"]
 		ba, _ := json.Marshal(items)
 		_, _ = w.Write(ba)
@@ -238,7 +240,6 @@ func HandleSpaceUsage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	q := deta.NewQuery()
 	q.NotEquals("type", "folder")
-	q.NotEquals("deleted", true)
 	resp := base.FetchUntilEnd(q)
 	size := 0
 	files := resp.Data["items"].([]map[string]interface{})
