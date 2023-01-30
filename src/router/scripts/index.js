@@ -39,7 +39,7 @@ function filterNonDeletedFiles(files) {
 function getContextOptionElem(option) {
     let options = {
         "home" : homeButton,
-        "all-files" : allFilesButton,
+        "my-files" : myFilesButton,
         "pdfs" : pdfButton,
         "images" : imgButton,
         "videos" : videoButton,
@@ -149,11 +149,11 @@ homeButton.addEventListener('click', () => {
     });
 });
 
-let allFilesButton = document.querySelector('#my-files');
-allFilesButton.addEventListener('click', () => {
-    fileOptionPanel.style.display = 'none';
-    globalContextOption = "all-files";
+let myFilesButton = document.querySelector('#my-files');
+myFilesButton.addEventListener('click', () => {
+    globalContextOption = "my-files";
     globalContextFolder = null;
+    fileOptionPanel.style.display = 'none';
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
@@ -173,8 +173,9 @@ allFilesButton.addEventListener('click', () => {
                 files.push(file);
             }
         });
+        let myFiles = buildMyFilesBlock(buildAllFileUL(folders.concat(files)));
         mainSection.innerHTML = '';
-        mainSection.appendChild(buildAllFilesPage(buildAllFileUL(folders.concat(files))));
+        mainSection.appendChild(myFiles);
         updateFolderStats(folders);
         updatePromptFragment();
     })
@@ -194,55 +195,37 @@ queueButton.addEventListener('click', () => {
 let pdfButton = document.querySelector('#pdf');
 pdfButton.addEventListener('click', () => {
     globalContextOption = "pdfs";
-    renderCategory({"mime": "application/pdf"});
-    if (window.innerWidth < 768) {
-        sidebarEventState(false);
-    }
+    renderFilesByMime({"mime": "application/pdf"});
 });
 
 let docsButton = document.querySelector('#docs');
 docsButton.addEventListener('click', () => {
     globalContextOption = "docs";
-    renderCategory({"mime?contains": "text"});
-    if (window.innerWidth < 768) {
-        sidebarEventState(false);
-    }
+    renderFilesByMime({"mime?contains": "text"});
 });
 
 let imgButton = document.querySelector('#image');
 imgButton.addEventListener('click', () => {
     globalContextOption = "images";
-    renderCategory({"mime?contains": "image"});
-    if (window.innerWidth < 768) {
-        sidebarEventState(false);
-    }
+    renderFilesByMime({"mime?contains": "image"});
 });
 
 let audioButton = document.querySelector('#audio');
 audioButton.addEventListener('click', () => {
     globalContextOption = "audios";
-    renderCategory({"mime?contains": "audio"});
-    if (window.innerWidth < 768) {
-        sidebarEventState(false);
-    }
+    renderFilesByMime({"mime?contains": "audio"});
 });
 
 let videoButton = document.querySelector('#video');
 videoButton.addEventListener('click', () => {
     globalContextOption = "videos";
-    renderCategory({"mime?contains": "video"});
-    if (window.innerWidth < 768) {
-        sidebarEventState(false);
-    }
+    renderFilesByMime({"mime?contains": "video"});
 });
 
 let otherButton = document.querySelector('#others');
 otherButton.addEventListener('click', () => {
     globalContextOption = "others";
-    renderCategory({"mime?contains": "application", "mime?not_contains": "pdf"});
-    if (window.innerWidth < 768) {
-        sidebarEventState(false);
-    }
+    renderFilesByMime({"mime?contains": "application", "mime?not_contains": "pdf"});
 });
 
 let trashButton = document.querySelector('#trash');

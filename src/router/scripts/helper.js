@@ -300,7 +300,7 @@ function handleFileMenuClick(file) {
         close.click();
         renderOtherHeader(fileMover(file));
         isFileMoving = true;
-        allFilesButton.click();
+        myFilesButton.click();
     });
     if (file.type !== 'folder') {
         fileOptionPanel.appendChild(rename);
@@ -449,7 +449,7 @@ function newFileElem(file, isTrash = false) {
             moveButton.innerHTML = 'Move';
             moveButton.addEventListener("click", () => {
                 isFileMoving = true;
-                allFilesButton.click();
+                myFilesButton.click();
                 let fileMover = document.createElement('div');
                 fileMover.className = 'file_mover';
                 let cancelButton = document.createElement('button');
@@ -482,7 +482,7 @@ function newFileElem(file, isTrash = false) {
                             handleFolderClick(globalContextFolder);
                         } else {
                             isFileMoving = false;
-                            allFilesButton.click();
+                            myFilesButton.click();
                         }
                     })
                 });
@@ -730,7 +730,7 @@ function buildPrompt() {
         } else {
             globalContextFolder = null;
             globalFolderQueue.pop();
-            allFilesButton.click();
+            myFilesButton.click();
         }
     });
     prompt.appendChild(fragment);
@@ -739,12 +739,12 @@ function buildPrompt() {
     return prompt;
 }
 
-function buildAllFilesPage(allFilesBlock) {
-    let allFilesPage = document.createElement('div');
-    allFilesPage.className = 'my_files';
-    allFilesPage.appendChild(buildPrompt());
-    allFilesPage.appendChild(allFilesBlock);
-    return allFilesPage;
+function buildMyFilesBlock(allFilesBlock) {
+    let myFiles = document.createElement('div');
+    myFiles.className = 'my_files';
+    myFiles.appendChild(buildPrompt());
+    myFiles.appendChild(allFilesBlock);
+    return myFiles;
 }
 
 function updatePromptFragment(text = '~') {
@@ -812,11 +812,17 @@ function showSnack(text, color=colorGreen, type='success') {
     }, 3000);
 }
 
-function renderCategory(query) {
+function renderFilesByMime(query) {
     sidebarOptionSwitch();
+    query['deleted?ne'] = true;
     fetch("/api/query", {method: "POST", body: JSON.stringify(query)})
     .then(response => response.json())
     .then(data => {
+        mainSection.innerHTML = '';
+        if (!data) {
+            showSnack('No files found of this type', colorOrange, 'warning');
+            return;
+        }
         let fileList = document.createElement('div');
         fileList.className = 'file_list';
         let ul = document.createElement('ul');
@@ -825,7 +831,6 @@ function renderCategory(query) {
             ul.appendChild(newFileElem(file));
         });
         fileList.appendChild(ul);
-        mainSection.innerHTML = '';
         mainSection.appendChild(fileList);
     });
 }
@@ -999,7 +1004,7 @@ function fileMover(file) {
                 document.querySelector('#folder-view').appendChild(newFileElem(file))
             } else {
                 isFileMoving = false;
-                allFilesButton.click();
+                myFilesButton.click();
             }
         })
     });
