@@ -69,7 +69,7 @@ function formatDateString(date) {
 
 function updateSpaceUsage(incr) {
     globalConsumption += incr;
-    totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${handleSizeUnit(globalConsumption)}`;
+    totalSizeWidget.innerHTML = `${handleSizeUnit(globalConsumption)} Used`;
 }
 
 function handleTrashFileMenuClick(file) {

@@ -4,6 +4,7 @@ const colorBlue = "#2E83F3";
 const colorOrange = "#FF6700";
 let sidebarState = false;
 let globalSecretKey = null;
+let globalUsername = null;
 let globalFolderQueue = [];
 let globalConsumption = 0;
 let globalMediaBlob = null;
@@ -17,7 +18,7 @@ let sidebar = document.querySelector('.sidebar');
 let blurLayer = document.querySelector('.blur-layer');
 let mainSection = document.querySelector('#main');
 let taskQueueElem = document.querySelector('.queue');
-let totalSizeWidget = document.querySelector('.bottom_option');
+let totalSizeWidget = document.querySelector('#storage');
 
 const nativeFetch = window.fetch;
 window.fetch = async (...args) => {
@@ -67,6 +68,18 @@ function sidebarEventState(enable = true) {
         sidebarState = true;
     }
 }
+
+let userExpandButton = document.querySelector('#user-settings');
+userExpandButton.addEventListener('click', (ev) => {
+    let settings = document.querySelector('.settings');
+    if (settings.style.display === 'flex') {
+        settings.style.display = 'none';
+        ev.target.innerHTML = `expand_less`;
+    } else {
+        settings.style.display = 'flex';
+        ev.target.innerHTML = `expand_more`;
+    }
+});
 
 function sidebarOptionSwitch() {
     if (window.innerWidth < 768) {
@@ -320,14 +333,23 @@ window.addEventListener('DOMContentLoaded', () => {
     .then(response => response.json())
     .then(data => {
         globalConsumption = data.size;
-        let totalSizeString = handleSizeUnit(globalConsumption);
-        totalSizeWidget.innerHTML = `<i class="fa-solid fa-database"></i>Used ${totalSizeString}`;
+        totalSizeWidget.innerHTML = `${handleSizeUnit(globalConsumption)} Used`;
     })
     homeButton.click();
-    fetch("/api/secret")
-    .then(response => response.text())
+    fetch('/api/env', {
+        method: 'POST', 
+        body: JSON.stringify({
+            "names": ["DETA_API_KEY", "DETA_SPACE_APP_HOSTNAME"]
+        })
+    })
+    .then(response => response.json())
     .then(data => {
-        globalSecretKey = data;
+        globalSecretKey = data.DETA_API_KEY;
+        globalUsername = data.DETA_SPACE_APP_HOSTNAME.split('.')[1];
+        let userName = document.querySelector('#username');
+        userName.innerHTML = globalUsername;
+        let userIcon = document.querySelector('#user-icon')
+        userIcon.src = `https://api.dicebear.com/5.x/fun-emoji/svg?seed=${globalUsername}`
     })
 });
 

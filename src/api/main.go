@@ -19,7 +19,7 @@ var drive = d.Drive("filebox")
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/secret", HandleSecret).Methods("GET")
+	r.HandleFunc("/env", HandleMicroEnv).Methods("POST")
 	r.HandleFunc("/metadata", HandleMetadata).Methods("GET", "POST", "DELETE", "PATCH")
 	r.HandleFunc("/folder", HandleFolder).Methods("POST")
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
@@ -246,9 +246,7 @@ func HandleSpaceUsage(w http.ResponseWriter, r *http.Request) {
 	for _, file := range files {
 		size += int(file["size"].(float64))
 	}
-	ba, _ := json.Marshal(map[string]interface{}{
-		"size": size,
-	})
+	ba, _ := json.Marshal(map[string]interface{}{"size": size})
 	w.WriteHeader(resp.StatusCode)
 	_, _ = w.Write(ba)
 }
@@ -376,4 +374,20 @@ func HandleBulkFileOps(w http.ResponseWriter, r *http.Request) {
 		base.Put(files...)
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func HandleMicroEnv(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var body map[string]interface{}
+	_ = json.NewDecoder(r.Body).Decode(&body)
+	names := body["names"].([]interface{})
+	vars := map[string]interface{}{}
+	for _, name := range names {
+		if name.(string) != "GLOBAL_COLLECTION_KEY" {
+			vars[name.(string)] = os.Getenv(name.(string))
+		}
+	}
+	ba, _ := json.Marshal(vars)
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(ba)
 }

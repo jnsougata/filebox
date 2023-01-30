@@ -64,7 +64,6 @@ body {
     overflow-y: auto;
     box-shadow: 0 0 1px 0 rgba(204, 204, 204, 0.521);
 }
-
 .sidebar > .sidebar_logo {
     width: 100%;
     height: 150px;
@@ -72,20 +71,18 @@ body {
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    flex-shrink: 0;
 }
-
 .sidebar > .sidebar_logo > img {
     width: 40px;
     height: 40px;
     margin-right: 10px;
 }
-
 .sidebar > .sidebar_logo > h3 {
     font-size: 20px;
     font-weight: 600;
     color: white;
 }
-
 .sidebar > .sidebar_option {
     width: 100%;
     height: 42px;
@@ -96,7 +93,6 @@ body {
     cursor: pointer;
     border-left: 5px solid transparent;
 }
-
 .sidebar > .sidebar_option > .icon {
     width: 40px;
     height: 40px;
@@ -105,34 +101,90 @@ body {
     align-items: center;
     margin-left: 15px;
 }
-
 .sidebar > .sidebar_option > .icon > i {
     font-size: 16px;
     color: #ccc;
     z-index: 2;
 }
-
 .sidebar > .sidebar_option:hover {
     background-color: #ffffff1c;
 }
-
-.sidebar > .bottom_option {
+.sidebar > .user {
     bottom: 0;
     position: fixed;
     width: 250px;
     height: 60px;
     display: flex;
-    justify-content: center;
+    padding-left: 20px;
+    padding-right: 20px;
     align-items: center;
-    background-color: #ffffff0c;
-    font-size: 16px;
+    justify-content: flex-end;
+    background-color: #202023;
+    z-index: 10;
 }
-
-.sidebar > .bottom_option > i {
-    font-size: 16px;
-    color: rgb(255, 71, 71);
-    z-index: 2;
+.sidebar > .user > img {
+    width: 35px;
+    height: 35px;
+    object-fit: cover;
+    position:  absolute;
+    left: 15px;
+    border-radius: 50%;
+}
+.sidebar > .user > p {
+    max-width: 125px;
+    font-size: 15px;
+    color: white;
+    padding: 5px 14px;
+    border-radius: 16px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: end;
+    background-color: var(--color-blackish-hover);
     margin-right: 10px;
+}
+.sidebar > .user > span {
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+    background-color: var(--color-blackish-hover);
+    padding: 8px;
+    border-radius: 50%;
+}
+.sidebar > .settings {
+    bottom: 0;
+    z-index: 10;
+    width: 230px;
+    height: 100px;
+    position: fixed;
+    margin-bottom: 70px;
+    background-color: #202023;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px;
+    flex-shrink: 0;
+}
+.sidebar > .settings > ul {
+    width: 100%;
+    height: 100%;
+    list-style: none;
+}
+.sidebar > .settings > ul > li {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--color-blackish-hover);
 }
 
 .floating_menu {
@@ -141,6 +193,7 @@ body {
     right: 20px;
     width: 40px;
     height: 40px;
+    z-index: 100;
     background-color: #065bc7;
     border-radius: 50%;
     display: flex;
@@ -148,7 +201,6 @@ body {
     align-items: center;
     cursor: pointer;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    z-index: 100;
 }
 
 .floating_menu > i {
