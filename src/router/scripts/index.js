@@ -308,16 +308,6 @@ mainSection.addEventListener("drop", (e) => {
     }
 });
 
-let modal = document.querySelector('.modal');
-let modalContent = document.querySelector('.modal_content');
-modalContent.addEventListener('click', () => {
-    handleModalClose();
-});
-let modalCloseButton = document.querySelector('.modal_close');
-modalCloseButton.addEventListener('click', () => {
-    handleModalClose();
-});
-
 function handleModalClose() {
     modal.style.display = 'none';
     modalContent.innerHTML = '';
@@ -326,6 +316,22 @@ function handleModalClose() {
         globalMediaBlob = null;
     }
 }
+
+let modal = document.querySelector('.modal');
+let modalContent = document.querySelector('.modal_content');
+let modalCloseButton = document.querySelector('.modal_close');
+modalCloseButton.addEventListener('click', () => {
+    handleModalClose();
+});
+
+let discoveryButton = document.querySelector('#discovery');
+discoveryButton.addEventListener('click', () => {
+    // modalContent.innerHTML = '';
+    // let discoveryModal = document.createElement('div');
+    // discoveryModal.className = 'discovery';
+    // modalContent.appendChild(discoveryModal);
+    modal.style.display = 'block';
+});
 
 window.addEventListener('DOMContentLoaded', () => {
     renderOriginalHeader();
@@ -349,7 +355,7 @@ window.addEventListener('DOMContentLoaded', () => {
         let userName = document.querySelector('#username');
         userName.innerHTML = globalUsername;
         let userIcon = document.querySelector('#user-icon')
-        userIcon.src = `https://api.dicebear.com/5.x/fun-emoji/svg?seed=${globalUsername}`
+        userIcon.src = `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=${globalUsername}`
     })
 });
 

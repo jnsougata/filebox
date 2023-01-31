@@ -28,7 +28,30 @@
             <div class="modal_close">
                 <i class="fa-solid fa-times"></i>
             </div>
-            <div class="modal_content"></div>
+            <div class="modal_content">
+                <div class="discovery" style="color: white;">
+                    <h4 style="color: var(--color-blueish)">What is <b>Discovery</b>?</h4>
+                    <p>
+                        Discovery is a feature that allows you to share specific files with other users on Discovery.
+                        They will have read-only access to the file, and you can revoke access anytime.
+                        Any shared file will not be stored on the receiver's drive, so it will not take up any space.
+                        It's just a reference to the file on the owner's drive. 
+                    </p>
+                    <h4 style="color: var(--color-blueish)">What are the concerns?</h4>
+                    <p>
+                        To make this possible, we have to store your instance's API key in our global user collection in encrypted form.
+                        This API key is used to access your drive and perform limited operations on it. We tried to make it as secure as possible.
+                        Heavy server-side checks are performed to ensure that a file is served with proper authentication and to a valid user or users.
+                    </p>
+                    <div>
+                        <p><input type="checkbox" id="discovery-consent" /> I understand the concerns and I want to enable Discovery*</p>
+                    </div>
+                    <div>
+                        <input type="password" id="discovery-consent-key" placeholder="Enter your API key"/>
+                        <button id="discovery-consent-btn">Enable Discovery</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="floating_menu">
             <i class="fa-solid fa-bars"></i>
@@ -110,7 +133,7 @@
                 </div>
                 <div class="settings">
                     <ul>
-                        <li id="settings">
+                        <li id="discovery">
                             Join Discovery
                             <span class="material-symbols-rounded">
                                 public

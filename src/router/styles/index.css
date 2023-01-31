@@ -1052,3 +1052,77 @@ body {
         margin-right: none;
     }
 }
+
+.discovery {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-direction: column;
+    padding: 200px;
+    background-color: var(--color-blackish);
+    border-radius: 10px;
+}
+.discovery > p {
+    font-size: 18px;
+    color: white;
+    margin-bottom: 5px;
+}
+.discovery > div {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+.discovery > div > input[type="password"] {
+    width: 100%;
+    height: 40px;
+    border: none;
+    padding: 0 10px;
+    font-size: 16px;
+    color: #ccc;
+    background-color: var(--color-blackish-light);
+    outline: none;
+}
+.discovery > div > button {
+    width: fit-content;
+    height: 40px;
+    border: none;
+    padding: 0 10px;
+    font-size: 16px;
+    color: white;
+    background-color: var(--color-blueish);
+    cursor: pointer;
+    outline: none;
+    white-space: nowrap;
+    margin-left: 10px;
+}
+@media screen and (max-width: 768px) {
+    .discovery {
+        padding: 20px;
+    }
+    .discovery > p {
+        font-size: 13px;
+    }
+    .discovery > div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .discovery > div > input[type="password"] {
+        margin-top: 20px;
+        border-radius: 5px;
+        padding: 5px 10px;
+    }
+    .discovery > div > button {
+        margin-left: 0;
+        margin-top: 10px;
+        border-radius: 5px;
+        padding: 5px 10px;
+    }
+}
