@@ -2,6 +2,7 @@ const colorRed = "#CB1446";
 const colorGreen = "#2AA850";
 const colorBlue = "#2E83F3";
 const colorOrange = "#FF6700";
+let runningTaskCount = 0;
 let sidebarState = false;
 let globalSecretKey = null;
 let globalUsername = null;
@@ -12,6 +13,7 @@ let globalContextFile = null;
 let globalContextFolder = null;
 let globalContextOption = null;
 let isFileMoving = false;
+let isUserSubscribed = false;
 let globalTrashFiles = null;
 let globalMultiSelectBucket = [];
 let sidebar = document.querySelector('.sidebar');
@@ -201,11 +203,33 @@ queueModalCloseButton.addEventListener('click', () => {
 });
 let queueButton = document.querySelector('#queue');
 queueButton.addEventListener('click', () => {
+    if (runningTaskCount === 0) {
+        showSnack("No tasks running", colorOrange, 'info')
+        return;
+    }
     globalContextOption = "queue";
     queueModal.style.display = 'block';
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
 });
 
-let pdfButton = document.querySelector('#pdf');
+let isCategoryExpanded = false;
+let categoryItems = document.querySelector('#category-items');
+let categoryExpnadButton = document.querySelector('#category-controller');
+categoryExpnadButton.addEventListener('click', () => {
+    if (isCategoryExpanded) {
+        categoryExpnadButton.innerHTML = `<i class="fa-solid fa-chevron-right"></i>`;
+        categoryItems.style.display = 'none';
+        isCategoryExpanded = false;
+    } else {
+        categoryExpnadButton.innerHTML = `<i class="fa-solid fa-chevron-down"></i>`;
+        categoryItems.style.display = 'block';
+        isCategoryExpanded = true;
+    }
+});
+
+let pdfButton = document.querySelector('#pdfs');
 pdfButton.addEventListener('click', () => {
     globalContextOption = "pdfs";
     renderFilesByMime({"mime": "application/pdf"});
@@ -217,19 +241,19 @@ docsButton.addEventListener('click', () => {
     renderFilesByMime({"mime?contains": "text"});
 });
 
-let imgButton = document.querySelector('#image');
+let imgButton = document.querySelector('#images');
 imgButton.addEventListener('click', () => {
     globalContextOption = "images";
     renderFilesByMime({"mime?contains": "image"});
 });
 
-let audioButton = document.querySelector('#audio');
+let audioButton = document.querySelector('#audios');
 audioButton.addEventListener('click', () => {
     globalContextOption = "audios";
     renderFilesByMime({"mime?contains": "audio"});
 });
 
-let videoButton = document.querySelector('#video');
+let videoButton = document.querySelector('#videos');
 videoButton.addEventListener('click', () => {
     globalContextOption = "videos";
     renderFilesByMime({"mime?contains": "video"});
@@ -326,10 +350,13 @@ modalCloseButton.addEventListener('click', () => {
 
 let discoveryButton = document.querySelector('#discovery');
 discoveryButton.addEventListener('click', () => {
-    // modalContent.innerHTML = '';
-    // let discoveryModal = document.createElement('div');
-    // discoveryModal.className = 'discovery';
-    // modalContent.appendChild(discoveryModal);
+    if (isUserSubscribed) {
+        showSnack('Are you sure to disable?', colorOrange, 'info');
+        return;
+    }
+    modalContent.innerHTML = '';
+    let content = buildDiscoveryModal();
+    modalContent.appendChild(content);
     modal.style.display = 'block';
 });
 
@@ -356,6 +383,17 @@ window.addEventListener('DOMContentLoaded', () => {
         userName.innerHTML = globalUsername;
         let userIcon = document.querySelector('#user-icon')
         userIcon.src = `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=${globalUsername}`
+        fetch(`/global/has/${globalUsername}`)
+        .then((resp) => {
+            let discoveryElem = document.querySelector('#discovery');
+            if (resp.status === 200) {
+                isUserSubscribed = true;
+                discoveryElem.innerHTML = `Leave Discovery <span class="material-symbols-rounded">public_off</span>`;
+            } else if (resp.status === 404) {
+                isUserSubscribed = false;
+                discoveryElem.innerHTML = `Join Discovery <span class="material-symbols-rounded">public</span>`;
+            }
+        })
     })
 });
 

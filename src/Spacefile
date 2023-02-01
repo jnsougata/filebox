@@ -1,0 +1,48 @@
+v: 1
+icon: ./router/assets/icon.png
+micros:
+
+  - name: router
+    src: ./router/
+    engine: custom
+    primary: true
+    commands:
+      - go get
+      - go build main.go
+    include:
+      - main
+      - assets/
+      - styles/
+      - scripts/
+      - static/
+    run: ./main
+    public_routes:
+      - "/embed/*"
+      - "/assets/*"
+      - "/shared/*"
+      - "/styles/*"
+      - "/scripts/*"
+      - "/api/embed/*"
+      - "/api/shared/*"
+  
+  - name: api
+    src: ./api/
+    engine: custom
+    presets:
+      api_keys: true
+    commands:
+      - go get
+      - go build main.go
+    include:
+      - main
+    run: ./main
+    path: api
+
+  - name: global
+    src: ./global/
+    engine: custom
+    include:
+      - main
+    run: ./main
+    path: global
+    

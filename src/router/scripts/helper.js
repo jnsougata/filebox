@@ -148,6 +148,38 @@ function handleFileMenuClick(file) {
     let fileNameElem = document.createElement("p");
     fileNameElem.innerHTML = file.name;
     title.appendChild(fileNameElem);
+    let bookmark = document.createElement("i");
+    if (file.pinned) {
+        bookmark.className = `fa-solid fa-bookmark`;
+    } else {
+        bookmark.className = `fa-regular fa-bookmark`;
+    }
+    bookmark.addEventListener("click", () => {
+        if (file.pinned) {
+            fetch(`/api/pin/${file.hash}`, {method: "DELETE"})
+            .then(() => {
+                showSnack(`Unpinned successfully!`, colorOrange, 'info');
+                let card = document.getElementById(`card-${file.hash}`);
+                if (card) {
+                    card.remove();
+                }
+                bookmark.className = `fa-regular fa-bookmark`;
+                delete file.pinned;
+            })
+        } else {
+            fetch(`/api/pin/${file.hash}`, {method: "POST"})
+            .then(() => {
+                showSnack(`Pinned successfully!`, colorGreen, 'success');
+                let pinnedSection = document.querySelector('.pinned');
+                if (pinnedSection) {
+                    pinnedSection.appendChild(newPinnedElem(file));
+                }
+                bookmark.className = `fa-solid fa-bookmark`;
+                file.pinned = true;
+            })
+        }
+    });
+    title.appendChild(bookmark);
     let visibility = document.createElement("i");
     if (file.access === "private") {
         visibility.className = `fa-solid fa-eye-slash`;
@@ -192,26 +224,16 @@ function handleFileMenuClick(file) {
     });
     title.appendChild(close);
     fileOptionPanel.appendChild(title);
+    let send = document.createElement("div");
+    send.className = "file_menu_option";
+    send.innerHTML = `<p>Send</p><span class="material-symbols-rounded">send</span>`;
+    if (file.type !== "folder") {
+        send.addEventListener("click", () => {
+            
+        });
+        fileOptionPanel.appendChild(send);
+    }
     let pin = document.createElement("div");
-    pin.className = "file_menu_option";
-    pin.innerHTML = `<p>Pin</p><span class="material-symbols-rounded">push_pin</span>`;
-    pin.addEventListener("click", () => {
-        let exists = document.getElementById(`card-${file.hash}`);
-        if (exists) {
-            showSnack(`File already pinned!`, colorOrange, 'warning');
-            return;
-        }
-        fetch(`/api/pin/${file.hash}`, {method: "POST"})
-        .then(() => {
-            showSnack(`File pinned successfully!`, colorGreen, 'success');
-            close.click();
-            let pinnedSection = document.querySelector('.pinned');
-            if (pinnedSection) {
-                pinnedSection.appendChild(newPinnedElem(file));
-            }
-        })
-    });
-    fileOptionPanel.appendChild(pin);
     let rename = document.createElement("div");
     rename.className = "file_menu_option";
     rename.innerHTML = `<p>Rename</p><span class="material-symbols-rounded">edit</span>`;
@@ -265,7 +287,7 @@ function handleFileMenuClick(file) {
     });
     let share = document.createElement("div");
     share.className = "file_menu_option";
-    share.innerHTML = `<p>Share</p><span class="material-symbols-rounded">link</span>`;
+    share.innerHTML = `<p>Share Link</p><span class="material-symbols-rounded">link</span>`;
     share.addEventListener("click", () => {
         if (file.access === "private") {
             showSnack(`Make file public to share via link`, colorOrange, 'warning');
@@ -712,13 +734,10 @@ function buildHomePage(pinnedBlock, recentBlock) {
 function buildPrompt() {
     let prompt = document.createElement('div');
     prompt.className = 'prompt';
-    let arrow = document.createElement('div');
-    arrow.className = 'arrow';
-    let fragment = document.createElement('div');
+    let fragment = document.createElement('p');
     fragment.className = 'fragment';
-    let backButton = document.createElement('div');
-    backButton.className = 'back';
-    backButton.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+    let backButton = document.createElement('i');
+    backButton.className = 'fa-solid fa-chevron-left';
     backButton.addEventListener('click', () => {
         if (globalFolderQueue.length === 0) {
             globalContextFolder = null;
@@ -734,7 +753,6 @@ function buildPrompt() {
         }
     });
     prompt.appendChild(fragment);
-    prompt.appendChild(arrow);
     prompt.appendChild(backButton);
     return prompt;
 }
@@ -1026,7 +1044,7 @@ function renderOriginalHeader() {
     icon.className = 'fa-solid fa-magnifying-glass';
     let inputBar = document.createElement('input');
     inputBar.type = 'text';
-    inputBar.placeholder = 'search files';
+    inputBar.placeholder = 'Search in Drive';
     inputBar.spellcheck = false;
     inputBar.autocomplete = 'on'; 
     let inputTimer = null;
@@ -1114,10 +1132,83 @@ function renderOriginalHeader() {
 function renderOtherHeader(elem){
     switchToOriginalHeader = true;
     let header = document.querySelector('header');
-    header.style.padding = '0p';
+    header.style.padding = '0px';
     let wrapper = document.createElement('div');
     wrapper.className = 'other';
     header.innerHTML = '';
     wrapper.appendChild(elem);
     header.appendChild(wrapper);
+}
+
+function buildDiscoveryModal() {
+    let discovery = document.createElement('div');
+    discovery.className = 'discovery';
+    let h4a = document.createElement('h4');
+    h4a.innerHTML = `What is 'Discovery'?`;
+    h4a.style.color = 'var(--color-blueish)';
+    let pa = document.createElement('p');
+    pa.innerHTML = `
+        Discovery is a feature that allows you to share specific files with other users on Discovery.
+        They will have read-only access to the file, and you can revoke access anytime.
+        Any shared file will not be stored on the receiver's drive, so it will not take up any space.
+        It's just a reference to the file on the owner's drive. 
+    `;
+    let h4b = document.createElement('h4');
+    h4b.innerHTML = `What are the concerns?`;
+    h4b.style.color = 'var(--color-blueish)';
+    let pb = document.createElement('p');
+    pb.innerHTML = `
+        To make this possible, we have to store your instance's API key in our global user collection.
+        This API key is used to access your drive and perform limited operations on it. We tried to make it as secure as possible.
+        Heavy server-side checks are performed to ensure that a file is served with proper authentication and to a valid user or users.
+    `;
+    let consentDiv = document.createElement('div');
+    let consentP = document.createElement('p');
+    consentP.innerHTML = `<input type="checkbox" id="discovery-consent" /> I understand the concerns and I want to enable Discovery*`;
+    consentDiv.appendChild(consentP);
+    let inputDiv = document.createElement('div');
+    let apiKeyInput = document.createElement('input');
+    apiKeyInput.type = 'password';
+    let enableButton = document.createElement('button');
+    enableButton.innerHTML = 'Enable Discovery';
+    enableButton.addEventListener('click', () => {
+        if (!document.querySelector('#discovery-consent').checked) {
+            showSnack('Please check the box to enable Discovery', colorOrange, 'warning');
+            return;
+        }
+        let apiKey = apiKeyInput.value;
+        if (apiKey.length < 15) {
+            showSnack('Invalid API key', colorOrange, 'warning');
+            return;
+        }
+        fetch('/global/users', {
+            method: 'POST',
+            body: JSON.stringify({
+                "enabled": true,
+                "api_key": apiKey,
+                "name": globalUsername,
+                "pending": {"sent": {}, "received": {}},
+            }),
+        })
+        .then((res) => {
+            if (res.status === 201) {
+                isUserSubscribed = true;
+                showSnack('Discovery enabled', colorGreen, 'success');
+                modalCloseButton.click();
+                let discoveryElem = document.querySelector('#discovery');
+                discoveryElem.innerHTML = `Leave Discovery <span class="material-symbols-rounded">public_off</span>`;
+            } else {
+                showSnack('Something went wrong! Please try again.', colorRed, 'error');
+            }
+        })
+    });
+    inputDiv.appendChild(apiKeyInput);
+    inputDiv.appendChild(enableButton);
+    discovery.appendChild(h4a);
+    discovery.appendChild(pa);
+    discovery.appendChild(h4b);
+    discovery.appendChild(pb);
+    discovery.appendChild(consentDiv);
+    discovery.appendChild(inputDiv);
+    return discovery;
 }

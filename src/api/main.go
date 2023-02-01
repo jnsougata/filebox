@@ -32,6 +32,7 @@ func main() {
 	r.HandleFunc("/file/access", HandleFileAccess).Methods("POST")
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
 	r.HandleFunc("/bulk", HandleBulkFileOps).Methods("DELETE", "PATCH")
+	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }

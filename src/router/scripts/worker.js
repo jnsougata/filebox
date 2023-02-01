@@ -4,6 +4,12 @@ function randId() {
     ).join('');
 }
 
+function closeQueue() {
+    if (runningTaskCount === 0) {
+        queueModalCloseButton.click();
+    }
+}
+
 function upload(file) {
     let header = {"X-Api-Key": globalSecretKey, "Content-Type": file.type}
     let hash = randId();
@@ -29,6 +35,7 @@ function upload(file) {
         showSnack(`Uploading ${file.name}`, colorBlue, 'info');
         let content = ev.target.result;
         prependQueueElem(body, true)
+        runningTaskCount ++;
         let nameFragments = file.name.split('.');
         let saveAs = "";
         if (nameFragments.length > 1) {
@@ -57,6 +64,8 @@ function upload(file) {
                         getContextOptionElem(globalContextOption).click();
                     }
                     updateSpaceUsage(file.size);
+                    runningTaskCount --;
+                    closeQueue();
                 })
             })
         } else {
@@ -124,6 +133,8 @@ function upload(file) {
                             headers: header
                         })
                     }
+                    runningTaskCount --;
+                    closeQueue();
                 })
             })
         }
@@ -134,6 +145,7 @@ function upload(file) {
 function download(file) {
     showSnack(`Downloading ${file.name}`, colorGreen, 'info');
     prependQueueElem(file, false);
+    runningTaskCount ++;
     let header = {"X-Api-Key": globalSecretKey}
     let projectId = globalSecretKey.split("_")[0];
     const ROOT = 'https://drive.deta.sh/v1';
@@ -178,6 +190,8 @@ function download(file) {
         bar.style.width = "100%";
         percentageElem.innerHTML = "100%";
         showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
+        runningTaskCount --;
+        closeQueue();
         a.click();
     })
     .catch((err) => console.error(err));
