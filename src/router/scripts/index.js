@@ -5,7 +5,7 @@ const colorOrange = "#FF6700";
 let runningTaskCount = 0;
 let sidebarState = false;
 let globalSecretKey = null;
-let globalUsername = null;
+let globalUserId = null;
 let globalFolderQueue = [];
 let globalConsumption = 0;
 let globalMediaBlob = null;
@@ -51,6 +51,7 @@ function getContextOptionElem(option) {
         "queue" : queueButton,
         "others" : otherButton,
         "trash": trashButton,
+        "shared": sharedButton,
     }
     return options[option];
 }
@@ -193,6 +194,34 @@ myFilesButton.addEventListener('click', () => {
         mainSection.appendChild(myFiles);
         updateFolderStats(folders);
         updatePromptFragment();
+    })
+});
+
+let sharedButton = document.querySelector('#shared');
+sharedButton.addEventListener('click', () => {
+    globalContextOption = "shared";
+    if (window.innerWidth < 768) {
+        sidebarEventState(false);
+    }
+    if (!isFileMoving) {
+        renderOriginalHeader();
+    }
+    if (!isUserSubscribed) {
+        showSnack("Enable discovery to see shared files", colorOrange, 'info');
+        return;
+    }
+    mainSection.innerHTML = '';
+    fetch(`/global/pending/${globalUserId}`)
+    .then((resp) => {
+        if (resp.status === 200) {
+            return resp.json();
+        }
+        return [];
+    })
+    .then(data => {
+        if (data) {
+            appnedPendingFiles(data);
+        }
     })
 });
 
@@ -370,20 +399,18 @@ window.addEventListener('DOMContentLoaded', () => {
     })
     homeButton.click();
     fetch('/api/env', {
-        method: 'POST', 
-        body: JSON.stringify({
-            "names": ["DETA_API_KEY", "DETA_SPACE_APP_HOSTNAME"]
-        })
+        method: 'POST',
+        body: JSON.stringify({"names": ["DETA_API_KEY"]})
     })
     .then(response => response.json())
     .then(data => {
         globalSecretKey = data.DETA_API_KEY;
-        globalUsername = data.DETA_SPACE_APP_HOSTNAME.split('.')[1];
+        globalUserId = /-[\d]-(.*?)\./.exec(window.location.hostname)[1];
         let userName = document.querySelector('#username');
-        userName.innerHTML = globalUsername;
+        userName.innerHTML = globalUserId;
         let userIcon = document.querySelector('#user-icon')
-        userIcon.src = `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=${globalUsername}`
-        fetch(`/global/has/${globalUsername}`)
+        userIcon.src = `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=${globalUserId}`
+        fetch(`/global/has/${globalUserId}`)
         .then((resp) => {
             let discoveryElem = document.querySelector('#discovery');
             if (resp.status === 200) {
@@ -413,11 +440,11 @@ window.addEventListener('resize', () => {
 window.addEventListener("paste", (e) => {
     let items = e.clipboardData.items;
     if (items) {
-        queueButton.click();
         [...items].forEach((item) => {
             if (item.kind === "file") {
                 upload(item.getAsFile());
             }
         })
+        queueButton.click();
     }
 });

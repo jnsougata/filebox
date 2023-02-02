@@ -229,11 +229,10 @@ function handleFileMenuClick(file) {
     send.innerHTML = `<p>Send</p><span class="material-symbols-rounded">send</span>`;
     if (file.type !== "folder") {
         send.addEventListener("click", () => {
-            
+            renderFileSenderModal(file);
         });
         fileOptionPanel.appendChild(send);
     }
-    let pin = document.createElement("div");
     let rename = document.createElement("div");
     rename.className = "file_menu_option";
     rename.innerHTML = `<p>Rename</p><span class="material-symbols-rounded">edit</span>`;
@@ -1186,8 +1185,9 @@ function buildDiscoveryModal() {
             body: JSON.stringify({
                 "enabled": true,
                 "api_key": apiKey,
-                "name": globalUsername,
-                "pending": {"sent": {}, "received": {}},
+                "id": globalUserId,
+                "pending": {},
+                "instance_url": window.location.href,
             }),
         })
         .then((res) => {
@@ -1211,4 +1211,149 @@ function buildDiscoveryModal() {
     discovery.appendChild(consentDiv);
     discovery.appendChild(inputDiv);
     return discovery;
+}
+
+function renderFileSenderModal(file) {
+    let fileSender = document.querySelector('.file_sender');
+    fileSender.innerHTML = '';
+    fileSender.style.display = 'flex';
+    let filename = document.createElement('p');
+    filename.innerHTML = file.name;
+    let usernameList = document.createElement('ul');
+    let userLi = document.createElement('li');
+    userLi.innerHTML = 'Searching...';
+    let query = document.createElement('input');
+    query.type = 'text';
+    query.placeholder = 'Enter user id';
+    let recipient = null;
+    let inputTimer = null;
+    query.addEventListener('input', (ev) => {
+        if (inputTimer) {
+            clearTimeout(inputTimer);
+        }
+        inputTimer = setTimeout(() => {
+            let username = ev.target.value;
+            if (username === globalUserId) {
+                userLi.innerHTML = `can't share files with yourself`;
+                return;
+            }
+            if (username.length === 0) {
+                userLi.innerHTML = 'Searching...';
+                return;
+            }
+            if (username.length < 3) {
+                return;
+            }
+            userLi.innerHTML = 'Searching...';
+            fetch(`/global/has/${username}`)
+            .then((res) => {
+                let av = `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=`
+                if (res.status === 200) {
+                    userLi.innerHTML = `<img src="${av}${username}" /> ${username}`;
+                    recipient = username;
+                    sendButton.disabled = false;
+                    sendButton.style.cursor = 'pointer';
+                    sendButton.style.opacity = '1';
+                }
+            })
+        }, 500);
+    });
+    let buttons = document.createElement('div');
+    let cancelButton = document.createElement('button');
+    cancelButton.innerHTML = 'Cancel';
+    cancelButton.addEventListener('click', () => {
+        fileSender.style.display = 'none';
+    });
+    let sendButton = document.createElement('button');
+    sendButton.style.backgroundColor = `var(--color-blueish)`;
+    sendButton.innerHTML = 'Send';
+    sendButton.disabled = true;
+    sendButton.style.cursor = 'not-allowed';
+    sendButton.style.opacity = '0.5';
+    sendButton.addEventListener('click', () => {
+        if (file.recipients) {
+            if (file.recipients.includes(recipient)) {
+                showSnack('This file is already shared with this user', colorOrange, 'warning');
+                return;
+            }
+            file.recipients.push(recipient);
+        } else {
+            file.recipients = [recipient];
+        }
+        let fileCopy = JSON.parse(JSON.stringify(file));
+        fileCopy["pending"] = true;
+        fileCopy["shared"] = true;
+        fileCopy["owner"] = globalUserId;
+        delete fileCopy.parent;
+        delete fileCopy.recipients;
+        fetch(`/global/users`, {method: "PATCH", body: JSON.stringify({"id": recipient, "file": fileCopy})})
+        .then((resp) => {
+            if (resp.status === 200) {
+                fetch("/api/metadata", {method: "PATCH", body: JSON.stringify(file)})
+                .then((resp) => {
+                    if (resp.status === 207) {
+                        showSnack('File shared with ' + recipient, colorGreen, 'success');
+                        fileSender.style.display = 'none';
+                    } else {
+                        showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                    }
+                })
+            } else {
+                showSnack('Something went wrong! Please try again.', colorRed, 'error');
+            }
+        })
+    });
+    buttons.appendChild(cancelButton);
+    buttons.appendChild(sendButton);
+    fileSender.appendChild(filename);
+    fileSender.appendChild(query);
+    query.focus();
+    usernameList.appendChild(userLi);
+    fileSender.appendChild(usernameList);
+    fileSender.appendChild(buttons);
+}
+
+function appnedPendingFiles(files) {
+    let sharedFiles = document.createElement('div');
+    sharedFiles.className = 'shared_files';
+    files.forEach((file) => {
+        let pendingFile = document.createElement('div');
+        pendingFile.className = 'pending_file';
+        let icon = document.createElement('div');
+        icon.className = 'icon';
+        icon.innerHTML = `<i class="${handleMimeIcon(file.mime)}"></i>`;
+        let fileInfo = document.createElement('div');
+        fileInfo.className = 'file_info';
+        let filename = document.createElement('p');
+        filename.innerHTML = file.name;
+        let details = document.createElement('p');
+        details.innerHTML = `Owner: ${file.owner} & Size: ${handleSizeUnit(file.size)}`;
+        let buttons = document.createElement('div');
+        buttons.style.display = 'flex';
+        buttons.style.width = '100%';
+        buttons.style.alignItems = 'center';
+        buttons.style.justifyContent = 'flex-end';
+        let reject = document.createElement('span');
+        reject.className = 'material-symbols-rounded';
+        reject.innerHTML = 'close';
+        reject.style.color = colorRed;
+        reject.addEventListener('click', () => {
+            // reject file
+        });
+        let accept = document.createElement('span');
+        accept.className = 'material-symbols-rounded';
+        accept.innerHTML = 'check';
+        accept.addEventListener('click', () => {
+            // accept file
+        });
+        buttons.appendChild(reject);
+        buttons.appendChild(accept);
+        fileInfo.appendChild(filename);
+        fileInfo.appendChild(details);
+        pendingFile.appendChild(icon);
+        pendingFile.appendChild(fileInfo);
+        pendingFile.appendChild(buttons);
+        sharedFiles.appendChild(pendingFile);
+    });
+    mainSection.appendChild(sharedFiles);
 }

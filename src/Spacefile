@@ -41,6 +41,9 @@ micros:
   - name: global
     src: ./global/
     engine: custom
+    commands:
+      - go get
+      - go build main.go
     include:
       - main
     run: ./main
