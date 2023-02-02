@@ -15,6 +15,17 @@
     </head>
     <body>
         <div class="snackbar"></div>
+        <div class="file_sender">
+            <p>index.html</p>
+            <input type="text" id="find-user" placeholder="Type username"/>
+            <ul id="user-list">
+                <li>searching...</li>
+            </ul>
+            <div style="display: flex; justify-content: center;">
+                <button id="cancel-send">Cancel</button>
+                <button id="send-file" style="background-color: var(--color-blueish);">Send</button>
+            </div>
+        </div>
         <div class="queue">
             <div class="queue_close">
                 <i class="fa-solid fa-times"></i>

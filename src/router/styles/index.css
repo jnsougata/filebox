@@ -1145,3 +1145,82 @@ body {
         padding: 5px 10px;
     }
 }
+
+.file_sender {
+    top: 0;
+    right: 0;
+    width: 500px;
+    height: 300px;
+    position: fixed;
+    background-color: var(--color-blackish);
+    z-index: 100;
+    margin-top: 70px;
+    margin-right: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 #00000081;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+}
+.file_sender > input[type="text"] {
+    width: calc(100% - 20px);
+    height: 40px;
+    border: none;
+    padding: 0 10px;
+    font-size: 16px;
+    color: #ccc;
+    outline: none;
+    border-radius: 5px;
+    background-color: var(--color-blackish-light);
+    flex-shrink: 0;
+}
+.file_sender > ul {
+    width: calc(100% - 20px);
+    height: 50px;
+    overflow-y: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.file_sender > ul > li {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    background-color: var(--color-blackish-light);
+    cursor: pointer;
+    color: #ccc;
+}
+.file_sender > div > button {
+    width: 100%;
+    height: 40px;
+    border: none;
+    padding: 0 10px;
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+    outline: none;
+    white-space: nowrap;
+    border-radius: 5px;
+    flex-shrink: 0;
+    background-color: rgb(235, 66, 66);
+    margin: 0 10px;
+}
+.file_sender > p {
+    width: 100%;
+    max-width: 450px;
+    height: 40px;
+    padding: 0 10px;
+    color: #ccc;
+    font-size: 16px;
+    flex-shrink: 0;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
