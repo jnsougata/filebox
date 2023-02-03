@@ -19,6 +19,7 @@ var drive = d.Drive("filebox")
 
 func main() {
 	r := mux.NewRouter()
+	r.HandleFunc("/key", HandleDetaKey).Methods("GET")
 	r.HandleFunc("/env", HandleMicroEnv).Methods("POST")
 	r.HandleFunc("/metadata", HandleMetadata).Methods("GET", "POST", "DELETE", "PATCH")
 	r.HandleFunc("/folder", HandleFolder).Methods("POST")
@@ -35,11 +36,6 @@ func main() {
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
-}
-
-func HandleSecret(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
-	_, _ = w.Write([]byte(os.Getenv("DETA_PROJECT_KEY")))
 }
 
 func HandleMetadata(w http.ResponseWriter, r *http.Request) {
@@ -377,10 +373,17 @@ func HandleMicroEnv(w http.ResponseWriter, r *http.Request) {
 	names := body["names"].([]interface{})
 	vars := map[string]interface{}{}
 	for _, name := range names {
-		if name.(string) != "GLOBAL_COLLECTION_KEY" {
-			vars[name.(string)] = os.Getenv(name.(string))
-		}
+		vars[name.(string)] = os.Getenv(name.(string))
 	}
+	ba, _ := json.Marshal(vars)
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(ba)
+}
+
+func HandleDetaKey(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vars := map[string]interface{}{}
+	vars["key"] = os.Getenv("DETA_API_KEY")
 	ba, _ := json.Marshal(vars)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(ba)

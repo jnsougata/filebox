@@ -425,13 +425,13 @@ window.addEventListener('DOMContentLoaded', () => {
         userName.innerHTML = globalUserId;
         let userIcon = document.querySelector('#user-icon')
         userIcon.src = `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=${globalUserId}`
-        fetch(`/global/has/${globalUserId}`)
+        fetch(`/global/exists/${globalUserId}`)
         .then((resp) => {
             let discoveryElem = document.querySelector('#discovery');
             if (resp.status === 200) {
                 isUserSubscribed = true;
                 discoveryElem.innerHTML = `Leave Discovery <span class="material-symbols-rounded">public_off</span>`;
-                fetch(`/instnace/update/${globalUserId}`, {
+                fetch(`/global/user/${globalUserId}/update`, {
                     method: 'POST',
                     body: JSON.stringify({"instance_url": window.location.href}),
                 })

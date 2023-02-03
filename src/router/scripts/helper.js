@@ -878,8 +878,8 @@ async function loadSharedFile(file) {
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
-        let resp = await fetch(`/global/download/${globalUserId}/chunk/0/${file.hash}`);
-        return resp.blob();
+        let resp = await fetch(`/global/load/${file.owner}/${globalUserId}/0/${file.hash}`);
+        return await resp.blob();
     } else {
         let skips = 0;
         if (size % chunkSize === 0) {
@@ -891,13 +891,13 @@ async function loadSharedFile(file) {
         let promises = [];
         heads.forEach((head) => {
             promises.push(
-                fetch(`/global/download/${globalUserId}/chunk/${head}/${file.hash}`)
+                fetch(`/global/load/${file.owner}/${globalUserId}/${head}/${file.hash}`)
             );
         });
         let resps = await Promise.all(promises);
         let blobs = [];
-        resps.forEach((resp) => {
-            blobs.push(resp.blob());
+        resps.forEach(async (resp) => {
+            blobs.push(await resp.blob());
         });
         return new Blob(blobs, {type: file.mime});
     }
@@ -1276,7 +1276,7 @@ function renderFileSenderModal(file) {
                 return;
             }
             userLi.innerHTML = 'Searching...';
-            fetch(`/global/has/${username}`)
+            fetch(`/global/exists/${username}`)
             .then((res) => {
                 let av = `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=`
                 if (res.status === 200) {
