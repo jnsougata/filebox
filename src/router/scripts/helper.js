@@ -874,16 +874,47 @@ function makeSpinnerElem() {
     return spinner;
 }
 
+async function loadSharedFile(file) {
+    let size = file.size;
+    const chunkSize = 1024 * 1024 * 4
+    if (size < chunkSize) {
+        let resp = await fetch(`/global/download/${globalUserId}/chunk/0/${file.hash}`);
+        return resp.blob();
+    } else {
+        let skips = 0;
+        if (size % chunkSize === 0) {
+            skips = size / chunkSize;
+        } else {
+            skips = Math.floor(size / chunkSize) + 1;
+        }
+        let heads = Array.from(Array(skips).keys());
+        let promises = [];
+        heads.forEach((head) => {
+            promises.push(
+                fetch(`/global/download/${globalUserId}/chunk/${head}/${file.hash}`)
+            );
+        });
+        let resps = await Promise.all(promises);
+        let blobs = [];
+        resps.forEach((resp) => {
+            blobs.push(resp.blob());
+        });
+        return new Blob(blobs, {type: file.mime});
+    }
+}
+
 async function fetchMediaBlob(file) {
     // this will suck at large files
     // will implement streaming later
     // this is just a basic implementation
-    let header = {"X-Api-Key": globalSecretKey}
+    if (file.shared) {
+        return await loadSharedFile(file);
+    }
     let projectId = globalSecretKey.split("_")[0];
     let extension = file.name.split('.').pop();
     let qualifiedName = file.hash + "." + extension;
     let url = `https://drive.deta.sh/v1/${projectId}/filebox/files/download?name=${qualifiedName}`;
-    const response = await fetch(url, { method: "GET", headers: header });
+    const response = await fetch(url, { method: "GET", headers: {"X-Api-Key": globalSecretKey}});
     let progress = 0;
     let loadingLevel = document.querySelector('#loading-amount');
     const reader = response.body.getReader();
@@ -1313,7 +1344,7 @@ function renderFileSenderModal(file) {
     fileSender.appendChild(buttons);
 }
 
-function appnedPendingFiles(files) {
+function buildPendingFileList(files) {
     let sharedFiles = document.createElement('div');
     sharedFiles.className = 'shared_files';
     files.forEach((file) => {
@@ -1338,13 +1369,39 @@ function appnedPendingFiles(files) {
         reject.innerHTML = 'close';
         reject.style.color = colorRed;
         reject.addEventListener('click', () => {
-            // reject file
+            fetch(`/global/pending/${globalUserId}/${file.hash}`, {method: "DELETE"})
+            .then((res) => {
+                if (res.status === 200) {
+                    pendingFile.remove();
+                    showSnack('File rejected', colorOrange, 'warning')
+                } else {
+                    showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                }
+            })
         });
         let accept = document.createElement('span');
         accept.className = 'material-symbols-rounded';
         accept.innerHTML = 'check';
         accept.addEventListener('click', () => {
-            // accept file
+            delete file.pending;
+            fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(file)})
+            .then((res) => {
+                if (res.status === 207) {
+                    fetch(`/global/pending/${globalUserId}/${file.hash}`, {method: "DELETE"})
+                    .then((res) => {
+                        if (res.status === 200) {
+                            pendingFile.remove();
+                            showSnack('File accepted', colorGreen, 'success')
+                            let fileList = document.querySelector('.all_files');
+                            fileList.appendChild(newFileElem(file));
+                        } else {
+                            showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                        }
+                    })
+                } else {
+                    showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                }
+            })
         });
         buttons.appendChild(reject);
         buttons.appendChild(accept);
@@ -1355,5 +1412,5 @@ function appnedPendingFiles(files) {
         pendingFile.appendChild(buttons);
         sharedFiles.appendChild(pendingFile);
     });
-    mainSection.appendChild(sharedFiles);
+    return sharedFiles;
 }

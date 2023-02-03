@@ -219,9 +219,24 @@ sharedButton.addEventListener('click', () => {
         return [];
     })
     .then(data => {
+        let fileList = document.createElement('div');
+        fileList.className = 'file_list';
         if (data) {
-            appnedPendingFiles(data);
+            fileList.appendChild(buildPendingFileList(data));
         }
+        fetch("/api/query", {method: "POST", body: JSON.stringify({"shared": true, "deleted?ne": true})})
+        .then(response => response.json())
+        .then(data => {
+            let ul = document.createElement('ul');
+            ul.className = 'all_files';
+            if (data) {
+                data.forEach((file) => {
+                    ul.appendChild(newFileElem(file));
+                });
+            }
+            fileList.appendChild(ul);
+            mainSection.appendChild(fileList);
+        });
     })
 });
 
@@ -416,6 +431,10 @@ window.addEventListener('DOMContentLoaded', () => {
             if (resp.status === 200) {
                 isUserSubscribed = true;
                 discoveryElem.innerHTML = `Leave Discovery <span class="material-symbols-rounded">public_off</span>`;
+                fetch(`/instnace/update/${globalUserId}`, {
+                    method: 'POST',
+                    body: JSON.stringify({"instance_url": window.location.href}),
+                })
             } else if (resp.status === 404) {
                 isUserSubscribed = false;
                 discoveryElem.innerHTML = `Join Discovery <span class="material-symbols-rounded">public</span>`;
@@ -439,12 +458,16 @@ window.addEventListener('resize', () => {
 
 window.addEventListener("paste", (e) => {
     let items = e.clipboardData.items;
-    if (items) {
+    let newTaskStarted = false;
+    if (items.length) {
         [...items].forEach((item) => {
             if (item.kind === "file") {
                 upload(item.getAsFile());
+                newTaskStarted = true;
             }
         })
+    }
+    if (newTaskStarted) {
         queueButton.click();
     }
 });

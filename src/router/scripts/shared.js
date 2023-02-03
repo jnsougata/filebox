@@ -31,11 +31,9 @@ function downloadByChunk(file) {
     footer.style.display = "block";
     let size = file.size;
     let name = file.name;
-    let extension = name.split('.').pop();
     const chunkSize = 1024 * 1024 * 4
-    let hashedName = file.hash + "." + extension;
     if (size < chunkSize) {
-        fetch(`/api/shared/chunk/0/${hashedName}`)
+        fetch(`/api/shared/chunk/0/${file.hash}`)
         .then((response) => {
             if (response.status === 403) {
                 alert(`File access denied by owner!`);

@@ -179,21 +179,14 @@ func HandleEmbed(w http.ResponseWriter, r *http.Request) {
 func HandleDownload(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
-	var driveSavedName string
-	fragments := strings.Split(hash, ".")
-	if len(fragments) > 1 {
-		driveSavedName = fragments[0]
-	} else {
-		driveSavedName = hash
-	}
-	resp := base.Get(driveSavedName)
+	resp := base.Get(hash)
 	access, ok := resp.Data["access"]
 	if ok && access.(string) == "private" {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 	skip, _ := strconv.Atoi(vars["skip"])
-	streamingResp := drive.Get(hash)
+	streamingResp := drive.Get(fileToDriveSavedName(resp.Data))
 	ChunkSize := 4 * 1024 * 1024
 	content, _ := io.ReadAll(streamingResp.Reader)
 	w.Header().Set("Content-Type", "application/octet-stream")
