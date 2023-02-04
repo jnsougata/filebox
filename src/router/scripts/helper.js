@@ -4,7 +4,10 @@ let queueContent = document.querySelector('.queue_content');
 queueContent.addEventListener('click', () => {
     queueModalCloseButton.click();
 });
-
+function getAvatarURL(userId){
+    let username = userId.split("-")[1];
+    return `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=${username}`; 
+}
 async function checkFileParentExists(file) {
     let body = {"type": "folder"}
     if (!file.parent) {
@@ -878,7 +881,7 @@ async function loadSharedFile(file) {
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
-        let resp = await fetch(`/global/load/${file.owner}/${globalUserId}/0/${file.hash}`);
+        let resp = await fetch(`/global/file/${file.owner}/${globalUserId}/0/${file.hash}`);
         return await resp.blob();
     } else {
         let skips = 0;
@@ -890,9 +893,7 @@ async function loadSharedFile(file) {
         let heads = Array.from(Array(skips).keys());
         let promises = [];
         heads.forEach((head) => {
-            promises.push(
-                fetch(`/global/load/${file.owner}/${globalUserId}/${head}/${file.hash}`)
-            );
+            promises.push(fetch(`/global/file/${file.owner}/${globalUserId}/${head}/${file.hash}`));
         });
         let resps = await Promise.all(promises);
         let blobs = [];
@@ -911,8 +912,14 @@ async function fetchMediaBlob(file) {
         return await loadSharedFile(file);
     }
     let projectId = globalSecretKey.split("_")[0];
-    let extension = file.name.split('.').pop();
-    let qualifiedName = file.hash + "." + extension;
+    let fragments = file.name.split('.');
+    let extension = fragments.pop();
+    let qualifiedName = "";
+    if (extension === file.name) {
+        qualifiedName = file.hash;
+    } else {
+        qualifiedName = `${file.hash}.${extension}`
+    }
     let url = `https://drive.deta.sh/v1/${projectId}/filebox/files/download?name=${qualifiedName}`;
     const response = await fetch(url, { method: "GET", headers: {"X-Api-Key": globalSecretKey}});
     let progress = 0;
@@ -1218,7 +1225,6 @@ function buildDiscoveryModal() {
                 "api_key": apiKey,
                 "id": globalUserId,
                 "pending": {},
-                "instance_url": window.location.href,
             }),
         })
         .then((res) => {
@@ -1263,25 +1269,24 @@ function renderFileSenderModal(file) {
             clearTimeout(inputTimer);
         }
         inputTimer = setTimeout(() => {
-            let username = ev.target.value;
-            if (username === globalUserId) {
+            let userId = ev.target.value;
+            if (userId === globalUserId) {
                 userLi.innerHTML = `can't share files with yourself`;
                 return;
             }
-            if (username.length === 0) {
+            if (userId.length === 0) {
                 userLi.innerHTML = 'Searching...';
                 return;
             }
-            if (username.length < 3) {
+            if (userId.length < 3) {
                 return;
             }
             userLi.innerHTML = 'Searching...';
-            fetch(`/global/exists/${username}`)
+            fetch(`/global/exists/${userId}`)
             .then((res) => {
-                let av = `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=`
                 if (res.status === 200) {
-                    userLi.innerHTML = `<img src="${av}${username}" /> ${username}`;
-                    recipient = username;
+                    userLi.innerHTML = `<img src="${getAvatarURL(userId)}" /> ${userId}`;
+                    recipient = userId;
                     sendButton.disabled = false;
                     sendButton.style.cursor = 'pointer';
                     sendButton.style.opacity = '1';
