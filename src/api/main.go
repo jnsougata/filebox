@@ -230,6 +230,7 @@ func HandleSpaceUsage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	q := deta.NewQuery()
 	q.NotEquals("type", "folder")
+	q.NotEquals("shared", true)
 	resp := base.FetchUntilEnd(q)
 	size := 0
 	files := resp.Data["items"].([]map[string]interface{})

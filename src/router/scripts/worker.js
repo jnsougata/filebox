@@ -146,6 +146,7 @@ function download(file) {
     showSnack(`Downloading ${file.name}`, colorGreen, 'info');
     prependQueueElem(file, false);
     runningTaskCount ++;
+    queueButton.click();
     let header = {"X-Api-Key": globalSecretKey}
     let projectId = globalSecretKey.split("_")[0];
     const ROOT = 'https://drive.deta.sh/v1';
@@ -225,6 +226,69 @@ function createFolder() {
                     myFilesButton.click();
                 }
             }
+        })
+    }
+}
+
+function downloadShared(file) {
+    showSnack(`Downloading ${file.name}`, colorGreen, 'info');
+    prependQueueElem(file, false);
+    runningTaskCount ++;
+    queueButton.click();
+    let bar = document.getElementById(`bar-${file.hash}`);
+    let percentageElem = document.getElementById(`percentage-${file.hash}`);
+    let size = file.size;
+    const chunkSize = 1024 * 1024 * 4
+    if (size < chunkSize) {
+        fetch(`/global/file/${file.owner}/${globalUserId}/0/${file.hash}`)
+        .then((resp) => resp.blob())
+        .then((blob) => {
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = file.name;
+            bar.style.width = "100%";
+            percentageElem.innerHTML = "100%";
+            showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
+            runningTaskCount --;
+            closeQueue();
+            a.click();
+        })
+    } else {
+        let skips = 0;
+        if (size % chunkSize === 0) {
+            skips = size / chunkSize;
+        } else {
+            skips = Math.floor(size / chunkSize) + 1;
+        }
+        let heads = Array.from(Array(skips).keys());
+        let promises = [];
+        let progress = 0;
+        heads.forEach((head) => {
+            promises.push(
+                fetch(`/global/file/${file.owner}/${globalUserId}/${head}/${file.hash}`)
+                .then((resp) => {
+                    return resp.blob();
+                })
+                .then((blob) => {
+                    progress += blob.size;
+                    let percentage = Math.round((progress / file.size) * 100);
+                    bar.style.width = `${percentage}%`;
+                    percentageElem.innerHTML = `${percentage}%`;
+                    return blob;
+                }) 
+            );
+        });
+        Promise.all(promises)
+        .then((blobs) => {
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob(blobs));
+            a.download = file.name;
+            bar.style.width = "100%";
+            percentageElem.innerHTML = "100%";
+            showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
+            runningTaskCount --;
+            closeQueue();
+            a.click();
         })
     }
 }

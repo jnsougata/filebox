@@ -283,8 +283,10 @@ function handleFileMenuClick(file) {
     downloadButton.innerHTML = `<p>Download</p><span class="material-symbols-rounded">download</span>`;
     downloadButton.addEventListener("click", () => {
         close.click();
-        showSnack(`Downloading ${file.name}`, colorGreen, 'info');
-        queueButton.click();
+        if (file.shared === true) {
+            downloadShared(file);
+            return;
+        }
         download(file);
     });
     let share = document.createElement("div");
@@ -893,13 +895,17 @@ async function loadSharedFile(file) {
         let heads = Array.from(Array(skips).keys());
         let promises = [];
         heads.forEach((head) => {
-            promises.push(fetch(`/global/file/${file.owner}/${globalUserId}/${head}/${file.hash}`));
+            promises.push(
+                fetch(`/global/file/${file.owner}/${globalUserId}/${head}/${file.hash}`)
+                .then((resp) => {
+                    return resp.blob();
+                })
+                .then((blob) => {
+                    return blob;
+                }) 
+            );
         });
-        let resps = await Promise.all(promises);
-        let blobs = [];
-        resps.forEach(async (resp) => {
-            blobs.push(await resp.blob());
-        });
+        let blobs = await Promise.all(promises);
         return new Blob(blobs, {type: file.mime});
     }
 }
