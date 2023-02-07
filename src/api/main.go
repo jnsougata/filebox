@@ -34,6 +34,7 @@ func main() {
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
 	r.HandleFunc("/bulk", HandleBulkFileOps).Methods("DELETE", "PATCH")
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
+	r.HandleFunc("/__space/v0/actions", HandleOrphanClenup).Methods("POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -388,4 +389,28 @@ func HandleDetaKey(w http.ResponseWriter, r *http.Request) {
 	ba, _ := json.Marshal(vars)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(ba)
+}
+
+func HandleOrphanClenup(w http.ResponseWriter, _ *http.Request) {
+	data := drive.Files("", 0, "").Data
+	names := data["names"].([]string)
+	hashes := map[string]string{}
+	for _, name := range names {
+		fragments := strings.Split(name, ".")
+		if len(fragments) > 1 {
+			hashes[fragments[0]] = name
+		} else {
+			hashes[name] = name
+		}
+	}
+	var orphanNames []string
+	for k, v := range hashes {
+		resp := base.Get(k).Data
+		_, ok := resp["hash"]
+		if !ok {
+			orphanNames = append(orphanNames, v)
+		}
+	}
+	drive.Delete(orphanNames...)
+	fmt.Println("orphan cleanup done!")
 }

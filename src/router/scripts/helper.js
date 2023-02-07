@@ -127,7 +127,9 @@ function handleTrashFileMenuClick(file) {
         .then(() => {
             showSnack(`Permanently deleted ${file.name}`, colorRed, 'info');
             document.getElementById(`file-${file.hash}`).remove();
-            updateSpaceUsage(-file.size);
+            if (!file.shared) {
+                updateSpaceUsage(-file.size);
+            }
             close.click();
             globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
             if (globalTrashFiles.length === 0) {
@@ -234,6 +236,9 @@ function handleFileMenuClick(file) {
         send.addEventListener("click", () => {
             renderFileSenderModal(file);
         });
+        if (file.size > 1024 * 1024 * 30) {
+            send.style.opacity = 0.3;
+        }
         fileOptionPanel.appendChild(send);
     }
     let rename = document.createElement("div");
@@ -1257,6 +1262,10 @@ function buildDiscoveryModal() {
 }
 
 function renderFileSenderModal(file) {
+    if (file.size > 1024 * 1024 * 30) {
+        showSnack('File size larger than 30MB', colorOrange, 'warning');
+        return;
+    }
     let fileSender = document.querySelector('.file_sender');
     fileSender.innerHTML = '';
     fileSender.style.display = 'flex';

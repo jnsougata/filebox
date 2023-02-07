@@ -2,6 +2,25 @@ v: 1
 icon: ./router/assets/icon.png
 micros:
 
+  - name: api
+    src: ./api/
+    engine: custom
+    presets:
+      api_keys: true
+    commands:
+      - go get
+      - go build main.go
+    include:
+      - main
+    run: ./main
+    path: api
+    actions:
+      - id: "clean_orphaned"
+        name: "Clean Up"
+        description: "Cleans up orphaned files"
+        trigger: "schedule"
+        default_interval: "0/15 * * * *"
+
   - name: router
     src: ./router/
     engine: custom
@@ -25,19 +44,6 @@ micros:
       - "/api/embed/*"
       - "/api/shared/*"
   
-  - name: api
-    src: ./api/
-    engine: custom
-    presets:
-      api_keys: true
-    commands:
-      - go get
-      - go build main.go
-    include:
-      - main
-    run: ./main
-    path: api
-
   - name: global
     src: ./global/
     engine: custom

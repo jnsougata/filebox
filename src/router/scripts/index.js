@@ -259,16 +259,14 @@ queueButton.addEventListener('click', () => {
 });
 
 let isCategoryExpanded = false;
+let categoryButton = document.querySelector('#category');
 let categoryItems = document.querySelector('#category-items');
-let categoryExpnadButton = document.querySelector('#category-controller');
-categoryExpnadButton.addEventListener('click', () => {
+categoryButton.addEventListener('click', () => {
     if (isCategoryExpanded) {
-        categoryExpnadButton.innerHTML = `<i class="fa-solid fa-chevron-right"></i>`;
         categoryItems.style.display = 'none';
         isCategoryExpanded = false;
     } else {
-        categoryExpnadButton.innerHTML = `<i class="fa-solid fa-chevron-down"></i>`;
-        categoryItems.style.display = 'block';
+        categoryItems.style.display = 'flex';
         isCategoryExpanded = true;
     }
 });
@@ -346,7 +344,9 @@ trashButton.addEventListener('click', () => {
                 showSnack('Trash Emptied Successfully!', colorGreen, 'success');
                 let totalSpaceFreed = 0;
                 globalTrashFiles.forEach((file) => {
-                    totalSpaceFreed += file.size;
+                    if (file.shared) {
+                        totalSpaceFreed += file.size;
+                    }
                 });
                 updateSpaceUsage(-totalSpaceFreed);
                 fileList.innerHTML = '';
