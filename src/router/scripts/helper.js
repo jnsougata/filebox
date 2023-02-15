@@ -896,7 +896,7 @@ async function loadSharedFile(file) {
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
-        let resp = await fetch(`/global/file/${file.owner}/${globalUserId}/0/${file.hash}`);
+        let resp = await fetch(`/api/external/${file.owner}/${file.hash}/0`);
         return await resp.blob();
     } else {
         let skips = 0;
@@ -909,7 +909,7 @@ async function loadSharedFile(file) {
         let promises = [];
         heads.forEach((head) => {
             promises.push(
-                fetch(`/global/file/${file.owner}/${globalUserId}/${head}/${file.hash}`)
+                fetch(`/api/external/${file.owner}/${file.hash}/${head}`)
                 .then((resp) => {
                     return resp.blob();
                 })
@@ -1216,6 +1216,9 @@ function buildConnectionModal() {
     connectButton.addEventListener('click', () => {
         let nickname = instanceNickname.value;
         let url = instanceURL.value;
+        if (url[url.length - 1] === '/') {
+            url = url.substring(0, url.length - 1);
+        }
         let apiKey = apiKeyInput.value;
         if (nickname.length === 0 || url.length === 0 || apiKey.length === 0) {
             showSnack('All fields are required', colorOrange, 'warning');
@@ -1274,24 +1277,24 @@ function renderFileSenderModal(file) {
             let userLi = document.createElement('li');
             userLi.innerHTML = `<img src="${getAvatarURL(instance.nickname)}"/> ${instance.nickname}`;
             userLi.addEventListener('click', () => {
-                file.owner = globalUserId;
-                file.pending = true;
-                file.shared = true;
-                fetch(`/api/instances/${instance.id}`, {method: "POST", body: JSON.stringify(file)})
+                // clone the file
+                let fileClone = JSON.parse(JSON.stringify(file));
+                delete fileClone.recipients;
+                delete fileClone.parent;
+                fileClone.owner = globalUserId;
+                fileClone.pending = true;
+                fileClone.shared = true;
+                fetch(`/api/instances/${instance.id}`, {method: "POST", body: JSON.stringify(fileClone)})
                 .then((resp) => {
                     if (resp.status !== 207) {
                         fileSender.style.display = 'none';
                         showSnack('Something went wrong! Please try again.', colorRed, 'error');
                         return;
                     }
-                    delete file.owner;
-                    delete file.pending;
-                    delete file.shared;
                     if (file.recipients) {
-                        if (file.recipients.includes(recipient)) {
-                            return;
+                        if (!file.recipients.includes(instance.id)) {
+                            file.recipients.push(instance.id);
                         }
-                        file.recipients.push(instance.id);
                     } else {
                         file.recipients = [instance.id];
                     }
@@ -1327,6 +1330,7 @@ function buildPendingFileList(files) {
     let sharedFiles = document.createElement('div');
     sharedFiles.className = 'shared_files';
     files.forEach((file) => {
+        file.project_id = globalProjectId;
         let pendingFile = document.createElement('div');
         pendingFile.className = 'pending_file';
         let icon = document.createElement('div');
@@ -1348,7 +1352,7 @@ function buildPendingFileList(files) {
         reject.innerHTML = 'close';
         reject.style.color = colorRed;
         reject.addEventListener('click', () => {
-            fetch(`/global/pending/${globalUserId}/${file.hash}`, {method: "DELETE"})
+            fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
             .then((res) => {
                 if (res.status === 200) {
                     pendingFile.remove();
@@ -1367,17 +1371,10 @@ function buildPendingFileList(files) {
             fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(file)})
             .then((res) => {
                 if (res.status === 207) {
-                    fetch(`/global/pending/${globalUserId}/${file.hash}`, {method: "DELETE"})
-                    .then((res) => {
-                        if (res.status === 200) {
-                            pendingFile.remove();
-                            showSnack('File accepted', colorGreen, 'success')
-                            let fileList = document.querySelector('.all_files');
-                            fileList.appendChild(newFileElem(file));
-                        } else {
-                            showSnack('Something went wrong! Please try again.', colorRed, 'error');
-                        }
-                    })
+                    showSnack('File accepted', colorGreen, 'success')
+                    let fileList = document.querySelector('.all_files');
+                    pendingFile.remove();
+                    fileList.appendChild(newFileElem(file));
                 } else {
                     showSnack('Something went wrong! Please try again.', colorRed, 'error');
                 }

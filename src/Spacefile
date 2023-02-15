@@ -1,5 +1,5 @@
 v: 1
-icon: ./router/assets/icon.png
+icon: ./router/assets/canvas.png
 micros:
 
   - name: api
@@ -10,7 +10,7 @@ micros:
       env:
         - name: "USER_PIN"
           description: "Pin for user authentication"
-          
+
     commands:
       - go get
       - go build main.go

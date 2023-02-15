@@ -196,7 +196,11 @@ instancesButton.addEventListener('click', () => {
         renderOriginalHeader();
     }
     mainSection.innerHTML = '';
-    fetch(`/global/pending/${globalUserId}`)
+    fetch(`/api/query`, {
+        method: "POST", 
+        body: JSON.stringify(
+            {"pending": true, "shared": true})
+        })
     .then((resp) => {
         if (resp.status === 200) {
             return resp.json();
@@ -209,7 +213,10 @@ instancesButton.addEventListener('click', () => {
         if (data) {
             fileList.appendChild(buildPendingFileList(data));
         }
-        fetch("/api/query", {method: "POST", body: JSON.stringify({"shared": true, "deleted?ne": true})})
+        fetch("/api/query", {
+            method: "POST", 
+            body: JSON.stringify({"shared": true, "deleted?ne": true, "pending?ne": true})
+        })
         .then(response => response.json())
         .then(data => {
             let ul = document.createElement('ul');

@@ -37,6 +37,7 @@ func main() {
 	r.HandleFunc("/__space/v0/actions", HandleOrphanClenup).Methods("POST")
 	r.HandleFunc("/instances", HandleInstances).Methods("POST", "DELETE", "PATCH", "GET")
 	r.HandleFunc("/instances/{id}", HandleInstance).Methods("GET", "POST")
+	r.HandleFunc("/external/{owner}/{hash}/{skip}", HandleSharedFileLoad).Methods("GET", "POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -99,7 +100,7 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case "PATCH":
-		
+
 		w.Header().Set("Content-Type", "application/json")
 		var data map[string]interface{}
 		_ = json.NewDecoder(r.Body).Decode(&data)
@@ -118,7 +119,7 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 		metadata, _ := io.ReadAll(r.Body)
 		var file map[string]interface{}
 		_ = json.Unmarshal(metadata, &file)
-		projId, ok := file["project_id"] 
+		projId, ok := file["project_id"]
 		if !ok || !matchProjectId(projId.(string)) {
 			w.WriteHeader(http.StatusForbidden)
 			return
@@ -451,7 +452,29 @@ func HandleInstances(w http.ResponseWriter, r *http.Request) {
 		var body map[string]interface{}
 		_ = json.NewDecoder(r.Body).Decode(&body)
 		resp := instances.Put(deta.Record{Key: body["id"].(string), Value: body})
-		w.WriteHeader(resp.StatusCode)
+		url := body["url"].(string)
+		apiKey := body["api_key"].(string)
+		req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/instances", url), r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		req.Header.Set("X-Space-App-Key", apiKey)
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		rs, err := client.Do(req)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		if resp.StatusCode != rs.StatusCode {
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte("One of the participating instances is not available. Please try again."))
+			return
+		}
+		w.WriteHeader(rs.StatusCode)
 		return
 	}
 }
@@ -493,4 +516,34 @@ func HandleInstance(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(resp.StatusCode)
 		return
 	}
+}
+
+func HandleSharedFileLoad(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	owner := vars["owner"]
+	hash := vars["hash"]
+	skip := vars["skip"]
+	ownerData := instances.Get(owner).Data
+	ownerInstanceUrl := ownerData["url"].(string)
+	ownerInstanceApiKey := ownerData["api_key"].(string)
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf("%s/api/shared/chunk/%s/%s", ownerInstanceUrl, skip, hash),
+		nil)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	req.Header.Set("X-Space-App-Key", ownerInstanceApiKey)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.WriteHeader(resp.StatusCode)
+	ba, _ := io.ReadAll(resp.Body)
+	w.Write(ba)
 }

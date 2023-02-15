@@ -240,7 +240,7 @@ function downloadShared(file) {
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
-        fetch(`/global/file/${file.owner}/${globalUserId}/0/${file.hash}`)
+        fetch(`/api/external/${file.owner}/${file.hash}/0`)
         .then((resp) => resp.blob())
         .then((blob) => {
             let a = document.createElement('a');
@@ -265,7 +265,7 @@ function downloadShared(file) {
         let progress = 0;
         heads.forEach((head) => {
             promises.push(
-                fetch(`/global/file/${file.owner}/${globalUserId}/${head}/${file.hash}`)
+                fetch(`/api/external/${file.owner}/${file.hash}/${head}}`)
                 .then((resp) => {
                     return resp.blob();
                 })
@@ -281,7 +281,7 @@ function downloadShared(file) {
         Promise.all(promises)
         .then((blobs) => {
             let a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob(blobs));
+            a.href = URL.createObjectURL(new Blob(blobs, {type: file.mime}));
             a.download = file.name;
             bar.style.width = "100%";
             percentageElem.innerHTML = "100%";
