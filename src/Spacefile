@@ -7,6 +7,10 @@ micros:
     engine: custom
     presets:
       api_keys: true
+      env:
+        - name: "USER_PIN"
+          description: "Pin for user authentication"
+          
     commands:
       - go get
       - go build main.go
@@ -43,15 +47,3 @@ micros:
       - "/scripts/*"
       - "/api/embed/*"
       - "/api/shared/*"
-  
-  - name: global
-    src: ./global/
-    engine: custom
-    commands:
-      - go get
-      - go build .
-    include:
-      - global
-    run: ./global
-    path: global
-    

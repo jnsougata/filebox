@@ -4,8 +4,13 @@ let queueContent = document.querySelector('.queue_content');
 queueContent.addEventListener('click', () => {
     queueModalCloseButton.click();
 });
-function getAvatarURL(userId){
-    let username = userId.split("-")[1];
+function getAvatarURL(userId, parse=false){
+    let username = "";
+    if (parse) {
+        username = userId.split("-")[1];
+    } else {
+        username = userId;
+    }
     return `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=${username}`; 
 }
 async function checkFileParentExists(file) {
@@ -72,7 +77,7 @@ function formatDateString(date) {
 
 function updateSpaceUsage(incr) {
     globalConsumption += incr;
-    totalSizeWidget.innerHTML = `${handleSizeUnit(globalConsumption)} Used`;
+    totalSizeWidget.innerText = `${handleSizeUnit(globalConsumption)}`;
 }
 
 function handleTrashFileMenuClick(file) {
@@ -107,6 +112,7 @@ function handleTrashFileMenuClick(file) {
             } else {
                 delete file.deleted;
             }
+            file.project_id = globalProjectId;
             fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
             .then(() => {
                 showSnack(`Restored ${file.name}`, colorGreen, 'success');
@@ -123,6 +129,7 @@ function handleTrashFileMenuClick(file) {
     deleteButton.className = "file_menu_option";
     deleteButton.innerHTML = `<p>Delete Permanently</p><span class="material-symbols-rounded">delete_forever</span>`;
     deleteButton.addEventListener("click", () => {
+        file.project_id = globalProjectId;
         fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
         .then(() => {
             showSnack(`Permanently deleted ${file.name}`, colorRed, 'info');
@@ -161,7 +168,7 @@ function handleFileMenuClick(file) {
     }
     bookmark.addEventListener("click", () => {
         if (file.pinned) {
-            fetch(`/api/pin/${file.hash}`, {method: "DELETE"})
+            fetch(`/api/pin/${globalProjectId}/${file.hash}`, {method: "DELETE"})
             .then(() => {
                 showSnack(`Unpinned successfully!`, colorOrange, 'info');
                 let card = document.getElementById(`card-${file.hash}`);
@@ -172,7 +179,7 @@ function handleFileMenuClick(file) {
                 delete file.pinned;
             })
         } else {
-            fetch(`/api/pin/${file.hash}`, {method: "POST"})
+            fetch(`/api/pin/${globalProjectId}/${file.hash}`, {method: "POST"})
             .then(() => {
                 showSnack(`Pinned successfully!`, colorGreen, 'success');
                 let pinnedSection = document.querySelector('.pinned');
@@ -358,6 +365,7 @@ function handleFileMenuClick(file) {
         trashButton.innerHTML = `<p>Trash</p><span class="material-symbols-rounded">delete_forever</span>`;
     }
     trashButton.addEventListener("click", () => {
+        file.project_id = globalProjectId;
         if (file.type === 'folder') {
             fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
             .then((resp) => {
@@ -505,7 +513,7 @@ function newFileElem(file, isTrash = false) {
                             }
                         });
                     }
-                    fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
+                    fetch(`/api/bulk/${globalProjectId}`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
                     .then(() => {
                         showSnack('Files Moved Successfully!', colorGreen, 'success');
                         if (globalContextFolder) {
@@ -531,7 +539,7 @@ function newFileElem(file, isTrash = false) {
                 globalMultiSelectBucket.forEach((file) => {
                     file.access = 'private';
                 });
-                fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(file)})
+                fetch(`/api/bulk/${globalProjectId}`, {method: "PATCH", body: JSON.stringify(file)})
                 .then(() => {
                     showSnack(`Made selected files private`, colorOrange, 'info');
                 })
@@ -542,7 +550,7 @@ function newFileElem(file, isTrash = false) {
                 globalMultiSelectBucket.forEach((file) => {
                     file.access = 'public';
                 });
-                fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(file)})
+                fetch(`/api/bulk/${globalProjectId}`, {method: "PATCH", body: JSON.stringify(file)})
                 .then(() => {
                     showSnack(`Made selected files public`, colorGreen, 'info');
                 })
@@ -551,7 +559,7 @@ function newFileElem(file, isTrash = false) {
             deleteButton.innerHTML = 'Delete';
             deleteButton.style.backgroundColor = colorRed;
             deleteButton.addEventListener("click", () => {
-                fetch(`/api/bulk`, {method: "DELETE", body: JSON.stringify(globalMultiSelectBucket)})
+                fetch(`/api/bulk/${globalProjectId}`, {method: "DELETE", body: JSON.stringify(globalMultiSelectBucket)})
                 .then(() => {
                     globalMultiSelectBucket.forEach((file) => {
                         let fileElem = document.getElementById(`file-${file.hash}`);
@@ -663,7 +671,7 @@ function newPinnedElem(file) {
     unpin.innerHTML = 'cancel';
     unpin.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        fetch(`/api/pin/${file.hash}`, {method: "DELETE"})
+        fetch(`/api/pin/${globalProjectId}/${file.hash}`, {method: "DELETE"})
         .then(() => {
             card.remove();
         })
@@ -1058,6 +1066,7 @@ function fileMover(file) {
                 file.parent = globalContextFolder.name;
             }
         }
+        file.project_id = globalProjectId;
         fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             if (globalContextFolder) {
@@ -1188,180 +1197,130 @@ function renderOtherHeader(elem){
     header.appendChild(wrapper);
 }
 
-function buildDiscoveryModal() {
-    let discovery = document.createElement('div');
-    discovery.className = 'discovery';
-    let h4a = document.createElement('h4');
-    h4a.innerHTML = `What is 'Discovery'?`;
-    h4a.style.color = 'var(--color-blueish)';
-    let pa = document.createElement('p');
-    pa.innerHTML = `
-        Discovery is a feature that allows you to share specific files with other users on Discovery.
-        They will have read-only access to the file, and you can revoke access anytime.
-        Any shared file will not be stored on the receiver's drive, so it will not take up any space.
-        It's just a reference to the file on the owner's drive. 
-    `;
-    let h4b = document.createElement('h4');
-    h4b.innerHTML = `What are the concerns?`;
-    h4b.style.color = 'var(--color-blueish)';
-    let pb = document.createElement('p');
-    pb.innerHTML = `
-        To make this possible, we have to store your instance's API key in our global user collection.
-        This API key is used to access your drive and perform limited operations on it. We tried to make it as secure as possible.
-        Heavy server-side checks are performed to ensure that a file is served with proper authentication and to a valid user or users.
-    `;
-    let consentDiv = document.createElement('div');
-    let consentP = document.createElement('p');
-    consentP.innerHTML = `<input type="checkbox" id="discovery-consent" /> I understand the concerns and I want to enable Discovery*`;
-    consentDiv.appendChild(consentP);
-    let inputDiv = document.createElement('div');
+function buildConnectionModal() {
+    let connection = document.createElement('div');
+    let p = document.createElement('p');
+    p.innerHTML = 'Connect to another Instance?';
+    connection.className = 'connection';
+    let instanceNickname = document.createElement('input');
+    instanceNickname.type = 'text';
+    instanceNickname.placeholder = 'Set a nickname';
+    let instanceURL = document.createElement('input');
+    instanceURL.type = 'text';
+    instanceURL.placeholder = 'URL of the instance';
     let apiKeyInput = document.createElement('input');
     apiKeyInput.type = 'password';
-    let enableButton = document.createElement('button');
-    enableButton.innerHTML = 'Enable Discovery';
-    enableButton.addEventListener('click', () => {
-        if (!document.querySelector('#discovery-consent').checked) {
-            showSnack('Please check the box to enable Discovery', colorOrange, 'warning');
-            return;
-        }
+    apiKeyInput.placeholder = 'API key of the instance';
+    let connectButton = document.createElement('button');
+    connectButton.innerHTML = '<span class="material-symbols-rounded">conversion_path</span>';
+    connectButton.addEventListener('click', () => {
+        let nickname = instanceNickname.value;
+        let url = instanceURL.value;
         let apiKey = apiKeyInput.value;
-        if (apiKey.length < 15) {
-            showSnack('Invalid API key', colorOrange, 'warning');
+        if (nickname.length === 0 || url.length === 0 || apiKey.length === 0) {
+            showSnack('All fields are required', colorOrange, 'warning');
             return;
         }
-        fetch('/global/users', {
-            method: 'POST',
+        fetch('/api/instances', {
+            method: "POST",
             body: JSON.stringify({
-                "enabled": true,
+                "url": url,
                 "api_key": apiKey,
-                "id": globalUserId,
-                "pending": {},
+                "nickname": nickname,
+                "id": /-(.*?)\./.exec(url)[1],
             }),
         })
-        .then((res) => {
-            if (res.status === 201) {
-                isUserSubscribed = true;
-                showSnack('Discovery enabled', colorGreen, 'success');
-                modalCloseButton.click();
-                let discoveryElem = document.querySelector('#discovery');
-                discoveryElem.innerHTML = `Leave Discovery <span class="material-symbols-rounded">public_off</span>`;
+        .then((resp) => {
+            if (resp.status === 207) {
+                showSnack('Instance added successfully', colorGreen, 'success');
+                connectButton.style.color = colorGreen;
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 1000);
+                return;
             } else {
-                showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                showSnack('Error adding instance, try again!', colorRed, 'error');
+                return;
             }
         })
     });
-    inputDiv.appendChild(apiKeyInput);
-    inputDiv.appendChild(enableButton);
-    discovery.appendChild(h4a);
-    discovery.appendChild(pa);
-    discovery.appendChild(h4b);
-    discovery.appendChild(pb);
-    discovery.appendChild(consentDiv);
-    discovery.appendChild(inputDiv);
-    return discovery;
+    connection.appendChild(p);
+    connection.appendChild(instanceNickname);
+    connection.appendChild(instanceURL);
+    connection.appendChild(apiKeyInput);
+    connection.appendChild(connectButton);
+    return connection;
 }
 
 function renderFileSenderModal(file) {
+    fileOptionPanel.style.display = 'none';
     if (file.size > 1024 * 1024 * 30) {
         showSnack('File size larger than 30MB', colorOrange, 'warning');
         return;
     }
-    let fileSender = document.querySelector('.file_sender');
-    fileSender.innerHTML = '';
-    fileSender.style.display = 'flex';
-    let filename = document.createElement('p');
-    filename.innerHTML = file.name;
-    let usernameList = document.createElement('ul');
-    let userLi = document.createElement('li');
-    userLi.innerHTML = 'Searching...';
-    let query = document.createElement('input');
-    query.type = 'text';
-    query.placeholder = 'Enter user id';
-    let recipient = null;
-    let inputTimer = null;
-    query.addEventListener('input', (ev) => {
-        if (inputTimer) {
-            clearTimeout(inputTimer);
+    fetch('/api/instances')
+    .then(response => response.json())
+    .then(data => {
+        if (!data) {
+            showSnack('No instances connected', colorOrange, 'warning');
+            return;
         }
-        inputTimer = setTimeout(() => {
-            let userId = ev.target.value;
-            if (userId === globalUserId) {
-                userLi.innerHTML = `can't share files with yourself`;
-                return;
-            }
-            if (userId.length === 0) {
-                userLi.innerHTML = 'Searching...';
-                return;
-            }
-            if (userId.length < 3) {
-                return;
-            }
-            userLi.innerHTML = 'Searching...';
-            fetch(`/global/exists/${userId}`)
-            .then((res) => {
-                if (res.status === 200) {
-                    userLi.innerHTML = `<img src="${getAvatarURL(userId)}" /> ${userId}`;
-                    recipient = userId;
-                    sendButton.disabled = false;
-                    sendButton.style.cursor = 'pointer';
-                    sendButton.style.opacity = '1';
-                }
-            })
-        }, 500);
-    });
-    let buttons = document.createElement('div');
-    let cancelButton = document.createElement('button');
-    cancelButton.innerHTML = 'Cancel';
-    cancelButton.addEventListener('click', () => {
-        fileSender.style.display = 'none';
-    });
-    let sendButton = document.createElement('button');
-    sendButton.style.backgroundColor = `var(--color-blueish)`;
-    sendButton.innerHTML = 'Send';
-    sendButton.disabled = true;
-    sendButton.style.cursor = 'not-allowed';
-    sendButton.style.opacity = '0.5';
-    sendButton.addEventListener('click', () => {
-        if (file.recipients) {
-            if (file.recipients.includes(recipient)) {
-                showSnack('This file is already shared with this user', colorOrange, 'warning');
-                return;
-            }
-            file.recipients.push(recipient);
-        } else {
-            file.recipients = [recipient];
-        }
-        let fileCopy = JSON.parse(JSON.stringify(file));
-        fileCopy["pending"] = true;
-        fileCopy["shared"] = true;
-        fileCopy["owner"] = globalUserId;
-        delete fileCopy.parent;
-        delete fileCopy.recipients;
-        fetch(`/global/users`, {method: "PATCH", body: JSON.stringify({"id": recipient, "file": fileCopy})})
-        .then((resp) => {
-            if (resp.status === 200) {
-                fetch("/api/metadata", {method: "PATCH", body: JSON.stringify(file)})
+        let fileSender = document.querySelector('.file_sender');
+        fileSender.innerHTML = '';
+        let filename = document.createElement('p');
+        filename.innerHTML = file.name;
+        let usernameList = document.createElement('ul');
+        data.forEach((instance) => {
+            let userLi = document.createElement('li');
+            userLi.innerHTML = `<img src="${getAvatarURL(instance.nickname)}"/> ${instance.nickname}`;
+            userLi.addEventListener('click', () => {
+                file.owner = globalUserId;
+                file.pending = true;
+                file.shared = true;
+                fetch(`/api/instances/${instance.id}`, {method: "POST", body: JSON.stringify(file)})
                 .then((resp) => {
-                    if (resp.status === 207) {
-                        showSnack('File shared with ' + recipient, colorGreen, 'success');
+                    if (resp.status !== 207) {
                         fileSender.style.display = 'none';
-                    } else {
                         showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                        return;
                     }
+                    delete file.owner;
+                    delete file.pending;
+                    delete file.shared;
+                    if (file.recipients) {
+                        if (file.recipients.includes(recipient)) {
+                            return;
+                        }
+                        file.recipients.push(instance.id);
+                    } else {
+                        file.recipients = [instance.id];
+                    }
+                    file.project_id = globalProjectId;
+                    fetch("/api/metadata", {method: "PATCH", body: JSON.stringify(file)})
+                    .then((resp) => {
+                        if (resp.status === 207) {
+                            showSnack(`File shared with ${instance.nickname}`, colorGreen, 'success');
+                            fileSender.style.display = 'none';
+                        } else {
+                            showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                        }
+                    })
                 })
-            } else {
-                showSnack('Something went wrong! Please try again.', colorRed, 'error');
-            }
-        })
+            });
+            usernameList.appendChild(userLi);
+        });
+        let buttons = document.createElement('div');
+        let cancelButton = document.createElement('button');
+        cancelButton.innerHTML = 'Cancel';
+        cancelButton.addEventListener('click', () => {
+            fileSender.style.display = 'none';
+        });
+        buttons.appendChild(cancelButton);
+        fileSender.appendChild(filename);
+        fileSender.appendChild(usernameList);
+        fileSender.appendChild(buttons);
+        fileSender.style.display = 'flex';
     });
-    buttons.appendChild(cancelButton);
-    buttons.appendChild(sendButton);
-    fileSender.appendChild(filename);
-    fileSender.appendChild(query);
-    query.focus();
-    usernameList.appendChild(userLi);
-    fileSender.appendChild(usernameList);
-    fileSender.appendChild(buttons);
 }
 
 function buildPendingFileList(files) {
@@ -1404,6 +1363,7 @@ function buildPendingFileList(files) {
         accept.innerHTML = 'check';
         accept.addEventListener('click', () => {
             delete file.pending;
+            file.project_id = globalProjectId;
             fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(file)})
             .then((res) => {
                 if (res.status === 207) {

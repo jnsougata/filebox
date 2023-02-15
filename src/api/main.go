@@ -14,13 +14,13 @@ import (
 )
 
 var d = deta.New(nil)
-var base = d.Base("filebox_metadata")
 var drive = d.Drive("filebox")
+var instances = d.Base("instances")
+var base = d.Base("filebox_metadata")
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/key", HandleDetaKey).Methods("GET")
-	r.HandleFunc("/env", HandleMicroEnv).Methods("POST")
+	r.HandleFunc("/key/{pin}", HandleDetaKey).Methods("GET")
 	r.HandleFunc("/metadata", HandleMetadata).Methods("GET", "POST", "DELETE", "PATCH")
 	r.HandleFunc("/folder", HandleFolder).Methods("POST")
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
@@ -29,14 +29,20 @@ func main() {
 	r.HandleFunc("/query", HandleQuery).Methods("POST")
 	r.HandleFunc("/rename", HandleRename).Methods("POST")
 	r.HandleFunc("/consumption", HandleSpaceUsage).Methods("GET")
-	r.HandleFunc("/pin/{hash}", HandlePin).Methods("POST", "DELETE")
+	r.HandleFunc("/pin/{project_id}/{hash}", HandlePin).Methods("POST", "DELETE")
 	r.HandleFunc("/file/access", HandleFileAccess).Methods("POST")
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
-	r.HandleFunc("/bulk", HandleBulkFileOps).Methods("DELETE", "PATCH")
+	r.HandleFunc("/bulk/{project_id}", HandleBulkFileOps).Methods("DELETE", "PATCH")
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
 	r.HandleFunc("/__space/v0/actions", HandleOrphanClenup).Methods("POST")
+	r.HandleFunc("/instances", HandleInstances).Methods("POST", "DELETE", "PATCH", "GET")
+	r.HandleFunc("/instances/{id}", HandleInstance).Methods("GET", "POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
+}
+
+func matchProjectId(id string) bool {
+	return strings.HasPrefix(os.Getenv("DETA_API_KEY"), id)
 }
 
 func HandleMetadata(w http.ResponseWriter, r *http.Request) {
@@ -93,9 +99,15 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case "PATCH":
+		
 		w.Header().Set("Content-Type", "application/json")
 		var data map[string]interface{}
 		_ = json.NewDecoder(r.Body).Decode(&data)
+		projId, ok := data["project_id"]
+		if !ok || !matchProjectId(projId.(string)) {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 		key := data["hash"].(string)
 		data["key"] = key
 		resp := base.Put(deta.Record{Key: key, Value: data})
@@ -106,6 +118,11 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 		metadata, _ := io.ReadAll(r.Body)
 		var file map[string]interface{}
 		_ = json.Unmarshal(metadata, &file)
+		projId, ok := file["project_id"] 
+		if !ok || !matchProjectId(projId.(string)) {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 		_, isFolder := file["type"]
 		if isFolder {
 			var childrenPath string
@@ -247,6 +264,11 @@ func HandlePin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	hash := vars["hash"]
+	projId := vars["project_id"]
+	if !matchProjectId(projId) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	switch r.Method {
 
 	case "POST":
@@ -338,6 +360,12 @@ func fileToDriveSavedName(file map[string]interface{}) string {
 }
 
 func HandleBulkFileOps(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	projId := vars["project_id"]
+	if !matchProjectId(projId) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	switch r.Method {
 	case "DELETE":
 		var body []map[string]interface{}
@@ -357,10 +385,7 @@ func HandleBulkFileOps(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewDecoder(r.Body).Decode(&body)
 		var files []deta.Record
 		for _, item := range body {
-			record := deta.Record{
-				Key:   item["hash"].(string),
-				Value: item,
-			}
+			record := deta.Record{Key: item["hash"].(string), Value: item}
 			files = append(files, record)
 		}
 		base.Put(files...)
@@ -368,39 +393,37 @@ func HandleBulkFileOps(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func HandleMicroEnv(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	var body map[string]interface{}
-	_ = json.NewDecoder(r.Body).Decode(&body)
-	names := body["names"].([]interface{})
-	vars := map[string]interface{}{}
-	for _, name := range names {
-		vars[name.(string)] = os.Getenv(name.(string))
-	}
-	ba, _ := json.Marshal(vars)
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(ba)
-}
-
 func HandleDetaKey(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	pin := vars["pin"]
+	userPin := os.Getenv("USER_PIN")
+	if userPin == "" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if pin != os.Getenv("USER_PIN") {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-	vars := map[string]interface{}{}
-	vars["key"] = os.Getenv("DETA_API_KEY")
-	ba, _ := json.Marshal(vars)
+	data := map[string]interface{}{
+		"key": os.Getenv("DETA_API_KEY"),
+	}
+	ba, _ := json.Marshal(data)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(ba)
 }
 
 func HandleOrphanClenup(w http.ResponseWriter, _ *http.Request) {
 	data := drive.Files("", 0, "").Data
-	names := data["names"].([]string)
+	names := data["names"].([]interface{})
 	hashes := map[string]string{}
 	for _, name := range names {
-		fragments := strings.Split(name, ".")
+		fragments := strings.Split(name.(string), ".")
 		if len(fragments) > 1 {
-			hashes[fragments[0]] = name
+			hashes[fragments[0]] = name.(string)
 		} else {
-			hashes[name] = name
+			hashes[name.(string)] = name.(string)
 		}
 	}
 	var orphanNames []string
@@ -412,5 +435,62 @@ func HandleOrphanClenup(w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 	drive.Delete(orphanNames...)
-	fmt.Println("orphan cleanup done!")
+}
+
+func HandleInstances(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	switch r.Method {
+	case "GET":
+		resp := instances.FetchUntilEnd(deta.NewQuery())
+		w.WriteHeader(resp.StatusCode)
+		ba, _ := json.Marshal(resp.Data["items"])
+		_, _ = w.Write(ba)
+		return
+
+	case "POST":
+		var body map[string]interface{}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		resp := instances.Put(deta.Record{Key: body["id"].(string), Value: body})
+		w.WriteHeader(resp.StatusCode)
+		return
+	}
+}
+
+func HandleInstance(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(r)
+	switch r.Method {
+	case "GET":
+		resp := instances.Get(vars["id"])
+		w.WriteHeader(resp.StatusCode)
+		ba, _ := json.Marshal(resp.Data)
+		_, _ = w.Write(ba)
+		return
+
+	case "POST":
+		instanceData := instances.Get(vars["id"]).Data
+		_, ok := instanceData["id"]
+		if !ok {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		url := instanceData["url"].(string)
+		apiKey := instanceData["api_key"].(string)
+		req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/metadata", url), r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		req.Header.Set("X-Space-App-Key", apiKey)
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
+		w.WriteHeader(resp.StatusCode)
+		return
+	}
 }

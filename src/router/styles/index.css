@@ -86,20 +86,20 @@ body {
 .sidebar > .sidebar_option {
     width: 100%;
     height: 42px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
     font-size: 16px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding-left: 15px;
+    justify-content: flex-start;
     border-left: 5px solid transparent;
 }
 .sidebar > .sidebar_option > .icon {
     width: 40px;
     height: 40px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    margin-left: 15px;
+    justify-content: center;
 }
 .sidebar > .sidebar_option > .icon > i {
     font-size: 16px;
@@ -108,6 +108,68 @@ body {
 }
 .sidebar > .sidebar_option:hover {
     background-color: #ffffff1c;
+}
+.sidebar > .usage {
+    width: 100%;
+    height: 40px;
+    padding-left: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 14px;
+    color: #ccc;
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+.sidebar > .usage > .icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sidebar > .usage > .icon > i {
+    font-size: 16px;
+    color: #ccc;
+    z-index: 2;
+}
+.sidebar > .usage > p {
+    margin-left: 10px;
+    font-size: 14px;
+    color: #ccc;
+}
+.sidebar > .usage > ul {
+    width: 100%;
+    margin-left: 20px;
+    color: #ccc;
+    border-left: 1px solid #ccc;
+}
+.sidebar > .usage > ul > li {
+    font-size: 15px;
+    margin-left: 14px;
+    cursor: pointer;
+    margin-right: 30px;
+}
+
+.sidebar > .usage > ul > li > .wrapper {
+    width: 100%;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    border-radius: 5px;
+}
+.sidebar > .usage > ul > li > .wrapper:hover {
+    background-color: #ffffff1c;
+}
+.sidebar > .usage > ul > li > .wrapper > .icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
 }
 .sidebar > .user {
     bottom: 0;
@@ -147,97 +209,23 @@ body {
     font-size: 16px;
     color: white;
     cursor: pointer;
-    background-color: var(--color-blackish-hover);
     padding: 8px;
     border-radius: 50%;
-}
-.sidebar > .settings {
-    bottom: 0;
-    z-index: 10;
-    width: 230px;
-    height: 100px;
-    position: fixed;
-    margin-bottom: 70px;
-    background-color: #202023;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    border-radius: 8px;
-    display: none;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 10px;
-    flex-shrink: 0;
-}
-.sidebar > .settings > ul {
-    width: 100%;
-    height: 100%;
-    list-style: none;
-}
-.sidebar > .settings > ul > li {
-    width: 100%;
-    height: 40px;
-    display: flex;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-bottom: 5px;
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     background-color: var(--color-blackish-hover);
-}
-.sidebar > ul {
-    display: none;
-    width: calc(100% - 50px);
-    height: max-content;
-    list-style: none;
-    overflow-y: auto;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    transition: 0.3s;
-    align-items: center;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-.sidebar > ul > li {
-    width: 100%;
-    height: 40px;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-bottom: 5px;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    align-items: center;
-    background-color: var(--color-blackish-hover);
-}
-.sidebar > ul > li:hover {
-    background-color: var(--color-blackish-light);
-}
-.sidebar > ul > li > .icon {
-    width: 20px;
-    height: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 15px;
-    margin-left: 8px;
 }
 
 .floating_menu {
-    position: fixed;
     bottom: 20px;
     right: 20px;
     width: 40px;
     height: 40px;
     z-index: 100;
-    background-color: #065bc7;
+    position: fixed;
     border-radius: 50%;
     display: flex;
-    justify-content: center;
     align-items: center;
-    cursor: pointer;
+    justify-content: center;
+    background-color: #065bc7;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
 }
 
@@ -1073,33 +1061,26 @@ body {
     }
 }
 
-.discovery {
-    width: 100%;
-    height: 100%;
+.connection {
+    width: 500px;
+    height: max-content;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     flex-direction: column;
-    padding: 200px;
+    padding: 50px;
     background-color: var(--color-blackish);
     border-radius: 10px;
     color: white;
 }
-.discovery > p {
+.connection > p {
+    width: 100%;
+    text-align: left;
     font-size: 18px;
-    color: white;
+    color: #ccc;
     margin-bottom: 5px;
 }
-.discovery > div {
-    width: 100%;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    margin-top: 10px;
-}
-.discovery > div > input[type="password"] {
+.connection > input {
     width: 100%;
     height: 40px;
     border: none;
@@ -1108,43 +1089,33 @@ body {
     color: #ccc;
     background-color: var(--color-blackish-light);
     outline: none;
+    margin: 5px 0;
+    border-radius: 5px;
 }
-.discovery > div > button {
-    width: fit-content;
+.connection > button {
+    margin-top: 20px;
     height: 40px;
+    width: 40px;
     border: none;
-    padding: 0 10px;
-    font-size: 16px;
-    color: white;
-    background-color: var(--color-blueish);
+    padding: 10px;
+    font-size: 25px;
+    color: #ccc;
     cursor: pointer;
     outline: none;
-    white-space: nowrap;
-    margin-left: 10px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-blackish-hover);
 }
 @media screen and (max-width: 768px) {
-    .discovery {
+    .connection {
         padding: 20px;
+        width: 100%;
+        height: max-content;
     }
-    .discovery > p {
-        font-size: 13px;
-    }
-    .discovery > div {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-    .discovery > div > input[type="password"] {
-        margin-top: 20px;
-        border-radius: 5px;
-        padding: 5px 10px;
-    }
-    .discovery > div > button {
-        margin-left: 0;
-        margin-top: 10px;
-        border-radius: 5px;
-        padding: 5px 10px;
+    .connection > p {
+        font-size: 16px;
     }
 }
 
@@ -1166,21 +1137,9 @@ body {
     flex-direction: column;
     padding: 20px;
 }
-.file_sender > input[type="text"] {
-    width: calc(100% - 20px);
-    height: 40px;
-    border: none;
-    padding: 0 10px;
-    font-size: 16px;
-    color: #ccc;
-    outline: none;
-    border-radius: 5px;
-    background-color: var(--color-blackish-light);
-    flex-shrink: 0;
-}
 .file_sender > ul {
     width: calc(100% - 20px);
-    height: 50px;
+    height: max-content;
     overflow-y: auto;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -1306,4 +1265,66 @@ body {
     .shared_files > .pending_file > .file_info > p {
         width: 250px;
     }
+}
+
+.pin_entry {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    background-color: var(--color-blackish);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+    z-index: 1000 !important;
+}
+.pin_entry > p {
+    font-size: 40px;
+    padding: 0 10px;
+    color: #ccc;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.pin_entry > .fields {
+    width: 100%;
+    height: max-content;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+.pin_entry > .fields > input {
+    width: 60px;
+    height: 60px;
+    margin: 0 10px;
+    padding: 0 10px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #ccc;
+    border: none;
+    outline: none;
+    border-radius: 50%;
+    margin-top: 10px;
+    text-align: center;
+    background-color: var(--color-blackish-light);
+}
+.pin_entry > button {
+    width: 100px;
+    height: 40px;
+    border: none;
+    padding: 0 10px;
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+    outline: none;
+    white-space: nowrap;
+    border-radius: 5px;
+    flex-shrink: 0;
+    background-color: var(--color-blackish-light);
+    margin: 0 10px;
+    margin-top: 60px;
+    background-color: rgb(228, 65, 65);
 }

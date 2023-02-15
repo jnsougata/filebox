@@ -5,6 +5,7 @@ const colorOrange = "#FF6700";
 let runningTaskCount = 0;
 let sidebarState = false;
 let globalSecretKey = null;
+let globalProjectId = null;
 let globalUserId = null;
 let globalFolderQueue = [];
 let globalConsumption = 0;
@@ -51,7 +52,7 @@ function getContextOptionElem(option) {
         "queue" : queueButton,
         "others" : otherButton,
         "trash": trashButton,
-        "shared": sharedButton,
+        "shared": instancesButton,
     }
     return options[option];
 }
@@ -71,18 +72,6 @@ function sidebarEventState(enable = true) {
         sidebarState = true;
     }
 }
-
-let userExpandButton = document.querySelector('#user-settings');
-userExpandButton.addEventListener('click', (ev) => {
-    let settings = document.querySelector('.settings');
-    if (settings.style.display === 'flex') {
-        settings.style.display = 'none';
-        ev.target.innerHTML = `expand_less`;
-    } else {
-        settings.style.display = 'flex';
-        ev.target.innerHTML = `expand_more`;
-    }
-});
 
 function sidebarOptionSwitch() {
     if (window.innerWidth < 768) {
@@ -197,18 +186,14 @@ myFilesButton.addEventListener('click', () => {
     })
 });
 
-let sharedButton = document.querySelector('#shared');
-sharedButton.addEventListener('click', () => {
+let instancesButton = document.querySelector('#instances');
+instancesButton.addEventListener('click', () => {
     globalContextOption = "shared";
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
     if (!isFileMoving) {
         renderOriginalHeader();
-    }
-    if (!isUserSubscribed) {
-        showSnack("Enable discovery to see shared files", colorOrange, 'info');
-        return;
     }
     mainSection.innerHTML = '';
     fetch(`/global/pending/${globalUserId}`)
@@ -255,19 +240,6 @@ queueButton.addEventListener('click', () => {
     queueModal.style.display = 'block';
     if (window.innerWidth < 768) {
         sidebarEventState(false);
-    }
-});
-
-let isCategoryExpanded = false;
-let categoryButton = document.querySelector('#category');
-let categoryItems = document.querySelector('#category-items');
-categoryButton.addEventListener('click', () => {
-    if (isCategoryExpanded) {
-        categoryItems.style.display = 'none';
-        isCategoryExpanded = false;
-    } else {
-        categoryItems.style.display = 'flex';
-        isCategoryExpanded = true;
     }
 });
 
@@ -392,51 +364,73 @@ modalCloseButton.addEventListener('click', () => {
     handleModalClose();
 });
 
-let discoveryButton = document.querySelector('#discovery');
-discoveryButton.addEventListener('click', () => {
-    if (isUserSubscribed) {
-        showSnack('Are you sure to disable?', colorOrange, 'info');
-        return;
-    }
+let connectButton = document.querySelector('#connect');
+connectButton.addEventListener('click', () => {
     modalContent.innerHTML = '';
-    let content = buildDiscoveryModal();
+    let content = buildConnectionModal();
     modalContent.appendChild(content);
     modal.style.display = 'block';
 });
+const f1 = document.querySelector('#f1');
+const f2 = document.querySelector('#f2');
+const f3 = document.querySelector('#f3');
+const f4 = document.querySelector('#f4');
+
+let fieldArray = [f1, f2, f3, f4];
+let pin = '';
+fieldArray.forEach((field, index) => {
+    field.addEventListener('input', (e) => {
+        pin += e.data;
+        if (index < 3) {
+            fieldArray[index + 1].focus();
+        } else {
+            fieldArray[index].blur();
+            fetch(`/api/key/${pin}`)
+            .then(response => {
+                if (response.status == 200) {
+                    return response.json();
+                } else if (response.status == 404) {
+                    showSnack('You did not set any PIN, check App Config.', colorOrange, 'info');
+                    clearButton.click();
+                } 
+                else {
+                    showSnack('Incorrect PIN', colorRed, 'error');
+                    clearButton.click();
+                }
+            })
+            .then(data => {
+                globalSecretKey = data.key;
+                globalProjectId = globalSecretKey.split('_')[0];
+                globalUserId = /-(.*?)\./.exec(window.location.hostname)[1];
+                let userName = document.querySelector('#username');
+                userName.innerHTML = globalUserId;
+                let userIcon = document.querySelector('#user-icon')
+                userIcon.src = getAvatarURL(globalUserId, true);
+                fetch("/api/consumption")
+                .then(response => response.json())
+                .then(data => {
+                    updateSpaceUsage(data.size);
+                })
+                let pinModal = document.querySelector('.pin_entry');
+                pinModal.style.display = 'none';
+                homeButton.click();
+            })
+        }
+    });
+});
+
+let clearButton = document.querySelector('#clear');
+clearButton.addEventListener('click', () => {
+    pin = '';
+    fieldArray.forEach((field) => {
+        field.value = '';
+    });
+    fieldArray[0].focus();
+});
+
 
 window.addEventListener('DOMContentLoaded', () => {
     renderOriginalHeader();
-    fetch("/api/consumption")
-    .then(response => response.json())
-    .then(data => {
-        globalConsumption = data.size;
-        totalSizeWidget.innerHTML = `${handleSizeUnit(globalConsumption)} Used`;
-    })
-    homeButton.click();
-    fetch('/api/env', {
-        method: 'POST',
-        body: JSON.stringify({"names": ["DETA_API_KEY"]})
-    })
-    .then(response => response.json())
-    .then(data => {
-        globalSecretKey = data.DETA_API_KEY;
-        globalUserId = /-(.*?)\./.exec(window.location.hostname)[1];
-        let userName = document.querySelector('#username');
-        userName.innerHTML = globalUserId;
-        let userIcon = document.querySelector('#user-icon')
-        userIcon.src = getAvatarURL(globalUserId);
-        fetch(`/global/exists/${globalUserId}`)
-        .then((resp) => {
-            let discoveryElem = document.querySelector('#discovery');
-            if (resp.status === 200) {
-                isUserSubscribed = true;
-                discoveryElem.innerHTML = `Leave Discovery <span class="material-symbols-rounded">public_off</span>`;
-            } else if (resp.status === 404) {
-                isUserSubscribed = false;
-                discoveryElem.innerHTML = `Join Discovery <span class="material-symbols-rounded">public</span>`;
-            }
-        })
-    })
 });
 
 window.addEventListener('resize', () => {

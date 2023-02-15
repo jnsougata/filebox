@@ -14,6 +14,16 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
     </head>
     <body>
+        <div class="pin_entry">
+            <p>Enter PIN</p>
+            <div class="fields">
+                <input type="password" id="f1" maxlength="1" inputmode="numeric"/>
+                <input type="password" id="f2" maxlength="1" inputmode="numeric"/>
+                <input type="password" id="f3" maxlength="1" inputmode="numeric"/>
+                <input type="password" id="f4" maxlength="1" inputmode="numeric"/>
+            </div>
+            <button id="clear">Clear</button>
+        </div>
         <div class="snackbar"></div>
         <div class="file_sender"></div>
         <div class="queue">
@@ -54,11 +64,11 @@
                     </div>
                     My Files
                 </div>
-                <div class="sidebar_option" id="shared">
+                <div class="sidebar_option" id="instances">
                     <div class="icon">
-                        <i class="fa-solid fa-user-group"></i>
+                        <i class="fa-solid fa-desktop"></i>
                     </div>
-                    Shared
+                    Instances
                 </div>
                 <div class="sidebar_option" id="queue">
                     <div class="icon">
@@ -66,78 +76,76 @@
                     </div>
                     Queue
                 </div>
-                <div class="sidebar_option" id="trash">
+                <div class="sidebar_option" id="trash" style="border-bottom: 1px solid var(--color-blackish-hover);">
                     <div class="icon">
                         <i class="fa-solid fa-trash"></i>
                     </div>
                     Trash
                 </div>
-                <div class="sidebar_option" id="category">
+                <div class="usage">
                     <div class="icon">
-                        <i class="fa-solid fa-filter"></i>
+                        <i class="fa-solid fa-cloud"></i>
                     </div>
-                    Filter By
+                    <p id="storage">0 B</p>
                 </div>
-                <ul id="category-items">
-                    <li id="pdfs">
-                        <div class="icon">
-                            <i class="fa-solid fa-book-open"></i>
-                        </div>
-                        PDFs
-                    </li>
-                    <li id="docs">
-                        <div class="icon">
-                            <i class="fa-solid fa-file-lines"></i>
-                        </div>
-                        Docs
-                    </li>
-                    <li id="images">
-                        <div class="icon">
-                            <i class="fa-solid fa-image"></i>
-                        </div>
-                        Images
-                    </li>
-                    <li id="videos">
-                        <div class="icon">
-                            <i class="fa-solid fa-video"></i>
-                        </div>
-                        Videos
-                    </li>
-                    <li id="audios">
-                        <div class="icon">
-                            <i class="fa-solid fa-headphones"></i>
-                        </div>
-                        Audios
-                    </li>
-                    <li id="others">
-                        <div class="icon">
-                            <i class="fa-solid fa-ghost"></i>
-                        </div>
-                        Others
-                    </li>
-                </ul>
-                <div class="user">
-                    <img alt="user" id="user-icon"/>
-                    <p id="username"></p>
-                    <span class="material-symbols-rounded" id="user-settings">
-                        expand_less
-                    </span>
-                </div>
-                <div class="settings">
+                <div class="usage" style="height: max-content; margin-top: -5px;">
                     <ul>
-                        <li id="discovery">
-                            Join Discovery
-                            <span class="material-symbols-rounded">
-                                public
-                            </span>
+                        <li id="pdfs">
+                            <div class="wrapper">
+                                <div class="icon">
+                                    <i class="fa-solid fa-book-open"></i>
+                                </div>
+                                <p>PDFs</p>
+                            </div>
                         </li>
-                        <li style="margin-bottom: 0; cursor: default; background-color: transparent;">
-                            <p id="storage"></p>
-                            <span class="material-symbols-rounded">
-                                database
-                            </span>
+                        <li id="docs">
+                            <div class="wrapper">
+                                <div class="icon">
+                                    <i class="fa-solid fa-file-lines"></i>
+                                </div>
+                                <p>Docs</p>
+                            </div>
+                        </li>
+                        <li id="images">
+                            <div class="wrapper">
+                                <div class="icon">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                                <p>Images</p>
+                            </div>
+                        </li>
+                        <li id="videos">
+                            <div class="wrapper">
+                                <div class="icon">
+                                    <i class="fa-solid fa-video"></i>
+                                </div>
+                                <p>Videos</p>
+                            </div>
+                        </li>
+                        <li id="audios">
+                            <div class="wrapper">
+                                <div class="icon">
+                                    <i class="fa-solid fa-headphones"></i>
+                                </div>
+                                <p>Audios</p>
+                            </div>
+                        </li>
+                        <li id="others">
+                            <div class="wrapper">
+                                <div class="icon">
+                                    <i class="fa-solid fa-file"></i>
+                                </div>
+                                <p>Others</p>
+                            </div>
                         </li>
                     </ul>
+                </div>
+                <div class="user">
+                    <img alt="user" id="user-icon"/>
+                    <p id="username">unknown</p>
+                    <span class="material-symbols-rounded" id="connect">
+                        conversion_path
+                    </span>
                 </div>
             </div>
             <div class="content">
