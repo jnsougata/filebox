@@ -1,4 +1,5 @@
 v: 1
+app_name: "Filebox"
 icon: ./router/assets/canvas.png
 micros:
 

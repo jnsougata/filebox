@@ -399,7 +399,10 @@ fieldArray.forEach((field, index) => {
                 } else if (response.status == 404) {
                     showSnack('You did not set any PIN, check App Config.', colorOrange, 'info');
                     clearButton.click();
-                } 
+                    let recovery = document.querySelector('#recovery');
+                    recovery.style.display = 'flex';
+                    return;
+                }
                 else {
                     showSnack('Incorrect PIN', colorRed, 'error');
                     clearButton.click();
