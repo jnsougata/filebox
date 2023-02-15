@@ -1,6 +1,6 @@
 v: 1
 app_name: "Filebox"
-icon: ./router/assets/canvas.png
+icon: ./router/assets/app_icon.png
 micros:
 
   - name: api

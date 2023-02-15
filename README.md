@@ -1,4 +1,4 @@
-# FileBox
+# Filebox
 A personal cloud storage service for free (upto 10GB)
 
 - [Install on Deta Space](https://alpha.deta.space/discovery/@gyrooo/filebox)
