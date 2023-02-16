@@ -233,14 +233,14 @@ function createFolder() {
 function downloadShared(file) {
     showSnack(`Downloading ${file.name}`, colorGreen, 'info');
     prependQueueElem(file, false);
-    runningTaskCount ++;
+    runningTaskCount++;
     queueButton.click();
     let bar = document.getElementById(`bar-${file.hash}`);
     let percentageElem = document.getElementById(`percentage-${file.hash}`);
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
-        fetch(`/api/external/${file.owner}/${file.hash}/0`)
+        fetch(`/api/external/${globalUserId}/${file.owner}/${file.hash}/0`)
         .then((resp) => resp.blob())
         .then((blob) => {
             let a = document.createElement('a');
@@ -265,7 +265,7 @@ function downloadShared(file) {
         let progress = 0;
         heads.forEach((head) => {
             promises.push(
-                fetch(`/api/external/${file.owner}/${file.hash}/${head}}`)
+                fetch(`/api/external/${globalUserId}/${file.owner}/${file.hash}/${head}`)
                 .then((resp) => {
                     return resp.blob();
                 })

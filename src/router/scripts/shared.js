@@ -33,7 +33,7 @@ function downloadByChunk(file) {
     let name = file.name;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
-        fetch(`/api/shared/chunk/0/${file.hash}`)
+        fetch(`/api/shared/na/${file.hash}/0`)
         .then((response) => {
             if (response.status === 403) {
                 alert(`File access denied by owner!`);
@@ -64,7 +64,7 @@ function downloadByChunk(file) {
         let allOk = true;
         heads.forEach((head) => {
             promises.push(
-                fetch(`/api/shared/chunk/${head}/${hashedName}`)
+                fetch(`/api/shared/na/${file.hash}/${head}`)
                 .then(response => {
                     if (response.status === 403) {
                         alert(`File access denied by owner!`);

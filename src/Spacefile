@@ -10,7 +10,7 @@ micros:
       api_keys: true
       env:
         - name: "USER_PIN"
-          description: "Pin for user authentication"
+          description: "4-digit pin for user authentication"
 
     commands:
       - go get

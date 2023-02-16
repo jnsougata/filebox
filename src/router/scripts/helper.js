@@ -241,9 +241,13 @@ function handleFileMenuClick(file) {
     send.innerHTML = `<p>Send</p><span class="material-symbols-rounded">send</span>`;
     if (file.type !== "folder") {
         send.addEventListener("click", () => {
+            if (file.size > 1024 * 1024 * 15) {
+                showSnack("Can't send file larger than 15MB privately", colorOrange, 'info');
+                return;
+            }
             renderFileSenderModal(file);
         });
-        if (file.size > 1024 * 1024 * 30) {
+        if (file.size > 1024 * 1024 * 15) {
             send.style.opacity = 0.3;
         }
         fileOptionPanel.appendChild(send);
@@ -896,7 +900,7 @@ async function loadSharedFile(file) {
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
-        let resp = await fetch(`/api/external/${file.owner}/${file.hash}/0`);
+        let resp = await fetch(`/api/external/${globalUserId}/${file.owner}/${file.hash}/0`);
         return await resp.blob();
     } else {
         let skips = 0;
@@ -909,7 +913,7 @@ async function loadSharedFile(file) {
         let promises = [];
         heads.forEach((head) => {
             promises.push(
-                fetch(`/api/external/${file.owner}/${file.hash}/${head}`)
+                fetch(`/api/external/${globalUserId}/${file.owner}/${file.hash}/${head}`)
                 .then((resp) => {
                     return resp.blob();
                 })
@@ -1219,6 +1223,11 @@ function buildConnectionModal() {
         if (url[url.length - 1] === '/') {
             url = url.substring(0, url.length - 1);
         }
+        let id = /-(.*?)\./.exec(url)[1];
+        if (id === globalUserId) {
+            showSnack('You cannot connect to your own instance', colorRed, 'error');
+            return;
+        }
         let apiKey = apiKeyInput.value;
         if (nickname.length === 0 || url.length === 0 || apiKey.length === 0) {
             showSnack('All fields are required', colorOrange, 'warning');
@@ -1227,10 +1236,10 @@ function buildConnectionModal() {
         fetch('/api/instances', {
             method: "POST",
             body: JSON.stringify({
+                "id": id,
                 "url": url,
                 "api_key": apiKey,
                 "nickname": nickname,
-                "id": /-(.*?)\./.exec(url)[1],
             }),
         })
         .then((resp) => {
@@ -1324,6 +1333,46 @@ function renderFileSenderModal(file) {
         fileSender.appendChild(buttons);
         fileSender.style.display = 'flex';
     });
+}
+
+function buildTitleP(text) {
+    let p = document.createElement('p');
+    p.innerHTML = text;
+    p.style.width = '100%';
+    p.style.textAlign = 'left';
+    p.style.padding = '10px';
+    p.style.fontSize = '18px';
+    return p;
+}
+
+function buildInstnaceList(instances) {
+    let ul = document.createElement('ul');
+    ul.className = 'instance_list';
+    ul.style.height = 'fit-content';
+    ul.style.flexShrink = '0';
+    instances.forEach((instance) => {
+        let li = document.createElement('li');
+        let avatar = document.createElement('img');
+        avatar.src = getAvatarURL(instance.nickname);
+        let nickname = document.createElement('p');
+        nickname.innerHTML = instance.nickname;
+        let id = document.createElement('p');
+        id.innerHTML = instance.id;
+        let remove = document.createElement('button');
+        remove.innerHTML = 'Remove';
+        remove.addEventListener('click', () => {
+            fetch(`/api/instances`, {method: "DELETE", body: JSON.stringify(instance)})
+            .then(() => {
+                li.remove();
+            })
+        });
+        li.appendChild(avatar);
+        li.appendChild(nickname);
+        li.appendChild(id);
+        li.appendChild(remove);
+        ul.appendChild(li);
+    });
+    return ul;
 }
 
 function buildPendingFileList(files) {

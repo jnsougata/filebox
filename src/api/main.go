@@ -24,7 +24,7 @@ func main() {
 	r.HandleFunc("/metadata", HandleMetadata).Methods("GET", "POST", "DELETE", "PATCH")
 	r.HandleFunc("/folder", HandleFolder).Methods("POST")
 	r.HandleFunc("/embed/{hash}", HandleEmbed).Methods("GET")
-	r.HandleFunc("/shared/chunk/{skip}/{hash}", HandleDownload).Methods("GET")
+	r.HandleFunc("/shared/{recipient}/{hash}/{skip}", HandleDownload).Methods("GET")
 	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")
 	r.HandleFunc("/query", HandleQuery).Methods("POST")
 	r.HandleFunc("/rename", HandleRename).Methods("POST")
@@ -37,7 +37,7 @@ func main() {
 	r.HandleFunc("/__space/v0/actions", HandleOrphanClenup).Methods("POST")
 	r.HandleFunc("/instances", HandleInstances).Methods("POST", "DELETE", "PATCH", "GET")
 	r.HandleFunc("/instances/{id}", HandleInstance).Methods("GET", "POST")
-	r.HandleFunc("/external/{owner}/{hash}/{skip}", HandleSharedFileLoad).Methods("GET", "POST")
+	r.HandleFunc("/external/{recipient}/{owner}/{hash}/{skip}", HandleSharedFileLoad).Methods("GET", "POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -195,10 +195,31 @@ func HandleDownload(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
 	resp := base.Get(hash)
-	access, ok := resp.Data["access"]
-	if ok && access.(string) == "private" {
-		w.WriteHeader(http.StatusForbidden)
-		return
+	recipient := vars["recipient"]
+	if recipient == "na" {
+		access, ok := resp.Data["access"]
+		if ok && access.(string) == "private" {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+	} else {
+		recipients, ok := resp.Data["recipients"]
+		if !ok {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		recipientsList := recipients.([]interface{})
+		found := false
+		for _, rec := range recipientsList {
+			if rec.(string) == recipient {
+				found = true
+				break
+			}
+		}
+		if !found {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 	}
 	skip, _ := strconv.Atoi(vars["skip"])
 	streamingResp := drive.Get(fileToDriveSavedName(resp.Data))
@@ -402,6 +423,9 @@ func HandleDetaKey(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+	if len(pin) > 4 {
+		pin = pin[:4]
+	}
 	if pin != os.Getenv("USER_PIN") {
 		w.WriteHeader(http.StatusForbidden)
 		return
@@ -452,29 +476,14 @@ func HandleInstances(w http.ResponseWriter, r *http.Request) {
 		var body map[string]interface{}
 		_ = json.NewDecoder(r.Body).Decode(&body)
 		resp := instances.Put(deta.Record{Key: body["id"].(string), Value: body})
-		url := body["url"].(string)
-		apiKey := body["api_key"].(string)
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/instances", url), r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-		req.Header.Set("X-Space-App-Key", apiKey)
-		req.Header.Set("Content-Type", "application/json")
-		client := &http.Client{}
-		rs, err := client.Do(req)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-		if resp.StatusCode != rs.StatusCode {
-			w.WriteHeader(http.StatusConflict)
-			w.Write([]byte("One of the participating instances is not available. Please try again."))
-			return
-		}
-		w.WriteHeader(rs.StatusCode)
+		w.WriteHeader(resp.StatusCode)
+		return
+		
+	case "DELETE":
+		var body map[string]interface{}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		resp := instances.Delete(body["id"].(string))
+		w.WriteHeader(resp.StatusCode)
 		return
 	}
 }
@@ -521,6 +530,7 @@ func HandleInstance(w http.ResponseWriter, r *http.Request) {
 func HandleSharedFileLoad(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	owner := vars["owner"]
+	recipient := vars["recipient"]
 	hash := vars["hash"]
 	skip := vars["skip"]
 	ownerData := instances.Get(owner).Data
@@ -528,7 +538,7 @@ func HandleSharedFileLoad(w http.ResponseWriter, r *http.Request) {
 	ownerInstanceApiKey := ownerData["api_key"].(string)
 	req, err := http.NewRequest(
 		"GET",
-		fmt.Sprintf("%s/api/shared/chunk/%s/%s", ownerInstanceUrl, skip, hash),
+		fmt.Sprintf("%s/api/shared/%s/%s/%s", ownerInstanceUrl, recipient, hash, skip),
 		nil)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

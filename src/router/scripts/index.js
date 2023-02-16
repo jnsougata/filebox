@@ -196,39 +196,51 @@ instancesButton.addEventListener('click', () => {
         renderOriginalHeader();
     }
     mainSection.innerHTML = '';
-    fetch(`/api/query`, {
-        method: "POST", 
-        body: JSON.stringify(
-            {"pending": true, "shared": true})
-        })
-    .then((resp) => {
-        if (resp.status === 200) {
-            return resp.json();
-        }
-        return [];
-    })
+    let fileList = document.createElement('div');
+    fileList.className = 'file_list';
+    fetch(`/api/instances`)
+    .then((resp) => resp.json())
     .then(data => {
-        let fileList = document.createElement('div');
-        fileList.className = 'file_list';
         if (data) {
-            fileList.appendChild(buildPendingFileList(data));
+            fileList.appendChild(buildTitleP('Connected Instances'));
+            fileList.appendChild(buildInstnaceList(data));
         }
-        fetch("/api/query", {
+    })
+    .then(() => {
+        fetch(`/api/query`, {
             method: "POST", 
-            body: JSON.stringify({"shared": true, "deleted?ne": true, "pending?ne": true})
-        })
-        .then(response => response.json())
-        .then(data => {
-            let ul = document.createElement('ul');
-            ul.className = 'all_files';
-            if (data) {
-                data.forEach((file) => {
-                    ul.appendChild(newFileElem(file));
-                });
+            body: JSON.stringify(
+                {"pending": true, "shared": true})
+            })
+        .then((resp) => {
+            if (resp.status === 200) {
+                return resp.json();
             }
-            fileList.appendChild(ul);
-            mainSection.appendChild(fileList);
-        });
+            return [];
+        })
+        .then(data => {
+            if (data) {
+                fileList.appendChild(buildTitleP('Pending Files'));
+                fileList.appendChild(buildPendingFileList(data));
+            }
+            fetch("/api/query", {
+                method: "POST", 
+                body: JSON.stringify({"shared": true, "deleted?ne": true, "pending?ne": true})
+            })
+            .then(response => response.json())
+            .then(data => {
+                let ul = document.createElement('ul');
+                ul.className = 'all_files';
+                if (data) {
+                    fileList.appendChild(buildTitleP('Received Files'));
+                    data.forEach((file) => {
+                        ul.appendChild(newFileElem(file));
+                    });
+                }
+                fileList.appendChild(ul);
+                mainSection.appendChild(fileList);
+            });
+        })
     })
 });
 
@@ -318,7 +330,7 @@ trashButton.addEventListener('click', () => {
         let emptyTrash = document.createElement('button');
         emptyTrash.innerHTML = '<i class="fa-solid fa-trash"></i>';
         emptyTrash.addEventListener('click', () => {
-            fetch('/api/bulk', {method: 'DELETE', body: JSON.stringify(globalTrashFiles)})
+            fetch(`/api/bulk/${globalProjectId}`, {method: 'DELETE', body: JSON.stringify(globalTrashFiles)})
             .then(() => {
                 showSnack('Trash Emptied Successfully!', colorGreen, 'success');
                 let totalSpaceFreed = 0;
@@ -374,8 +386,7 @@ modalCloseButton.addEventListener('click', () => {
 let connectButton = document.querySelector('#connect');
 connectButton.addEventListener('click', () => {
     modalContent.innerHTML = '';
-    let content = buildConnectionModal();
-    modalContent.appendChild(content);
+    modalContent.appendChild(buildConnectionModal());
     modal.style.display = 'block';
 });
 const f1 = document.querySelector('#f1');
@@ -399,8 +410,6 @@ fieldArray.forEach((field, index) => {
                 } else if (response.status == 404) {
                     showSnack('You did not set any PIN, check App Config.', colorOrange, 'info');
                     clearButton.click();
-                    let recovery = document.querySelector('#recovery');
-                    recovery.style.display = 'flex';
                     return;
                 }
                 else {
