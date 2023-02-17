@@ -1208,9 +1208,11 @@ function buildConnectionModal() {
     connection.className = 'connection';
     let instanceNickname = document.createElement('input');
     instanceNickname.type = 'text';
+    instanceNickname.spellcheck = false;
     instanceNickname.placeholder = 'Set a nickname';
     let instanceURL = document.createElement('input');
     instanceURL.type = 'text';
+    instanceURL.spellcheck = false; 
     instanceURL.placeholder = 'URL of the instance';
     let apiKeyInput = document.createElement('input');
     apiKeyInput.type = 'password';
@@ -1220,17 +1222,17 @@ function buildConnectionModal() {
     connectButton.addEventListener('click', () => {
         let nickname = instanceNickname.value;
         let url = instanceURL.value;
+        let apiKey = apiKeyInput.value;
+        if (nickname.length === 0 || url.length === 0 || apiKey.length === 0) {
+            showSnack('All fields are required', colorOrange, 'warning');
+            return;
+        }
         if (url[url.length - 1] === '/') {
             url = url.substring(0, url.length - 1);
         }
         let id = /-(.*?)\./.exec(url)[1];
         if (id === globalUserId) {
-            showSnack('You cannot connect to your own instance', colorRed, 'error');
-            return;
-        }
-        let apiKey = apiKeyInput.value;
-        if (nickname.length === 0 || url.length === 0 || apiKey.length === 0) {
-            showSnack('All fields are required', colorOrange, 'warning');
+            showSnack('You cannot connect to your own instance', colorOrange, 'warning');
             return;
         }
         fetch('/api/instances', {
@@ -1256,11 +1258,17 @@ function buildConnectionModal() {
             }
         })
     });
+    let span = document.createElement('span');
+    span.style.marginTop = '20px';
+    span.style.fontSize = '14px';
+    span.style.color = '#ccc';
+    span.innerHTML = '*ask the receiver to add your instance as well.';
     connection.appendChild(p);
     connection.appendChild(instanceNickname);
     connection.appendChild(instanceURL);
     connection.appendChild(apiKeyInput);
     connection.appendChild(connectButton);
+    connection.appendChild(span);
     return connection;
 }
 

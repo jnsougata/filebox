@@ -142,7 +142,6 @@ body {
     width: 100%;
     margin-left: 20px;
     color: #ccc;
-    border-left: 1px solid #ccc;
 }
 .sidebar > .usage > ul > li {
     font-size: 15px;
@@ -153,10 +152,9 @@ body {
 
 .sidebar > .usage > ul > li > .wrapper {
     width: 100%;
-    padding: 5px;
+    padding: 6px;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
     border-radius: 5px;
 }
 .sidebar > .usage > ul > li > .wrapper:hover {
@@ -1338,14 +1336,36 @@ body {
     border: none;
     padding: 0 10px;
     font-size: 16px;
-    color: white;
+    color: #ccc;
     cursor: pointer;
     outline: none;
     white-space: nowrap;
     border-radius: 5px;
     flex-shrink: 0;
-    background-color: var(--color-blackish-light);
     margin: 0 10px;
     margin-top: 60px;
-    background-color: rgb(228, 65, 65);
+    background-color: var(--color-blackish-light);
+}
+.pin_entry > * {
+    flex-shrink: 0;
+}
+@media screen and (max-width: 768px) {
+    .pin_entry {
+        padding: 0;
+    }
+    .pin_entry > p {
+        font-size: 20px;
+    }
+    .pin_entry > .fields > input {
+        width: 40px;
+        height: 40px;
+        margin: 5px;
+        font-size: 12px;
+    }
+    .pin_entry > button {
+        margin-top: 20px;
+        width: 85px;
+        height: 35px;
+        font-size: 14px;
+    }
 }

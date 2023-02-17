@@ -202,7 +202,7 @@ instancesButton.addEventListener('click', () => {
     .then((resp) => resp.json())
     .then(data => {
         if (data) {
-            fileList.appendChild(buildTitleP('Connected Instances'));
+            fileList.appendChild(buildTitleP('Instances'));
             fileList.appendChild(buildInstnaceList(data));
         }
     })
