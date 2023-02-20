@@ -56,100 +56,104 @@
                     <img src="../assets/icon.png" alt="logo" />
                     <h3>Filebox</h3>
                 </div>
-                <div class="sidebar_option" id="home">
-                    <div class="icon">
-                        <i class="fa-solid fa-clock"></i>
+                <div class="wrapper">
+                    <div class="sidebar_option" id="home">
+                        <div class="icon">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        Recent
                     </div>
-                    Recent
-                </div>
-                <div class="sidebar_option" id="my-files">
-                    <div class="icon">
-                        <i class="fa-solid fa-hard-drive"></i>
+                    <div class="sidebar_option" id="my-files">
+                        <div class="icon">
+                            <i class="fa-solid fa-hard-drive"></i>
+                        </div>
+                        My Files
                     </div>
-                    My Files
-                </div>
-                <div class="sidebar_option" id="instances">
-                    <div class="icon">
-                        <i class="fa-solid fa-desktop"></i>
+                    <div class="sidebar_option" id="instances">
+                        <div class="icon">
+                            <i class="fa-solid fa-desktop"></i>
+                        </div>
+                        Instances
                     </div>
-                    Instances
-                </div>
-                <div class="sidebar_option" id="queue">
-                    <div class="icon">
-                        <i class="fa-solid fa-clock"></i>
+                    <div class="sidebar_option" id="queue">
+                        <div class="icon">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        Queue
                     </div>
-                    Queue
-                </div>
-                <div class="sidebar_option" id="trash" style="border-bottom: 1px solid var(--color-blackish-hover);">
-                    <div class="icon">
-                        <i class="fa-solid fa-trash"></i>
+                    <div class="sidebar_option" id="trash" style="border-bottom: 1px solid var(--color-blackish-hover)">
+                        <div class="icon">
+                            <i class="fa-solid fa-trash"></i>
+                        </div>
+                        Trash
                     </div>
-                    Trash
-                </div>
-                <div class="usage">
-                    <div class="icon">
-                        <i class="fa-solid fa-database" style="color: var(--color-blueish)"></i>
+                    <div class="usage">
+                        <div class="icon">
+                            <i class="fa-solid fa-database"></i>
+                        </div>
+                        <p id="storage">0 B</p>
                     </div>
-                    <p id="storage">0 B</p>
+                    <div class="usage" style="height: max-content; margin-top: -10px;">
+                        <ul>
+                            <li id="pdfs" style="margin-top: 10px;">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-book-open"></i>
+                                    </div>
+                                    <p>PDFs</p>
+                                </div>
+                            </li>
+                            <li id="docs">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-file-lines"></i>
+                                    </div>
+                                    <p>Docs</p>
+                                </div>
+                            </li>
+                            <li id="images">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-image"></i>
+                                    </div>
+                                    <p>Images</p>
+                                </div>
+                            </li>
+                            <li id="videos">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-video"></i>
+                                    </div>
+                                    <p>Videos</p>
+                                </div>
+                            </li>
+                            <li id="audios">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-headphones"></i>
+                                    </div>
+                                    <p>Audios</p>
+                                </div>
+                            </li>
+                            <li id="others">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-file"></i>
+                                    </div>
+                                    <p>Others</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="usage" style="height: max-content; margin-top: -10px;">
-                    <ul>
-                        <li id="pdfs" style="margin-top: 10px;">
-                            <div class="wrapper">
-                                <div class="icon">
-                                    <i class="fa-solid fa-book-open"></i>
-                                </div>
-                                <p>PDFs</p>
-                            </div>
-                        </li>
-                        <li id="docs">
-                            <div class="wrapper">
-                                <div class="icon">
-                                    <i class="fa-solid fa-file-lines"></i>
-                                </div>
-                                <p>Docs</p>
-                            </div>
-                        </li>
-                        <li id="images">
-                            <div class="wrapper">
-                                <div class="icon">
-                                    <i class="fa-solid fa-image"></i>
-                                </div>
-                                <p>Images</p>
-                            </div>
-                        </li>
-                        <li id="videos">
-                            <div class="wrapper">
-                                <div class="icon">
-                                    <i class="fa-solid fa-video"></i>
-                                </div>
-                                <p>Videos</p>
-                            </div>
-                        </li>
-                        <li id="audios">
-                            <div class="wrapper">
-                                <div class="icon">
-                                    <i class="fa-solid fa-headphones"></i>
-                                </div>
-                                <p>Audios</p>
-                            </div>
-                        </li>
-                        <li id="others">
-                            <div class="wrapper">
-                                <div class="icon">
-                                    <i class="fa-solid fa-file"></i>
-                                </div>
-                                <p>Others</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <div class="user">
-                    <img alt="user" id="user-icon"/>
-                    <p id="username">unknown</p>
-                    <span class="material-symbols-rounded" id="connect">
-                        conversion_path
-                    </span>
+                <div class="wrapper" style="justify-content: flex-end;">
+                    <div class="user">
+                        <img alt="user" id="user-icon"/>
+                        <p id="username">unknown</p>
+                        <span class="material-symbols-rounded" id="connect">
+                            conversion_path
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class="content">

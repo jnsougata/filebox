@@ -71,7 +71,7 @@ function downloadByChunk(file) {
                         allOk = false;
                     } else
                     if (response.status === 502) {
-                        alert(`Server refused to deliver chunk ${head}`);
+                        alert(`Server refused to deliver chunk ${head}, try again!`);
                         allOk = false;
                     }
                     progress++;
@@ -95,11 +95,10 @@ function downloadByChunk(file) {
                 a.click();
                 progressBar.style.width = "100%";
                 percentage.innerHTML = `Downloaded 100%`;
-                isTaskRunning = false;
             } else {
-                isTaskRunning = false;
                 alert("File is very powerful. Please try again.");
             }
+            isTaskRunning = false;
         })
     }
 }

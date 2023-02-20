@@ -2,30 +2,25 @@
 title: "Filebox"
 tagline: "Fastest File Storage (Supports Large Files)"
 git: "https://github.com/jnsougata/filebox"
-theme_color: "#1c42684f"
+theme_color: "#0561da"
 ---
 
-Upload and Organize files in your Personal Space Drive
+Upload & organize files in your Personal Space Drive
 
-#### Features
+# Features
+1. Simple and clean UI
+2. Multiple file upload
+3. Upload file upto 10GB
+4. Filebox usage indicator
+5. View files by categories
+6. Easy file download on demand
+7. Embeddable file urls (up to 5MB)
+8. Publicly shareable urls (up to 30MB)
+9. File preview for common file types
+10. Multiple file selection and operations
+ 
+### What's New (v2.3)
+- Connect multiple instances and share files privately
 
-- Minimal Desktop and Mobile compatible UI
-- Easy file upload & multiple upload support
-- Upload file of any type and size upto 10GB
-- Embeddable file urls for using in any website
-- Download file from your space drive when needed
-- Publicly shareable file urls of the files upto 30MB 
-
-#### What's New (v2.2)
-
-- A bit more minimal and clean UI
-- Uploaded files are by default private
-- You can now pin files to filebox home page 
-- Added some options to view files by category
-- You can now block access of shared files and embeds
-- Track your filebox usage with a space usage indicator
-- Added ability to move files to different folders
-- Added ability to preview images, videos, audios, pdfs and text files
-- Select multiple files at once and do delete / move / public / private 
-
-  
+### Future 
+Filebox will no longer receive updates from original developer after v2.3. The project is open source and anyone can contribute to it. Looking for new maintainers with adequate knowledge in Svelte for framework migration and Golang for backend development.

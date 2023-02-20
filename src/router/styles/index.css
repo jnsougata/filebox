@@ -30,6 +30,7 @@
 body {
     overflow: hidden;
     height: 100vh;
+    height: 100dvh;
     background-color: var(--color-blackish);
 }
 
@@ -54,6 +55,7 @@ body {
 .sidebar {
     width: 250px;
     height: 100%;
+    height: 100dvh;
     background-color: #1a1c20;
     color: white;
     display: flex;
@@ -83,7 +85,15 @@ body {
     font-weight: 600;
     color: white;
 }
-.sidebar > .sidebar_option {
+.sidebar > .wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+.sidebar_option {
     width: 100%;
     height: 42px;
     font-size: 16px;
@@ -94,22 +104,22 @@ body {
     justify-content: flex-start;
     border-left: 5px solid transparent;
 }
-.sidebar > .sidebar_option > .icon {
+.sidebar_option > .icon {
     width: 40px;
     height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.sidebar > .sidebar_option > .icon > i {
+.sidebar_option > .icon > i {
     font-size: 16px;
     color: #ccc;
     z-index: 2;
 }
-.sidebar > .sidebar_option:hover {
+.sidebar_option:hover {
     background-color: #ffffff1c;
 }
-.sidebar > .usage {
+.usage {
     width: 100%;
     height: 40px;
     padding-left: 20px;
@@ -121,46 +131,45 @@ body {
     flex-shrink: 0;
     margin-top: 10px;
 }
-.sidebar > .usage > .icon {
+.usage > .icon {
     width: 40px;
     height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.sidebar > .usage > .icon > i {
+.usage > .icon > i {
     font-size: 16px;
     color: #ccc;
     z-index: 2;
 }
-.sidebar > .usage > p {
+.usage > p {
     margin-left: 10px;
     font-size: 14px;
     color: #ccc;
 }
-.sidebar > .usage > ul {
+.usage > ul {
     width: 100%;
     margin-left: 20px;
     color: #ccc;
 }
-.sidebar > .usage > ul > li {
+.usage > ul > li {
     font-size: 15px;
     margin-left: 14px;
     cursor: pointer;
     margin-right: 30px;
 }
-
-.sidebar > .usage > ul > li > .wrapper {
+.usage > ul > li > .wrapper {
     width: 100%;
     padding: 6px;
     display: flex;
     align-items: center;
     border-radius: 5px;
 }
-.sidebar > .usage > ul > li > .wrapper:hover {
+.usage > ul > li > .wrapper:hover {
     background-color: #ffffff1c;
 }
-.sidebar > .usage > ul > li > .wrapper > .icon {
+.usage > ul > li > .wrapper > .icon {
     width: 20px;
     height: 20px;
     margin-right: 10px;
@@ -169,28 +178,24 @@ body {
     justify-content: center;
     
 }
-.sidebar > .user {
-    bottom: 0;
-    position: fixed;
+.user {
     width: 250px;
     height: 60px;
     display: flex;
     padding-left: 20px;
     padding-right: 20px;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     background-color: #202023;
     z-index: 10;
 }
-.sidebar > .user > img {
-    width: 35px;
-    height: 35px;
+.user > img {
+    width: 30px;
+    height: 30px;
     object-fit: cover;
-    position:  absolute;
-    left: 15px;
     border-radius: 50%;
 }
-.sidebar > .user > p {
+.user > p {
     max-width: 125px;
     font-size: 15px;
     color: white;
@@ -201,9 +206,8 @@ body {
     white-space: nowrap;
     text-align: end;
     background-color: var(--color-blackish-hover);
-    margin-right: 10px;
 }
-.sidebar > .user > span {
+.user > span {
     font-size: 16px;
     color: white;
     cursor: pointer;
