@@ -129,7 +129,6 @@ body {
     font-size: 14px;
     color: #ccc;
     flex-shrink: 0;
-    margin-top: 10px;
 }
 .usage > .icon {
     width: 40px;
@@ -883,6 +882,7 @@ body {
 .modal {
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     position: fixed;
     z-index: 1000;
     display: none;
@@ -1293,6 +1293,7 @@ body {
 .pin_entry {
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     position: fixed;
     background-color: var(--color-blackish);
     z-index: 100;

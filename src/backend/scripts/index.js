@@ -202,7 +202,7 @@ instancesButton.addEventListener('click', () => {
     .then((resp) => resp.json())
     .then(data => {
         if (data) {
-            fileList.appendChild(buildTitleP('Instances'));
+            fileList.appendChild(buildTitleP('Warps'));
             fileList.appendChild(buildInstnaceList(data));
         }
     })
@@ -232,7 +232,7 @@ instancesButton.addEventListener('click', () => {
                 let ul = document.createElement('ul');
                 ul.className = 'all_files';
                 if (data) {
-                    fileList.appendChild(buildTitleP('Received Files'));
+                    fileList.appendChild(buildTitleP('Files Received '));
                     data.forEach((file) => {
                         ul.appendChild(newFileElem(file));
                     });
@@ -450,6 +450,7 @@ clearButton.addEventListener('click', () => {
 
 window.addEventListener('DOMContentLoaded', () => {
     renderOriginalHeader();
+    f1.focus();
 });
 
 window.addEventListener('resize', () => {

@@ -1,6 +1,6 @@
 v: 1
 app_name: "Filebox"
-icon: ./router/assets/app_icon.png
+icon: ./backend/assets/app_icon.png
 micros:
 
   - name: api
@@ -11,7 +11,6 @@ micros:
       env:
         - name: "USER_PIN"
           description: "4-digit pin for user authentication"
-
     commands:
       - go get
       - go build main.go
@@ -26,8 +25,8 @@ micros:
         trigger: "schedule"
         default_interval: "0/15 * * * *"
 
-  - name: router
-    src: ./router/
+  - name: backend
+    src: ./backend/
     engine: custom
     primary: true
     commands:

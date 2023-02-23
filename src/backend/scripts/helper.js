@@ -640,6 +640,7 @@ function newFileElem(file, isTrash = false) {
             warning.innerHTML = "Preview uses progressive loading, so it may take a while to load large files.";
             warning.className = 'warning';
             warning.style.color = colorOrange;
+            warning.style.padding = '10px';
             modalContent.appendChild(warning);
             modalContent.appendChild(makeSpinnerElem());
             if (file.mime.startsWith('image')) {
@@ -1204,7 +1205,7 @@ function renderOtherHeader(elem){
 function buildConnectionModal() {
     let connection = document.createElement('div');
     let p = document.createElement('p');
-    p.innerHTML = 'Connect to another Instance?';
+    p.innerHTML = 'Create a new warp?';
     connection.className = 'connection';
     let instanceNickname = document.createElement('input');
     instanceNickname.type = 'text';
@@ -1232,7 +1233,7 @@ function buildConnectionModal() {
         }
         let id = /-(.*?)\./.exec(url)[1];
         if (id === globalUserId) {
-            showSnack('You cannot connect to your own instance', colorOrange, 'warning');
+            showSnack(`Warp can't have same endings!`, colorOrange, 'warning');
             return;
         }
         fetch('/api/instances', {
@@ -1246,14 +1247,14 @@ function buildConnectionModal() {
         })
         .then((resp) => {
             if (resp.status === 207) {
-                showSnack('Instance added successfully', colorGreen, 'success');
+                showSnack('Warp created successfully', colorGreen, 'success');
                 connectButton.style.color = colorGreen;
                 setTimeout(() => {
                     modal.style.display = 'none';
                 }, 1000);
                 return;
             } else {
-                showSnack('Error adding instance, try again!', colorRed, 'error');
+                showSnack('Error creating warp, try again!', colorRed, 'error');
                 return;
             }
         })
@@ -1262,7 +1263,7 @@ function buildConnectionModal() {
     span.style.marginTop = '20px';
     span.style.fontSize = '14px';
     span.style.color = '#ccc';
-    span.innerHTML = '*ask the receiver to add your instance as well.';
+    span.innerHTML = '*ask the receiver create a warp for you';
     connection.appendChild(p);
     connection.appendChild(instanceNickname);
     connection.appendChild(instanceURL);
@@ -1282,7 +1283,7 @@ function renderFileSenderModal(file) {
     .then(response => response.json())
     .then(data => {
         if (!data) {
-            showSnack('No instances connected', colorOrange, 'warning');
+            showSnack('No warps found', colorOrange, 'warning');
             return;
         }
         let fileSender = document.querySelector('.file_sender');
