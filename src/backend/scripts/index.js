@@ -214,6 +214,7 @@ instancesButton.addEventListener('click', () => {
             })
         .then((resp) => {
             if (resp.status === 200) {
+                connectButton.click();
                 return resp.json();
             }
             return [];

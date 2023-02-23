@@ -1,6 +1,6 @@
 ---
 title: "Filebox"
-tagline: "Fastest File Storage (Supports Large Files)"
+tagline: "Personal cloud storage for all file sizes"
 git: "https://github.com/jnsougata/filebox"
 theme_color: "#0561da"
 ---
@@ -20,6 +20,7 @@ Upload & organize files in your Personal Space Drive
 10. Multiple file selection and operations
  
 ### What's New (v2.3)
+- Enforcing user pin for more security.
 - Warps: A new way to share files across Filebox instances.
 
 ### Future 
