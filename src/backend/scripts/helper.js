@@ -1263,7 +1263,7 @@ function buildConnectionModal() {
     span.style.marginTop = '20px';
     span.style.fontSize = '14px';
     span.style.color = '#ccc';
-    span.innerHTML = '*ask the receiver create a warp for you';
+    span.innerHTML = '*ask the receiver to create an warp for you';
     connection.appendChild(p);
     connection.appendChild(instanceNickname);
     connection.appendChild(instanceURL);

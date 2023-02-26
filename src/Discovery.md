@@ -1,6 +1,6 @@
 ---
 title: "Filebox"
-tagline: "Personal cloud storage for all file sizes"
+tagline: "Fastest File Storage (Supports Large File)"
 git: "https://github.com/jnsougata/filebox"
 theme_color: "#0561da"
 ---
