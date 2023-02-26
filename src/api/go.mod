@@ -1,4 +1,4 @@
-module github.com/jnsougata/filebox
+module api
 
 go 1.19
 
