@@ -200,6 +200,10 @@ function download(file) {
 
 function createFolder() {
     let name = prompt("Enter folder name", "New Folder");
+    if (name === "~shared") {
+        showSnack(`~shared is a reserved folder name`, colorOrange, 'warning');
+        return;
+    }
     if (name) {
         let body = {
             "name": name,

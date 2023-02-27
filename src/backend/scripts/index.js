@@ -200,12 +200,7 @@ sharedButton.addEventListener('click', () => {
     mainSection.innerHTML = '';
     let fileList = document.createElement('div');
     fileList.className = 'file_list';
-    fetch(`/api/query`, {
-        method: "POST", 
-        body: JSON.stringify(
-            {"pending": true, "shared": true})
-        }
-    )
+    fetch(`/api/query`, {method: "POST", body: JSON.stringify({"parent": "~shared"})})
     .then((resp) => {
         if (resp.status === 200) {
             return resp.json();
@@ -214,26 +209,26 @@ sharedButton.addEventListener('click', () => {
     })
     .then(data => {
         if (data) {
-            fileList.appendChild(buildTitleP('Pending Files'));
-            fileList.appendChild(buildPendingFileList(data));
-        }
-        fetch("/api/query", {
-            method: "POST", 
-            body: JSON.stringify({"shared": true, "deleted?ne": true, "pending?ne": true})
-        })
-        .then(response => response.json())
-        .then(data => {
-            let ul = document.createElement('ul');
-            ul.className = 'all_files';
-            if (data) {
+            let pendingFiles = data.filter((file) => file.pending);
+            let acceptedFiles = data.filter((file) => !file.pending);
+            if (pendingFiles.length > 0) {
+                fileList.appendChild(buildTitleP('Pending Files'));
+                fileList.appendChild(buildPendingFileList(pendingFiles));
+            }
+            if (acceptedFiles.length > 0) {
+                let ul = document.createElement('ul');
+                ul.className = 'all_files';
                 fileList.appendChild(buildTitleP('Files Received '));
                 data.forEach((file) => {
                     ul.appendChild(newFileElem(file));
                 });
+                fileList.appendChild(ul);
             }
-            fileList.appendChild(ul);
             mainSection.appendChild(fileList);
-        });
+        } else {
+            showSnack('No files shared with you', colorOrange, 'info');
+            return
+        }
     })
 });
 
@@ -301,7 +296,7 @@ trashButton.addEventListener('click', () => {
         mainSection.innerHTML = '';
         if (!data) {
             renderOriginalHeader();
-            showSnack("There's nothing in the trash!", colorOrange, 'info');
+            showSnack("There's nothing in the trash", colorOrange, 'info');
             return;
         }
         let fileList = document.createElement('div');
@@ -366,6 +361,14 @@ discoveryButton.addEventListener('click', () => {
             });
         }
     }
+});
+
+let usernameField = document.querySelector('#username');
+usernameField.addEventListener('click', () => {
+    navigator.clipboard.writeText(globalUserId)
+    .then(() => {
+        showSnack('User Id copied to clipboard!', colorGreen, 'success');
+    })
 });
 
 mainSection.addEventListener("dragover", (e) => {

@@ -205,6 +205,10 @@ body {
     white-space: nowrap;
     text-align: end;
     background-color: var(--color-blackish-hover);
+    cursor: copy;
+}
+.user > p:hover {
+    background-color: var(--color-blackish);
 }
 .user > span {
     font-size: 16px;

@@ -253,7 +253,15 @@ function handleFileMenuClick(file) {
                 showSnack("Can't send file larger than 15MB privately", colorOrange, 'info');
                 return;
             }
-            renderFileSenderModal(file);
+            fetch(`/api/discovery/${globalUserId}/status`)
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.status === 1) {
+                    renderFileSenderModal(file);
+                } else {
+                    showSnack("Please enable discovery to send files", colorOrange, 'info');
+                }
+            })  
         });
         if (file.size > 1024 * 1024 * 15) {
             send.style.opacity = 0.3;
@@ -292,7 +300,7 @@ function handleFileMenuClick(file) {
             if (newName === oldName) {
                 return;
             }
-            fetch(`/api/rename`, {method: "POST", body: JSON.stringify({hash: file.hash, name: newName})})
+            fetch(`/api/rename/${globalProjectId}`, {method: "POST", body: JSON.stringify({hash: file.hash, name: newName})})
             .then((res) => {
                 if (res.status === 200) {
                     file.name = newName;
@@ -720,7 +728,9 @@ function buildRecentUL(data) {
     let ul = document.createElement('ul');
     ul.className = 'recent_files';
     data.forEach((file) => {
-        ul.appendChild(newFileElem(file));
+        if (file.parent !== '~shared') {
+            ul.appendChild(newFileElem(file));
+        }
     });
     let fileList = document.createElement('div');
     fileList.className = 'file_list';
@@ -1336,14 +1346,14 @@ function renderFileSenderModal(file) {
         }
         let fileClone = JSON.parse(JSON.stringify(file));
         delete fileClone.recipients;
-        delete fileClone.parent;
         delete fileClone.pinned;
         fileClone.owner = globalUserId;
         fileClone.pending = true;
         fileClone.shared = true;
+        fileClone.parent = "~shared";
         fetch(`/api/push/${userIdField.value}/metadata`, {method: "POST", body: JSON.stringify(fileClone)})
         .then((resp) => {
-            if (resp.status !== 200) {
+            if (resp.status !== 207) {
                 fileSender.style.display = 'none';
                 showSnack('Something went wrong! Please try again.', colorRed, 'error');
                 return;
