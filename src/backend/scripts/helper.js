@@ -1062,6 +1062,7 @@ function addTextViewer(file) {
         textView.style.width = '100%';
         textView.style.height = '100%';
         textView.src = URL.createObjectURL(blob);
+        textView.type = file.mime;
         globalMediaBlob = textView.src;
         modalContent.innerHTML = '';
         modalContent.appendChild(textView);

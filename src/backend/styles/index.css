@@ -450,7 +450,6 @@ body {
 .home_page > p {
     width: 100%;
     font-size: 20px;
-    font-weight: 600;
     color: #ccc;
     margin-top: 20px;
     padding: 5px 10px;
@@ -1188,27 +1187,6 @@ body {
         margin: 0;
         border-radius: 0;
     }
-}
-
-.instance_list {
-    background-color: transparent;
-}
-
-.instance_list > li > img {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    margin-right: 10px;
-    margin-left: 5px;
-}
-.instance_list > li > button {
-    width: 80px;
-    height: calc(100% - 20px);
-    border-color: transparent;
-    border-radius: 5px;
-    background-color: rgb(247, 74, 74);
-    color: white;
-    cursor: pointer;
 }
 
 .shared_files {
