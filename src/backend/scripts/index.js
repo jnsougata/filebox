@@ -4,6 +4,8 @@ const colorBlue = "#2E83F3";
 const colorOrange = "#FF6700";
 let runningTaskCount = 0;
 let sidebarState = false;
+let globalUserPIN = null;
+let globalDiscoveryStatus = null;
 let globalSecretKey = null;
 let globalProjectId = null;
 let globalUserId = null;
@@ -52,7 +54,7 @@ function getContextOptionElem(option) {
         "queue" : queueButton,
         "others" : otherButton,
         "trash": trashButton,
-        "shared": instancesButton,
+        "shared": sharedButton,
     }
     return options[option];
 }
@@ -186,8 +188,8 @@ myFilesButton.addEventListener('click', () => {
     })
 });
 
-let instancesButton = document.querySelector('#instances');
-instancesButton.addEventListener('click', () => {
+let sharedButton = document.querySelector('#shared');
+sharedButton.addEventListener('click', () => {
     globalContextOption = "shared";
     if (window.innerWidth < 768) {
         sidebarEventState(false);
@@ -198,50 +200,40 @@ instancesButton.addEventListener('click', () => {
     mainSection.innerHTML = '';
     let fileList = document.createElement('div');
     fileList.className = 'file_list';
-    fetch(`/api/instances`)
-    .then((resp) => resp.json())
+    fetch(`/api/query`, {
+        method: "POST", 
+        body: JSON.stringify(
+            {"pending": true, "shared": true})
+        }
+    )
+    .then((resp) => {
+        if (resp.status === 200) {
+            return resp.json();
+        }
+        return [];
+    })
     .then(data => {
         if (data) {
-            fileList.appendChild(buildTitleP('Warps'));
-            fileList.appendChild(buildInstnaceList(data));
+            fileList.appendChild(buildTitleP('Pending Files'));
+            fileList.appendChild(buildPendingFileList(data));
         }
-    })
-    .then(() => {
-        fetch(`/api/query`, {
+        fetch("/api/query", {
             method: "POST", 
-            body: JSON.stringify(
-                {"pending": true, "shared": true})
-            })
-        .then((resp) => {
-            if (resp.status === 200) {
-                connectButton.click();
-                return resp.json();
-            }
-            return [];
+            body: JSON.stringify({"shared": true, "deleted?ne": true, "pending?ne": true})
         })
+        .then(response => response.json())
         .then(data => {
+            let ul = document.createElement('ul');
+            ul.className = 'all_files';
             if (data) {
-                fileList.appendChild(buildTitleP('Pending Files'));
-                fileList.appendChild(buildPendingFileList(data));
+                fileList.appendChild(buildTitleP('Files Received '));
+                data.forEach((file) => {
+                    ul.appendChild(newFileElem(file));
+                });
             }
-            fetch("/api/query", {
-                method: "POST", 
-                body: JSON.stringify({"shared": true, "deleted?ne": true, "pending?ne": true})
-            })
-            .then(response => response.json())
-            .then(data => {
-                let ul = document.createElement('ul');
-                ul.className = 'all_files';
-                if (data) {
-                    fileList.appendChild(buildTitleP('Files Received '));
-                    data.forEach((file) => {
-                        ul.appendChild(newFileElem(file));
-                    });
-                }
-                fileList.appendChild(ul);
-                mainSection.appendChild(fileList);
-            });
-        })
+            fileList.appendChild(ul);
+            mainSection.appendChild(fileList);
+        });
     })
 });
 
@@ -354,6 +346,28 @@ trashButton.addEventListener('click', () => {
     }    
 });
 
+let discoveryButton = document.querySelector('#discovery');
+discoveryButton.addEventListener('click', () => {
+    if (globalDiscoveryStatus === -1) {
+        modalContent.innerHTML = '';
+        modalContent.appendChild(buildDiscoveryModal());
+        modal.style.display = 'flex';
+        return;
+    } else if (globalDiscoveryStatus === 1) {
+        ok = confirm('Are you sure you want to leave discovery?');
+        if (ok) {
+            pinToSHA256Hex(globalUserPIN).then((pin) => {
+                fetch(`/api/discovery/${globalUserId}/${pin}`, {method: 'DELETE'})
+                .then(() => {
+                    globalDiscoveryStatus = -1;
+                    showSnack('Discovery left successfully!', colorGreen, 'success');
+                    discoveryButton.style.color = colorOrange;
+                })
+            });
+        }
+    }
+});
+
 mainSection.addEventListener("dragover", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -384,12 +398,6 @@ modalCloseButton.addEventListener('click', () => {
     handleModalClose();
 });
 
-let connectButton = document.querySelector('#connect');
-connectButton.addEventListener('click', () => {
-    modalContent.innerHTML = '';
-    modalContent.appendChild(buildConnectionModal());
-    modal.style.display = 'block';
-});
 const f1 = document.querySelector('#f1');
 const f2 = document.querySelector('#f2');
 const f3 = document.querySelector('#f3');
@@ -407,6 +415,7 @@ fieldArray.forEach((field, index) => {
             fetch(`/api/key/${pin}`)
             .then(response => {
                 if (response.status == 200) {
+                    globalUserPIN = pin;
                     return response.json();
                 } else if (response.status == 404) {
                     showSnack('You did not set any PIN, check App Config.', colorOrange, 'info');
@@ -434,6 +443,18 @@ fieldArray.forEach((field, index) => {
                 let pinModal = document.querySelector('.pin_entry');
                 pinModal.style.display = 'none';
                 homeButton.click();
+                fetch(`/api/discovery/${globalUserId}/status`)
+                .then((resp) => resp.json())
+                .then((data) => {
+                    globalDiscoveryStatus = data.status;
+                    if (data.status === -1) {
+                        discoveryButton.style.color = colorOrange;
+                    } else if (data.status === 0) {
+                        discoveryButton.style.color = colorRed;
+                    } else if (data.status === 1) {
+                        discoveryButton.style.color = colorGreen;
+                    }
+                })
             })
         }
     });

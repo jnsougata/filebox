@@ -1,9 +1,16 @@
 let fileOptionPanel = document.querySelector('.file_menu');
 let queueTaskList = document.querySelector('#queue-task-list');
 let queueContent = document.querySelector('.queue_content');
+
 queueContent.addEventListener('click', () => {
     queueModalCloseButton.click();
 });
+
+async function pinToSHA256Hex(str) {
+    let digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 function getAvatarURL(userId, parse=false){
     let username = "";
     if (parse) {
@@ -13,6 +20,7 @@ function getAvatarURL(userId, parse=false){
     }
     return `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=${username}`; 
 }
+
 async function checkFileParentExists(file) {
     let body = {"type": "folder"}
     if (!file.parent) {
@@ -1145,6 +1153,15 @@ function renderOriginalHeader() {
                 data = data.filter((file) => {
                     return !(file.type === 'folder');
                 });
+                let absoluteResults = data.filter((file) => {
+                    if (file.name.startsWith(query)) {
+                        data.splice(data.indexOf(file), 1);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+                data = absoluteResults.concat(data);
                 let p = document.createElement('p');
                 p.innerHTML = `Search results for '${query}'`;
                 resultsPage.appendChild(p);
@@ -1202,75 +1219,62 @@ function renderOtherHeader(elem){
     header.appendChild(wrapper);
 }
 
-function buildConnectionModal() {
-    let connection = document.createElement('div');
+function buildDiscoveryModal() {
+    let discovery = document.createElement('div');
+    discovery.className = 'connection';
     let p = document.createElement('p');
-    p.innerHTML = 'Create a new warp?';
-    connection.className = 'connection';
-    let instanceNickname = document.createElement('input');
-    instanceNickname.type = 'text';
-    instanceNickname.spellcheck = false;
-    instanceNickname.placeholder = 'Set a nickname';
-    let instanceURL = document.createElement('input');
-    instanceURL.type = 'text';
-    instanceURL.spellcheck = false; 
-    instanceURL.placeholder = 'URL of the instance';
+    p.innerHTML = 'Enable discovery?'
     let apiKeyInput = document.createElement('input');
     apiKeyInput.type = 'password';
-    apiKeyInput.placeholder = 'API key of the instance';
+    apiKeyInput.placeholder = 'API key of your instance';
     let connectButton = document.createElement('button');
-    connectButton.innerHTML = '<span class="material-symbols-rounded">conversion_path</span>';
+    connectButton.innerHTML = '<span class="material-symbols-rounded">wifi_tethering</span>';
     connectButton.addEventListener('click', () => {
-        let nickname = instanceNickname.value;
-        let url = instanceURL.value;
+        let url = window.location.href;
         let apiKey = apiKeyInput.value;
-        if (nickname.length === 0 || url.length === 0 || apiKey.length === 0) {
-            showSnack('All fields are required', colorOrange, 'warning');
+        if (apiKey.length === 0) {
+            showSnack('API key can\'t be empty', colorOrange, 'warning');
             return;
         }
         if (url[url.length - 1] === '/') {
             url = url.substring(0, url.length - 1);
         }
-        let id = /-(.*?)\./.exec(url)[1];
-        if (id === globalUserId) {
-            showSnack(`Warp can't have same endings!`, colorOrange, 'warning');
-            return;
-        }
-        fetch('/api/instances', {
-            method: "POST",
-            body: JSON.stringify({
-                "id": id,
-                "url": url,
-                "api_key": apiKey,
-                "nickname": nickname,
-            }),
-        })
-        .then((resp) => {
-            if (resp.status === 207) {
-                showSnack('Warp created successfully', colorGreen, 'success');
-                connectButton.style.color = colorGreen;
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                }, 1000);
-                return;
-            } else {
-                showSnack('Error creating warp, try again!', colorRed, 'error');
-                return;
-            }
-        })
+        pinToSHA256Hex(globalUserPIN).then((hash) => {
+            fetch(`/api/discovery/${globalUserId}/${hash}`, {
+                method: "PUT",
+                body: JSON.stringify({
+                    "id": globalUserId, 
+                    "url": url, 
+                    "api_key": apiKey,
+                    "enabled": true,
+                }),
+            })
+            .then((resp) => {
+                if (resp.status === 200) {
+                    showSnack('Discovery enabled!', colorGreen, 'success');
+                    connectButton.style.color = colorGreen;
+                    discoveryButton.style.color = colorGreen;
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 1000);
+                    return;
+                } else {
+                    showSnack('Error enabling discovery. Retry!', colorOrange, 'warning');
+                    return;
+                }
+            });
+        });
     });
     let span = document.createElement('span');
     span.style.marginTop = '20px';
     span.style.fontSize = '14px';
     span.style.color = '#ccc';
-    span.innerHTML = '*ask the receiver to create an warp for you';
-    connection.appendChild(p);
-    connection.appendChild(instanceNickname);
-    connection.appendChild(instanceURL);
-    connection.appendChild(apiKeyInput);
-    connection.appendChild(connectButton);
-    connection.appendChild(span);
-    return connection;
+    span.innerHTML = '*This will enable discovery of your instance to other users';
+    discovery.appendChild(p);
+    discovery.appendChild(apiKeyInput);
+    discovery.appendChild(connectButton);
+    discovery.appendChild(span);
+    return discovery;
 }
 
 function renderFileSenderModal(file) {
@@ -1279,69 +1283,96 @@ function renderFileSenderModal(file) {
         showSnack('File size larger than 30MB', colorOrange, 'warning');
         return;
     }
-    fetch('/api/instances')
-    .then(response => response.json())
-    .then(data => {
-        if (!data) {
-            showSnack('No warps found', colorOrange, 'warning');
+    let fileSender = document.querySelector('.file_sender');
+    fileSender.innerHTML = '';
+    let filename = document.createElement('p');
+    filename.innerHTML = file.name;
+    let userIdField = document.createElement('input');
+    userIdField.placeholder = 'Type user instance id';
+    userIdField.type = 'text';
+    userIdField.spellcheck = false;
+    let timeout = null;
+    userIdField.addEventListener('input', (ev) => {
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+        timeout = setTimeout(() => {
+            if (ev.target.value.length === 0) {
+                userIdField.style.color = colorOrange;
+                sendButton.disabled = true;
+                sendButton.style.opacity = 0.5;
+                return;
+            }
+            fetch(`/api/discovery/${ev.target.value}/status`)
+            .then((resp) => resp.json())
+            .then((data) => {
+                if (data.status === 1) {
+                    userIdField.style.color = colorGreen;
+                    sendButton.disabled = false;
+                    sendButton.style.opacity = 1;
+                } else {
+                    userIdField.style.color = colorOrange;
+                    sendButton.disabled = true;
+                    sendButton.style.opacity = 0.5;
+                }
+            })
+        }, 1000);
+    });
+    let buttons = document.createElement('div');
+    let cancelButton = document.createElement('button');
+    cancelButton.innerHTML = 'Cancel';
+    cancelButton.addEventListener('click', () => {
+        fileSender.style.display = 'none';
+    });
+    let sendButton = document.createElement('button');
+    sendButton.innerHTML = 'Send';
+    sendButton.style.opacity = 0.5;
+    sendButton.disabled = true;
+    sendButton.style.backgroundColor = colorGreen;
+    sendButton.addEventListener('click', () => {
+        if (userIdField.value === globalUserId) {
+            showSnack('You can\'t send a file to yourself', colorOrange, 'warning');
             return;
         }
-        let fileSender = document.querySelector('.file_sender');
-        fileSender.innerHTML = '';
-        let filename = document.createElement('p');
-        filename.innerHTML = file.name;
-        let usernameList = document.createElement('ul');
-        data.forEach((instance) => {
-            let userLi = document.createElement('li');
-            userLi.innerHTML = `<img src="${getAvatarURL(instance.nickname)}"/> ${instance.nickname}`;
-            userLi.addEventListener('click', () => {
-                // clone the file
-                let fileClone = JSON.parse(JSON.stringify(file));
-                delete fileClone.recipients;
-                delete fileClone.parent;
-                fileClone.owner = globalUserId;
-                fileClone.pending = true;
-                fileClone.shared = true;
-                fetch(`/api/instances/${instance.id}`, {method: "POST", body: JSON.stringify(fileClone)})
-                .then((resp) => {
-                    if (resp.status !== 207) {
-                        fileSender.style.display = 'none';
-                        showSnack('Something went wrong! Please try again.', colorRed, 'error');
-                        return;
-                    }
-                    if (file.recipients) {
-                        if (!file.recipients.includes(instance.id)) {
-                            file.recipients.push(instance.id);
-                        }
-                    } else {
-                        file.recipients = [instance.id];
-                    }
-                    file.project_id = globalProjectId;
-                    fetch("/api/metadata", {method: "PATCH", body: JSON.stringify(file)})
-                    .then((resp) => {
-                        if (resp.status === 207) {
-                            showSnack(`File shared with ${instance.nickname}`, colorGreen, 'success');
-                            fileSender.style.display = 'none';
-                        } else {
-                            showSnack('Something went wrong! Please try again.', colorRed, 'error');
-                        }
-                    })
-                })
-            });
-            usernameList.appendChild(userLi);
-        });
-        let buttons = document.createElement('div');
-        let cancelButton = document.createElement('button');
-        cancelButton.innerHTML = 'Cancel';
-        cancelButton.addEventListener('click', () => {
-            fileSender.style.display = 'none';
-        });
-        buttons.appendChild(cancelButton);
-        fileSender.appendChild(filename);
-        fileSender.appendChild(usernameList);
-        fileSender.appendChild(buttons);
-        fileSender.style.display = 'flex';
+        let fileClone = JSON.parse(JSON.stringify(file));
+        delete fileClone.recipients;
+        delete fileClone.parent;
+        delete fileClone.pinned;
+        fileClone.owner = globalUserId;
+        fileClone.pending = true;
+        fileClone.shared = true;
+        fetch(`/api/push/${userIdField.value}/metadata`, {method: "POST", body: JSON.stringify(fileClone)})
+        .then((resp) => {
+            if (resp.status !== 200) {
+                fileSender.style.display = 'none';
+                showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                return;
+            }
+            if (file.recipients) {
+                if (!file.recipients.includes(userIdField.value)) {
+                    file.recipients.push(userIdField.value);
+                }
+            } else {
+                file.recipients = [userIdField.value];
+            }
+            file.project_id = globalProjectId;
+            fetch("/api/metadata", {method: "PATCH", body: JSON.stringify(file)})
+            .then((resp) => {
+                if (resp.status === 207) {
+                    showSnack(`File shared with ${userIdField.value}`, colorGreen, 'success');
+                    fileSender.style.display = 'none';
+                } else {
+                    showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                }
+            })
+        })
     });
+    buttons.appendChild(cancelButton);
+    buttons.appendChild(sendButton);
+    fileSender.appendChild(filename);
+    fileSender.appendChild(userIdField);
+    fileSender.appendChild(buttons);
+    fileSender.style.display = 'flex';
 }
 
 function buildTitleP(text) {
@@ -1352,36 +1383,6 @@ function buildTitleP(text) {
     p.style.padding = '10px';
     p.style.fontSize = '18px';
     return p;
-}
-
-function buildInstnaceList(instances) {
-    let ul = document.createElement('ul');
-    ul.className = 'instance_list';
-    ul.style.height = 'fit-content';
-    ul.style.flexShrink = '0';
-    instances.forEach((instance) => {
-        let li = document.createElement('li');
-        let avatar = document.createElement('img');
-        avatar.src = getAvatarURL(instance.nickname);
-        let nickname = document.createElement('p');
-        nickname.innerHTML = instance.nickname;
-        let id = document.createElement('p');
-        id.innerHTML = instance.id;
-        let remove = document.createElement('button');
-        remove.innerHTML = 'Remove';
-        remove.addEventListener('click', () => {
-            fetch(`/api/instances`, {method: "DELETE", body: JSON.stringify(instance)})
-            .then(() => {
-                li.remove();
-            })
-        });
-        li.appendChild(avatar);
-        li.appendChild(nickname);
-        li.appendChild(id);
-        li.appendChild(remove);
-        ul.appendChild(li);
-    });
-    return ul;
 }
 
 function buildPendingFileList(files) {

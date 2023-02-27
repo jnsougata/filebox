@@ -15,8 +15,8 @@ import (
 
 var d = deta.New(nil)
 var drive = d.Drive("filebox")
-var instances = d.Base("instances")
 var base = d.Base("filebox_metadata")
+var collection_url = os.Getenv("GLOBAL_COLLECTION_URL")
 
 func main() {
 	r := mux.NewRouter()
@@ -27,7 +27,7 @@ func main() {
 	r.HandleFunc("/shared/{recipient}/{hash}/{skip}", HandleDownload).Methods("GET")
 	r.HandleFunc("/shared/metadata/{hash}", HandleSharedMetadata).Methods("GET")
 	r.HandleFunc("/query", HandleQuery).Methods("POST")
-	r.HandleFunc("/rename", HandleRename).Methods("POST")
+	r.HandleFunc("/rename/{project_id}", HandleRename).Methods("POST")
 	r.HandleFunc("/consumption", HandleSpaceUsage).Methods("GET")
 	r.HandleFunc("/pin/{project_id}/{hash}", HandlePin).Methods("POST", "DELETE")
 	r.HandleFunc("/file/access", HandleFileAccess).Methods("POST")
@@ -35,9 +35,10 @@ func main() {
 	r.HandleFunc("/bulk/{project_id}", HandleBulkFileOps).Methods("DELETE", "PATCH")
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
 	r.HandleFunc("/__space/v0/actions", HandleOrphanClenup).Methods("POST")
-	r.HandleFunc("/instances", HandleInstances).Methods("POST", "DELETE", "PATCH", "GET")
-	r.HandleFunc("/instances/{id}", HandleInstance).Methods("GET", "POST")
 	r.HandleFunc("/external/{recipient}/{owner}/{hash}/{skip}", HandleSharedFileLoad).Methods("GET", "POST")
+	r.HandleFunc("/discovery/{user_id}/{pin}", HandleDiscovery).Methods("PUT", "DELETE")
+	r.HandleFunc("/discovery/{user_id}/status", HandleDiscoveryStatus).Methods("GET")
+	r.HandleFunc("/push/{target_id}/metadata", HandleMetadataPush).Methods("POST")
 	http.Handle("/", r)
 	_ = http.ListenAndServe(":8080", nil)
 }
@@ -258,6 +259,12 @@ func HandleQuery(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleRename(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	projectId := vars["project_id"]
+	if matchProjectId(projectId) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	var body map[string]interface{}
 	_ = json.NewDecoder(r.Body).Decode(&body)
 	u := deta.NewUpdater(body["hash"].(string))
@@ -462,78 +469,15 @@ func HandleOrphanClenup(w http.ResponseWriter, _ *http.Request) {
 	drive.Delete(orphanNames...)
 }
 
-func HandleInstances(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	switch r.Method {
-	case "GET":
-		resp := instances.FetchUntilEnd(deta.NewQuery())
-		w.WriteHeader(resp.StatusCode)
-		ba, _ := json.Marshal(resp.Data["items"])
-		_, _ = w.Write(ba)
-		return
-
-	case "POST":
-		var body map[string]interface{}
-		_ = json.NewDecoder(r.Body).Decode(&body)
-		resp := instances.Put(deta.Record{Key: body["id"].(string), Value: body})
-		w.WriteHeader(resp.StatusCode)
-		return
-		
-	case "DELETE":
-		var body map[string]interface{}
-		_ = json.NewDecoder(r.Body).Decode(&body)
-		resp := instances.Delete(body["id"].(string))
-		w.WriteHeader(resp.StatusCode)
-		return
-	}
-}
-
-func HandleInstance(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	vars := mux.Vars(r)
-	switch r.Method {
-	case "GET":
-		resp := instances.Get(vars["id"])
-		w.WriteHeader(resp.StatusCode)
-		ba, _ := json.Marshal(resp.Data)
-		_, _ = w.Write(ba)
-		return
-
-	case "POST":
-		instanceData := instances.Get(vars["id"]).Data
-		_, ok := instanceData["id"]
-		if !ok {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		url := instanceData["url"].(string)
-		apiKey := instanceData["api_key"].(string)
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/metadata", url), r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		req.Header.Set("X-Space-App-Key", apiKey)
-		req.Header.Set("Content-Type", "application/json")
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		defer resp.Body.Close()
-		w.WriteHeader(resp.StatusCode)
-		return
-	}
-}
-
 func HandleSharedFileLoad(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	owner := vars["owner"]
 	recipient := vars["recipient"]
 	hash := vars["hash"]
 	skip := vars["skip"]
-	ownerData := instances.Get(owner).Data
+	oresp, _ := http.Get(fmt.Sprintf("%s/users/%s", collection_url, owner))
+	var ownerData map[string]interface{}
+	_ = json.NewDecoder(oresp.Body).Decode(&ownerData)
 	ownerInstanceUrl := ownerData["url"].(string)
 	ownerInstanceApiKey := ownerData["api_key"].(string)
 	req, err := http.NewRequest(
@@ -556,4 +500,58 @@ func HandleSharedFileLoad(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 	ba, _ := io.ReadAll(resp.Body)
 	w.Write(ba)
+}
+
+func HandleDiscoveryStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user_id := vars["user_id"]
+	req, _ := http.Get(fmt.Sprintf("%s/users/%s/status", collection_url, user_id))
+	ba, _ := io.ReadAll(req.Body)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(req.StatusCode)
+	w.Write(ba)
+}
+
+func HandleDiscovery(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	user_id := vars["user_id"]
+	pin := vars["pin"]
+
+	switch r.Method {
+	case "PUT":
+		req, _ := http.NewRequest("PUT", fmt.Sprintf("%s/users/%s/%s", collection_url, user_id, pin), r.Body)
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		resp, _ := client.Do(req)
+		defer resp.Body.Close()
+		w.WriteHeader(resp.StatusCode)
+		return
+
+	case "DELETE":
+		req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/users/%s/%s", collection_url, user_id, pin), nil)
+		client := &http.Client{}
+		resp, _ := client.Do(req)
+		defer resp.Body.Close()
+		w.WriteHeader(resp.StatusCode)
+		return
+	}
+}
+
+func HandleMetadataPush(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	target_id := vars["target_id"]
+	resp, _ := http.Get(fmt.Sprintf("%s/users/%s", collection_url, target_id))
+	var owner map[string]interface{}
+	_ = json.NewDecoder(resp.Body).Decode(&owner)
+	instanceURL, ok := owner["url"]
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+	}
+	ownerInstanceApiKey := owner["api_key"].(string)
+	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/api/metadata", instanceURL.(string)), r.Body)
+	req.Header.Set("X-Space-App-Key", ownerInstanceApiKey)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, _ = client.Do(req)
+	w.WriteHeader(resp.StatusCode)
 }

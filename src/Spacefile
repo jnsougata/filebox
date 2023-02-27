@@ -9,8 +9,11 @@ micros:
     presets:
       api_keys: true
       env:
+        - name: "GLOBAL_COLLECTION_URL"
+          description: "DO NOT CHANGE"
+          default: "https://filebox_db-1-b7049898.deta.app"
         - name: "USER_PIN"
-          description: "4-digit pin for user authentication"
+          description: "4-digit Passcode"
     commands:
       - go get
       - go build main.go
