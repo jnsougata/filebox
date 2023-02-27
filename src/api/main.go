@@ -261,7 +261,7 @@ func HandleQuery(w http.ResponseWriter, r *http.Request) {
 func HandleRename(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	projectId := vars["project_id"]
-	if matchProjectId(projectId) {
+	if !matchProjectId(projectId) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
