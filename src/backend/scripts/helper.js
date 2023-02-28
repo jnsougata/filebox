@@ -253,6 +253,10 @@ function handleFileMenuClick(file) {
                 showSnack("Can't send file larger than 15MB privately", colorOrange, 'info');
                 return;
             }
+            if (file.owner) {
+                showSnack("Can't send a file that you don't own", colorOrange, 'info');
+                return;
+            }
             fetch(`/api/discovery/${globalUserId}/status`)
             .then((res) => res.json())
             .then((data) => {
