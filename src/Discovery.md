@@ -19,9 +19,8 @@ Upload & organize files in your Personal Space Drive
 9. File preview for common file types
 10. Multiple file selection and operations
  
-### What's New (v2.3)
-- Enforcing user pin for more security.
-- Warps: A new way to share files across Filebox instances.
+### What's New (v2.3.1)
+- Re-introduced **Discovery** to share files with others securely.
 
 ### Future 
 Filebox will no longer receive updates from original developer after v2.3. The project is open source and anyone can contribute to it. Looking for new maintainers with adequate knowledge in Svelte for framework migration and Golang for backend development.
