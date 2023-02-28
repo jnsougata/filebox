@@ -1238,7 +1238,7 @@ function buildDiscoveryModal() {
     let discovery = document.createElement('div');
     discovery.className = 'connection';
     let p = document.createElement('p');
-    p.innerHTML = 'Enable discovery?'
+    p.innerHTML = 'Enable Discovery?'
     let apiKeyInput = document.createElement('input');
     apiKeyInput.type = 'password';
     apiKeyInput.placeholder = 'API key of your instance';
@@ -1249,6 +1249,11 @@ function buildDiscoveryModal() {
         let apiKey = apiKeyInput.value;
         if (apiKey.length === 0) {
             showSnack('API key can\'t be empty', colorOrange, 'warning');
+            return;
+        }
+        let checkbox = document.querySelector('#agree');
+        if (!checkbox.checked) {
+            showSnack('You must agree to the terms', colorOrange, 'warning');
             return;
         }
         if (url[url.length - 1] === '/') {
@@ -1266,10 +1271,11 @@ function buildDiscoveryModal() {
             })
             .then((resp) => {
                 if (resp.status === 200) {
-                    showSnack('Discovery enabled!', colorGreen, 'success');
+                    showSnack('Discovery enabled', colorGreen, 'success');
                     connectButton.style.color = colorGreen;
                     discoveryButton.style.color = colorGreen;
                     setTimeout(() => {
+                        modalContent.innerHTML = '';
                         modal.style.display = 'none';
                     }, 1000);
                     return;
@@ -1284,11 +1290,11 @@ function buildDiscoveryModal() {
     span.style.marginTop = '20px';
     span.style.fontSize = '14px';
     span.style.color = '#ccc';
-    span.innerHTML = '*This will enable discovery of your instance to other users';
+    span.innerHTML = `<input type="checkbox" id="agree"> By enabling discovery, you are agreeing to share your instance\'s URL and API key with other instances.`;
     discovery.appendChild(p);
     discovery.appendChild(apiKeyInput);
-    discovery.appendChild(connectButton);
     discovery.appendChild(span);
+    discovery.appendChild(connectButton);
     return discovery;
 }
 
