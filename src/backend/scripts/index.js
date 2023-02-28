@@ -355,7 +355,7 @@ discoveryButton.addEventListener('click', () => {
                 fetch(`/api/discovery/${globalUserId}/${pin}`, {method: 'DELETE'})
                 .then(() => {
                     globalDiscoveryStatus = -1;
-                    showSnack('Discovery left successfully!', colorGreen, 'success');
+                    showSnack('Left discovery successfully', colorGreen, 'success');
                     discoveryButton.style.color = colorOrange;
                 })
             });

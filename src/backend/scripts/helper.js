@@ -1280,7 +1280,7 @@ function buildDiscoveryModal() {
                     }, 1000);
                     return;
                 } else {
-                    showSnack('Error enabling discovery. Retry!', colorOrange, 'warning');
+                    showSnack('Error enabling discovery. Retry', colorOrange, 'warning');
                     return;
                 }
             });
