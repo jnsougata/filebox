@@ -451,9 +451,9 @@ body {
     width: 100%;
     font-size: 20px;
     color: #ccc;
-    margin-top: 20px;
+    margin-top: 10px;
     padding: 5px 10px;
-    border-bottom: 1px solid #ffffff0c;
+    border-bottom: --var(--color-blackish-hover);
 }
 .home_page > p > i {
     font-size: 20px;
