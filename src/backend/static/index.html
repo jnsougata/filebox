@@ -15,18 +15,20 @@
     </head>
     <body>
         <div class="pin_entry">
-            <p>Enter PIN</p>
-            <div class="fields">
-                <input type="password" id="f1" maxlength="1" inputmode="numeric"/>
-                <input type="password" id="f2" maxlength="1" inputmode="numeric"/>
-                <input type="password" id="f3" maxlength="1" inputmode="numeric"/>
-                <input type="password" id="f4" maxlength="1" inputmode="numeric"/>
+            <header>
+                <img src="../assets/icon.png" alt="logo" />
+                <p>Filebox</p>
+            </header>
+            <input type="password" id="password" placeholder="Enter password"/>
+            <span class="material-symbols-rounded" id="enter">arrow_forward</span>
+            <div>
+                <a href="https://filebox-1-q0603932.deta.app/api/embed/19ec2e6f59cb1259">How to add or reset pin?</Add></a>
             </div>
-            <button id="clear">Clear</button>
-            <div style="display: flex; align-items: center; justify-content: center; margin-top: 40px;">
-                <a style="color: var(--color-blueish); font-size: 14px; text-decoration: none;"
-                href="https://filebox-1-q0603932.deta.app/api/embed/19ec2e6f59cb1259">How to add or reset pin?</Add></a>
-            </div>
+            <footer class="footer">
+                <span>
+                    USER_PIN has been chnaged to USER_PASSWORD and must be atleast 8 characters long. Add a new password to your account in the App Configurations.
+                </span>
+            </footer>
         </div>
         <div class="snackbar"></div>
         <div class="file_sender"></div>

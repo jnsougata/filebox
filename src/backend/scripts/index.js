@@ -4,7 +4,7 @@ const colorBlue = "#2E83F3";
 const colorOrange = "#FF6700";
 let runningTaskCount = 0;
 let sidebarState = false;
-let globalUserPIN = null;
+let globalUserPassword = null;
 let globalDiscoveryStatus = null;
 let globalSecretKey = null;
 let globalProjectId = null;
@@ -351,7 +351,7 @@ discoveryButton.addEventListener('click', () => {
     } else if (globalDiscoveryStatus === 1) {
         ok = confirm('Are you sure you want to leave discovery?');
         if (ok) {
-            pinToSHA256Hex(globalUserPIN).then((pin) => {
+            passwordToSHA256Hex(globalUserPassword).then((pin) => {
                 fetch(`/api/discovery/${globalUserId}/${pin}`, {method: 'DELETE'})
                 .then(() => {
                     globalDiscoveryStatus = -1;
@@ -401,33 +401,28 @@ modalCloseButton.addEventListener('click', () => {
     handleModalClose();
 });
 
-const f1 = document.querySelector('#f1');
-const f2 = document.querySelector('#f2');
-const f3 = document.querySelector('#f3');
-const f4 = document.querySelector('#f4');
-
-let fieldArray = [f1, f2, f3, f4];
-let pin = '';
-fieldArray.forEach((field, index) => {
-    field.addEventListener('input', (e) => {
-        pin += e.data;
-        if (index < 3) {
-            fieldArray[index + 1].focus();
-        } else {
-            fieldArray[index].blur();
-            fetch(`/api/key/${pin}`)
+let passwordField = document.querySelector('#password');
+let enterButton = document.querySelector('#enter');
+enterButton.addEventListener('click', () => {
+    if (!passwordField.value) {
+        showSnack('Please enter a password', colorOrange, 'info');
+        return;
+    }
+    if (passwordField.value.length < 6) {
+        showSnack('Password must be atleast 6 characters long', colorOrange, 'info');
+        return;
+    }
+    fetch(`/api/key/${passwordField.value}`)
             .then(response => {
                 if (response.status == 200) {
-                    globalUserPIN = pin;
+                    globalUserPassword = passwordField.value;
                     return response.json();
                 } else if (response.status == 404) {
-                    showSnack('You did not set any PIN, check App Config.', colorOrange, 'info');
-                    clearButton.click();
+                    showSnack('You did not set any Password, check App Config.', colorOrange, 'info');
                     return;
-                }
-                else {
-                    showSnack('Incorrect PIN', colorRed, 'error');
-                    clearButton.click();
+                } else {
+                    showSnack('Something went wrong, try again.', colorOrange, 'info');
+                    return;
                 }
             })
             .then(data => {
@@ -443,8 +438,9 @@ fieldArray.forEach((field, index) => {
                 .then(data => {
                     updateSpaceUsage(data.size);
                 })
-                let pinModal = document.querySelector('.pin_entry');
-                pinModal.style.display = 'none';
+                let passwordModal = document.querySelector('.pin_entry');
+                passwordModal.style.display = 'none';
+                renderOriginalHeader();
                 homeButton.click();
                 fetch(`/api/discovery/${globalUserId}/status`)
                 .then((resp) => resp.json())
@@ -459,23 +455,10 @@ fieldArray.forEach((field, index) => {
                     }
                 })
             })
-        }
-    });
 });
-
-let clearButton = document.querySelector('#clear');
-clearButton.addEventListener('click', () => {
-    pin = '';
-    fieldArray.forEach((field) => {
-        field.value = '';
-    });
-    fieldArray[0].focus();
-});
-
 
 window.addEventListener('DOMContentLoaded', () => {
-    renderOriginalHeader();
-    f1.focus();
+    passwordField.focus();
 });
 
 window.addEventListener('resize', () => {

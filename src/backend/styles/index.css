@@ -1271,73 +1271,92 @@ body {
     padding: 20px;
     z-index: 1000 !important;
 }
-.pin_entry > p {
-    font-size: 40px;
-    padding: 0 10px;
-    color: #ccc;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-.pin_entry > .fields {
+.pin_entry > header {
     width: 100%;
-    height: max-content;
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 20px;
+    padding:10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: var(--color-blackish-hover);
 }
-.pin_entry > .fields > input {
-    width: 60px;
+.pin_entry > footer {
+    width: 100%;
     height: 60px;
-    margin: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding:10px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background-color: var(--color-blackish-hover);
+}
+.pin_entry > footer > span {
+    font-size: 15px;
+    color: #fc6529;
+    margin-right: 5px;
+}
+.pin_entry > header > p {
+    font-size: 25px;
+    color: #ccc;
+    margin-left: 5px;
+}
+.pin_entry > header > img {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+}
+.pin_entry > div {
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 30px;
+}
+.pin_entry > div > a {
+    color: var(--color-blueish); 
+    font-size: 16px; 
+    text-decoration: none;
+}
+.pin_entry > input[type="password"] {
+    width: 500px;
+    height: 50px;
     padding: 0 10px;
     font-size: 20px;
-    font-weight: 800;
-    color: #ccc;
+    color: white;
     border: none;
+    border-bottom: 1px solid var(--color-blackish-hover);
     outline: none;
-    border-radius: 50%;
-    margin-top: 10px;
     text-align: center;
-    background-color: var(--color-blackish-light);
+    background-color: transparent;
 }
-.pin_entry > button {
-    width: 100px;
-    height: 40px;
-    border: none;
-    padding: 0 10px;
-    font-size: 16px;
+.pin_entry > span {
+    font-size: 20px;
     color: #ccc;
+    padding: 15px;
+    background-color: var(--color-blackish-hover);
+    border-radius: 50%;
     cursor: pointer;
-    outline: none;
-    white-space: nowrap;
-    border-radius: 5px;
-    flex-shrink: 0;
-    margin: 0 10px;
-    margin-top: 60px;
-    background-color: var(--color-blackish-light);
+    margin-top: 20px;
 }
-.pin_entry > * {
-    flex-shrink: 0;
-}
+
 @media screen and (max-width: 768px) {
-    .pin_entry {
-        padding: 0;
-    }
-    .pin_entry > p {
-        font-size: 20px;
-    }
-    .pin_entry > .fields > input {
-        width: 40px;
+    .pin_entry > input[type="password"] {
+        width: calc(100% - 80px);
         height: 40px;
         margin: 5px;
+        font-size: 16px;
+    }
+    .pin_entry > span {
+        font-size: 16px;
+    }
+    .pin_entry > div > a {
         font-size: 12px;
     }
-    .pin_entry > button {
-        margin-top: 20px;
-        width: 85px;
-        height: 35px;
-        font-size: 14px;
+    .pin_entry > footer > span {
+        font-size: 11px;
     }
 }

@@ -6,7 +6,7 @@ queueContent.addEventListener('click', () => {
     queueModalCloseButton.click();
 });
 
-async function pinToSHA256Hex(str) {
+async function passwordToSHA256Hex(str) {
     let digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
     return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
@@ -1259,7 +1259,7 @@ function buildDiscoveryModal() {
         if (url[url.length - 1] === '/') {
             url = url.substring(0, url.length - 1);
         }
-        pinToSHA256Hex(globalUserPIN).then((hash) => {
+        passwordToSHA256Hex(globalUserPassword).then((hash) => {
             fetch(`/api/discovery/${globalUserId}/${hash}`, {
                 method: "PUT",
                 body: JSON.stringify({

@@ -12,8 +12,8 @@ micros:
         - name: "GLOBAL_COLLECTION_URL"
           description: "DO NOT CHANGE"
           default: "https://filebox_db-1-b7049898.deta.app"
-        - name: "USER_PIN"
-          description: "4-digit Passcode"
+        - name: "USER_PASSWORD"
+          description: "strong (min 6 characters) password"
     commands:
       - go get
       - go build main.go

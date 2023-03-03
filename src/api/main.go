@@ -424,16 +424,13 @@ func HandleBulkFileOps(w http.ResponseWriter, r *http.Request) {
 
 func HandleDetaKey(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	pin := vars["pin"]
-	userPin := os.Getenv("USER_PIN")
+	password := vars["pin"]
+	userPin := os.Getenv("USER_PASSWORD")
 	if userPin == "" {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	if len(pin) > 4 {
-		pin = pin[:4]
-	}
-	if pin != os.Getenv("USER_PIN") {
+	if password != os.Getenv("USER_PASSWORD") {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
