@@ -133,7 +133,7 @@ function upload(file) {
                             headers: header
                         })
                     }
-                    runningTaskCount --;
+                    runningTaskCount--;
                     closeQueue();
                 })
             })

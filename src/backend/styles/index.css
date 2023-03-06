@@ -1299,6 +1299,7 @@ body {
     font-size: 15px;
     color: #fc6529;
     margin-right: 5px;
+    text-align: center;
 }
 .pin_entry > header > p {
     font-size: 25px;

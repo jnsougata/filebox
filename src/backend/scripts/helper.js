@@ -1122,7 +1122,7 @@ function fileMover(file) {
 function renderOriginalHeader() {
     isFileMoving = false;
     globalMultiSelectBucket = [];
-    let header = document.querySelector('header');
+    let header = document.querySelector('#content-header');
     header.style.paddingLeft = '10px';
     header.style.paddingRight = '10px';
     let icon = document.createElement('i');
@@ -1225,7 +1225,7 @@ function renderOriginalHeader() {
 
 function renderOtherHeader(elem){
     switchToOriginalHeader = true;
-    let header = document.querySelector('header');
+    let header = document.querySelector('#content-header');
     header.style.padding = '0px';
     let wrapper = document.createElement('div');
     wrapper.className = 'other';

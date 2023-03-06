@@ -440,7 +440,6 @@ enterButton.addEventListener('click', () => {
                 })
                 let passwordModal = document.querySelector('.pin_entry');
                 passwordModal.style.display = 'none';
-                renderOriginalHeader();
                 homeButton.click();
                 fetch(`/api/discovery/${globalUserId}/status`)
                 .then((resp) => resp.json())
@@ -459,6 +458,7 @@ enterButton.addEventListener('click', () => {
 
 window.addEventListener('DOMContentLoaded', () => {
     passwordField.focus();
+    renderOriginalHeader();
 });
 
 window.addEventListener('resize', () => {
