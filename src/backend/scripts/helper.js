@@ -210,7 +210,7 @@ function handleFileMenuClick(file) {
         if (file.access === 'private') {
             visibility.className = `fa-solid fa-eye`;
             file.access = 'public';
-            if (file.size > 1024 * 1024 * 30) {
+            if (file.size > 1024 * 1024 * 50) {
                 share.style.opacity = 0.3;
             } else {
                 share.style.opacity = 1;
@@ -331,7 +331,7 @@ function handleFileMenuClick(file) {
     share.addEventListener("click", () => {
         if (file.access === "private") {
             showSnack(`Make file public to share via link`, colorOrange, 'warning');
-        } else if (file.size > 30 * 1024 * 1024) {
+        } else if (file.size > 1024 * 1024 * 50) {
             showSnack(`File is too large to share via link`, colorRed, 'error');
         } else {
             window.navigator.clipboard.writeText(`${window.location.origin}/shared/${file.hash}`)

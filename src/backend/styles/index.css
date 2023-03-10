@@ -50,6 +50,7 @@ body {
     position: absolute;
     z-index: 99;
     backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
 }
 
 .sidebar {
