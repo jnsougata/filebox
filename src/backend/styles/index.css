@@ -764,8 +764,8 @@ body {
     cursor: pointer;
     border-radius: 50%;
     position: absolute;
-    color: white;
-    background-color: rgb(255, 71, 71);
+    color: #ccc;
+    background-color: var(--color-blackish-light);
 }
 .queue > .queue_content {
     width: 100%;
@@ -912,7 +912,7 @@ body {
     border-radius: 50%;
     position: absolute;
     color: white;
-    background-color: rgb(255, 71, 71);
+    background-color: var(--color-blackish-light);
 }
 .modal > .modal_content {
     width: 100%;
@@ -932,19 +932,6 @@ body {
     position: absolute;
     text-align: center;
     font-size: 16px;
-}
-
-.music_player {
-    width: 300px;
-    height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-direction: column;
-    background-color: #f0f3f5;
-    border-radius: 5px;
-    box-shadow: 0 0 10px 0 #00000081;
-    padding: 20px;
 }
 
 .spinner {
@@ -1018,7 +1005,6 @@ body {
     align-items: center;
     justify-content: space-between;
 }
-
 .trash_options > button {
     display: flex;
     align-items: center;
@@ -1344,7 +1330,6 @@ body {
     cursor: pointer;
     margin-top: 20px;
 }
-
 @media screen and (max-width: 768px) {
     .pin_entry > input[type="password"] {
         width: calc(100% - 80px);

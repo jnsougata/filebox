@@ -23,4 +23,4 @@ Upload & organize files in your Personal Space Drive
 - Re-introduced **Discovery** to share files with others securely.
 
 ### Future 
-Filebox will no longer receive updates from original developer after v2.3. The project is open source and anyone can contribute to it. Looking for new maintainers with adequate knowledge in Svelte for framework migration and Golang for backend development.
+Filebox will no longer actively receive updates from original developer after v2.3. The project is open source and anyone can contribute to it. Looking for new maintainers with adequate knowledge in Svelte for framework migration and Golang for backend development.

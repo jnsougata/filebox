@@ -656,6 +656,7 @@ function newFileElem(file, isTrash = false) {
         } else {
             fileOptionPanel.style.display = 'none';
             modal.style.display = 'flex';
+            modalContent.innerHTML = '';
             let warning = document.createElement('p');
             warning.innerHTML = "Preview uses progressive loading, so it may take a while to load large files.";
             warning.className = 'warning';
@@ -663,23 +664,7 @@ function newFileElem(file, isTrash = false) {
             warning.style.padding = '10px';
             modalContent.appendChild(warning);
             modalContent.appendChild(makeSpinnerElem());
-            if (file.mime.startsWith('image')) {
-                addImageViewer(file);
-            } else if (file.mime.startsWith('audio')) {
-                addAudioPlayer(file);
-            } else if (file.mime.startsWith('video')) {
-                addVideoPlayer(file);
-            } else if (file.mime.startsWith('application/pdf')) {
-                addPDFViewer(file);
-            } else if (file.mime.startsWith('text')) {
-                addTextViewer(file);
-            } else {
-                modalContent.innerHTML = '';
-                let p = document.createElement('p');
-                p.innerHTML = "Sorry, we don't support this file type yet!";
-                p.style.color = colorRed;
-                modalContent.appendChild(p);
-            }
+            embedFile(file);
         }
     });
     return li;
@@ -993,83 +978,17 @@ async function fetchMediaBlob(file) {
     return new Blob([blob], { type: file.mime });
 }
 
-function addAudioPlayer(file) {
+function embedFile(file) {
     fetchMediaBlob(file)
     .then((blob) => {
-        let audio = document.createElement('audio');
-        audio.controls = true;
-        audio.src = URL.createObjectURL(blob);
-        globalMediaBlob = audio.src;
+        let embed = document.createElement('embed');
+        embed.src = URL.createObjectURL(blob);
+        embed.type = file.mime;
+        embed.style.width = '100%';
+        embed.style.height = '100%';
+        embed.style.objectFit = 'contain';
         modalContent.innerHTML = '';
-        let playerCard = document.createElement('div');
-        playerCard.className = 'music_player';
-        let title = document.createElement('p');
-        title.style.textAlign = 'center';
-        title.style.height = '100%';
-        title.style.width = '100%';
-        title.style.display = 'flex';
-        title.style.alignItems = 'center';
-        title.style.justifyContent = 'center';
-        title.innerHTML = file.name;
-        title.style.marginBottom = '10px';
-        playerCard.appendChild(title);
-        playerCard.appendChild(audio);
-        modalContent.appendChild(playerCard);
-    });
-}
-
-function addImageViewer(file) {
-    fetchMediaBlob(file)
-    .then((blob) => {
-        let image = document.createElement('img');
-        image.style.width = '100%';
-        image.style.height = '100%';
-        image.style.objectFit = 'contain';
-        image.src = URL.createObjectURL(blob);
-        globalMediaBlob = image.src;
-        modalContent.innerHTML = '';
-        modalContent.appendChild(image);
-    });
-}
-
-function addVideoPlayer(file) {
-    fetchMediaBlob(file)
-    .then((blob) => {
-        let video = document.createElement('video');
-        video.controls = true;
-        video.style.width = '100%';
-        video.style.height = '100%';
-        video.src = URL.createObjectURL(blob);
-        globalMediaBlob = video.src;
-        modalContent.innerHTML = '';
-        modalContent.appendChild(video);
-    })
-}
-
-function addPDFViewer(file) {
-    fetchMediaBlob(file)
-    .then((blob) => {
-        let pdf = document.createElement('embed');
-        pdf.style.width = '100%';
-        pdf.style.height = '100%';
-        pdf.src = URL.createObjectURL(blob);
-        globalMediaBlob = pdf.src;
-        modalContent.innerHTML = '';
-        modalContent.appendChild(pdf);
-    })
-}
-
-function addTextViewer(file) {
-    fetchMediaBlob(file)
-    .then((blob) => {
-        let textView = document.createElement('embed');
-        textView.style.width = '100%';
-        textView.style.height = '100%';
-        textView.src = URL.createObjectURL(blob);
-        textView.type = file.mime;
-        globalMediaBlob = textView.src;
-        modalContent.innerHTML = '';
-        modalContent.appendChild(textView);
+        modalContent.appendChild(embed);
     })
 }
 

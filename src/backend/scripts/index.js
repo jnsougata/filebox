@@ -239,10 +239,6 @@ queueModalCloseButton.addEventListener('click', () => {
 });
 let queueButton = document.querySelector('#queue');
 queueButton.addEventListener('click', () => {
-    if (runningTaskCount === 0) {
-        showSnack("No tasks running", colorOrange, 'info')
-        return;
-    }
     globalContextOption = "queue";
     queueModal.style.display = 'block';
     if (window.innerWidth < 768) {
