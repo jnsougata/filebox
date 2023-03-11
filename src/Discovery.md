@@ -15,12 +15,13 @@ Upload & organize files in your Personal Space Drive
 5. View files by categories
 6. Easy file download on demand
 7. Embeddable file urls (up to 5MB)
-8. Publicly shareable urls (up to 30MB)
+8. Publicly shareable urls (up to 50MB)
 9. File preview for common file types
 10. Multiple file selection and operations
- 
-### What's New (v2.3.1)
-- Re-introduced **Discovery** to share files with others securely.
+11. Send files to other instances (up to 30MB)
+
+### What's New (v2.3.2)
+- Now you can share files upto 50MB
 
 ### Future 
 Filebox will no longer actively receive updates from original developer after v2.3. The project is open source and anyone can contribute to it. Looking for new maintainers with adequate knowledge in Svelte for framework migration and Golang for backend development.

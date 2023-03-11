@@ -249,8 +249,8 @@ function handleFileMenuClick(file) {
     send.innerHTML = `<p>Send</p><span class="material-symbols-rounded">send</span>`;
     if (file.type !== "folder") {
         send.addEventListener("click", () => {
-            if (file.size > 1024 * 1024 * 15) {
-                showSnack("Can't send file larger than 15MB privately", colorOrange, 'info');
+            if (file.size > 1024 * 1024 * 30) {
+                showSnack("Can't send file larger than 30MB privately", colorOrange, 'info');
                 return;
             }
             if (file.owner) {
@@ -267,7 +267,7 @@ function handleFileMenuClick(file) {
                 }
             })  
         });
-        if (file.size > 1024 * 1024 * 15) {
+        if (file.size > 1024 * 1024 * 30) {
             send.style.opacity = 0.3;
         }
         fileOptionPanel.appendChild(send);
@@ -346,7 +346,7 @@ function handleFileMenuClick(file) {
     embed.addEventListener("click", () => {
         if (file.access === "private") {
             showSnack(`Make file public to embed`, colorOrange, 'warning');
-        } else if (file.size > 4 * 1024 * 1024) {
+        } else if (file.size > 1024 * 1024 * 4) {
             showSnack(`File is too large to embed`, colorRed, 'error');
         } else {
             window.navigator.clipboard.writeText(`${window.location.origin}/api/embed/${file.hash}`)
@@ -367,12 +367,8 @@ function handleFileMenuClick(file) {
     if (file.type !== 'folder') {
         fileOptionPanel.appendChild(rename);
         fileOptionPanel.appendChild(downloadButton);
-        if (file.access === 'private' || file.size > 1024 * 1024 * 30) {
+        if (file.access === 'private' || file.size > 1024 * 1024 * 50) {
             share.style.opacity = 0.3;
-            embed.style.opacity = 0.3;
-        }
-        if (file.access === 'private' || file.size > 1024 * 1024 * 4) {
-            embed.style.opacity = 0.3;
         }
         fileOptionPanel.appendChild(share);
         if (file.access === 'private' || file.size > 1024 * 1024 * 4) {
@@ -952,7 +948,10 @@ async function fetchMediaBlob(file) {
         qualifiedName = `${file.hash}.${extension}`
     }
     let url = `https://drive.deta.sh/v1/${projectId}/filebox/files/download?name=${qualifiedName}`;
-    const response = await fetch(url, { method: "GET", headers: {"X-Api-Key": globalSecretKey}});
+    const response = await fetch(url, { 
+        method: "GET", 
+        headers: {"X-Api-Key": globalSecretKey},
+    });
     let progress = 0;
     let loadingLevel = document.querySelector('#loading-amount');
     const reader = response.body.getReader();
@@ -978,18 +977,16 @@ async function fetchMediaBlob(file) {
     return new Blob([blob], { type: file.mime });
 }
 
-function embedFile(file) {
-    fetchMediaBlob(file)
-    .then((blob) => {
-        let embed = document.createElement('embed');
-        embed.src = URL.createObjectURL(blob);
-        embed.type = file.mime;
-        embed.style.width = '100%';
-        embed.style.height = '100%';
-        embed.style.objectFit = 'contain';
-        modalContent.innerHTML = '';
-        modalContent.appendChild(embed);
-    })
+async function embedFile(file) {
+    let blob = await fetchMediaBlob(file);
+    let embed = document.createElement('embed');
+    embed.src = URL.createObjectURL(blob);
+    embed.type = file.mime;
+    embed.style.width = '100%';
+    embed.style.height = '100%';
+    embed.style.objectFit = 'contain';
+    modalContent.innerHTML = '';
+    modalContent.appendChild(embed);
 }
 
 function fileMover(file) {
