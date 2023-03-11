@@ -11,7 +11,6 @@ let globalProjectId = null;
 let globalUserId = null;
 let globalFolderQueue = [];
 let globalConsumption = 0;
-let globalMediaBlob = null;
 let globalContextFile = null;
 let globalContextFolder = null;
 let globalContextOption = null;
@@ -384,10 +383,6 @@ mainSection.addEventListener("drop", (e) => {
 function handleModalClose() {
     modal.style.display = 'none';
     modalContent.innerHTML = '';
-    if (globalMediaBlob) {
-        URL.revokeObjectURL(globalMediaBlob);
-        globalMediaBlob = null;
-    }
 }
 
 let modal = document.querySelector('.modal');
