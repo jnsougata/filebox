@@ -226,7 +226,6 @@ sharedButton.addEventListener('click', () => {
             mainSection.appendChild(fileList);
         } else {
             showSnack('No files shared with you', colorOrange, 'info');
-            return
         }
     })
 });
@@ -303,13 +302,13 @@ trashButton.addEventListener('click', () => {
             ul.appendChild(newFileElem(file, true));
         });
         fileList.appendChild(ul);
-        let trashOptios = document.createElement('div');
-        trashOptios.className = ('trash_options');
+        let trashOptions = document.createElement('div');
+        trashOptions.className = ('trash_options');
         let p = document.createElement('p');
         p.innerHTML = 'Empty trash?';
         p.style.color = 'white';
         p.style.fontSize = '14px';
-        trashOptios.appendChild(p);
+        trashOptions.appendChild(p);
         let emptyTrash = document.createElement('button');
         emptyTrash.innerHTML = '<i class="fa-solid fa-trash"></i>';
         emptyTrash.addEventListener('click', () => {
@@ -327,8 +326,8 @@ trashButton.addEventListener('click', () => {
                 renderOriginalHeader();
             })
         });
-        trashOptios.appendChild(emptyTrash);
-        renderOtherHeader(trashOptios);
+        trashOptions.appendChild(emptyTrash);
+        renderOtherHeader(trashOptions);
         mainSection.appendChild(fileList);
     });
     if (window.innerWidth < 768) {
@@ -344,7 +343,7 @@ discoveryButton.addEventListener('click', () => {
         modal.style.display = 'flex';
         return;
     } else if (globalDiscoveryStatus === 1) {
-        ok = confirm('Are you sure you want to leave discovery?');
+        let ok = confirm('Are you sure you want to leave discovery?');
         if (ok) {
             passwordToSHA256Hex(globalUserPassword).then((pin) => {
                 fetch(`/api/discovery/${globalUserId}/${pin}`, {method: 'DELETE'})
@@ -392,63 +391,8 @@ modalCloseButton.addEventListener('click', () => {
     handleModalClose();
 });
 
-let passwordField = document.querySelector('#password');
-let enterButton = document.querySelector('#enter');
-enterButton.addEventListener('click', () => {
-    if (!passwordField.value) {
-        showSnack('Please enter a password', colorOrange, 'info');
-        return;
-    }
-    if (passwordField.value.length < 6) {
-        showSnack('Password must be atleast 6 characters long', colorOrange, 'info');
-        return;
-    }
-    fetch(`/api/key/${passwordField.value}`)
-            .then(response => {
-                if (response.status == 200) {
-                    globalUserPassword = passwordField.value;
-                    return response.json();
-                } else if (response.status == 404) {
-                    showSnack('You did not set any Password, check App Config.', colorOrange, 'info');
-                    return;
-                } else {
-                    showSnack('Something went wrong, try again.', colorOrange, 'info');
-                    return;
-                }
-            })
-            .then(data => {
-                globalSecretKey = data.key;
-                globalProjectId = globalSecretKey.split('_')[0];
-                globalUserId = /-(.*?)\./.exec(window.location.hostname)[1];
-                let userName = document.querySelector('#username');
-                userName.innerHTML = globalUserId;
-                let userIcon = document.querySelector('#user-icon')
-                userIcon.src = getAvatarURL(globalUserId, true);
-                fetch("/api/consumption")
-                .then(response => response.json())
-                .then(data => {
-                    updateSpaceUsage(data.size);
-                })
-                let passwordModal = document.querySelector('.pin_entry');
-                passwordModal.style.display = 'none';
-                homeButton.click();
-                fetch(`/api/discovery/${globalUserId}/status`)
-                .then((resp) => resp.json())
-                .then((data) => {
-                    globalDiscoveryStatus = data.status;
-                    if (data.status === -1) {
-                        discoveryButton.style.color = colorOrange;
-                    } else if (data.status === 0) {
-                        discoveryButton.style.color = colorRed;
-                    } else if (data.status === 1) {
-                        discoveryButton.style.color = colorGreen;
-                    }
-                })
-            })
-});
-
 window.addEventListener('DOMContentLoaded', () => {
-    passwordField.focus();
+    document.body.prepend(buildLoginModal());
     renderOriginalHeader();
 });
 

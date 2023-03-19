@@ -502,8 +502,8 @@ function newFileElem(file, isTrash = false) {
             return ;
         }
         if (!document.querySelector('.multi_select_options')) {
-            let multiSelecOptions = document.createElement('div');
-            multiSelecOptions.className = 'multi_select_options';
+            let multiSelectOptions = document.createElement('div');
+            multiSelectOptions.className = 'multi_select_options';
             let moveButton = document.createElement('button');
             moveButton.innerHTML = 'Move';
             moveButton.addEventListener("click", () => {
@@ -589,11 +589,11 @@ function newFileElem(file, isTrash = false) {
                     renderOriginalHeader();
                 })
             });
-            multiSelecOptions.appendChild(moveButton);
-            multiSelecOptions.appendChild(privateButton);
-            multiSelecOptions.appendChild(publicButton);
-            multiSelecOptions.appendChild(deleteButton);
-            renderOtherHeader(multiSelecOptions);
+            multiSelectOptions.appendChild(moveButton);
+            multiSelectOptions.appendChild(privateButton);
+            multiSelectOptions.appendChild(publicButton);
+            multiSelectOptions.appendChild(deleteButton);
+            renderOtherHeader(multiSelectOptions);
         }
         if (globalMultiSelectBucket.length === 25) {
             showSnack(`Can't select more than 25 items`, colorOrange, 'warning');
@@ -1386,4 +1386,87 @@ function buildPendingFileList(files) {
         sharedFiles.appendChild(pendingFile);
     });
     return sharedFiles;
+}
+
+function buildLoginModal() {
+    let modal = document.createElement('div');
+    modal.className = 'pin_entry';
+    let header = document.createElement('header');
+    let img = document.createElement('img');
+    img.src = '../assets/icon.png';
+    let p = document.createElement('p');
+    p.innerHTML = 'Filebox';
+    header.appendChild(img);
+    header.appendChild(p);
+    let input = document.createElement('input');
+    input.type = 'password';
+    input.id = 'password';
+    input.placeholder = 'Enter password';
+    let enter = document.createElement('span');
+    enter.className = 'material-symbols-rounded';
+    enter.innerHTML = 'arrow_forward';
+    enter.addEventListener('click', () => {
+        if (!input.value) {
+            showSnack('Please enter a password', colorOrange, 'info');
+            return;
+        }
+        if (input.value.length < 6) {
+            showSnack('Password must be at least 6 characters long', colorOrange, 'info');
+            return;
+        }
+        fetch(`/api/key/${input.value}`)
+        .then(response => {
+            if (response.status === 200) {
+                globalUserPassword = input.value;
+                return response.json();
+            } else if (response.status === 404) {
+                showSnack('You did not set any Password, check App Config.', colorOrange, 'info');
+                return;
+            } else {
+                showSnack('Something went wrong, try again.', colorOrange, 'info');
+                return;
+            }
+        })
+        .then(data => {
+            globalSecretKey = data.key;
+            globalProjectId = globalSecretKey.split('_')[0];
+            globalUserId = /-(.*?)\./.exec(window.location.hostname)[1];  // issues in custom domains
+            document.querySelector('#username').innerHTML = globalUserId
+            document.querySelector('#user-icon').src = getAvatarURL(globalUserId, true);
+            fetch("/api/consumption")
+            .then(response => response.json())
+            .then(data => {
+                updateSpaceUsage(data.size);
+            })
+            modal.style.display = 'none';
+            homeButton.click();
+            fetch(`/api/discovery/${globalUserId}/status`)
+            .then((resp) => resp.json())
+            .then((data) => {
+                globalDiscoveryStatus = data.status;
+                if (data.status === -1) {
+                    discoveryButton.style.color = colorOrange;
+                } else if (data.status === 0) {
+                    discoveryButton.style.color = colorRed;
+                } else if (data.status === 1) {
+                    discoveryButton.style.color = colorGreen;
+                }
+            })
+        })
+    });
+    let div = document.createElement('div');
+    let a = document.createElement('a');
+    a.href = 'https://filebox-1-q0603932.deta.app/api/embed/a5f6a03facf0f28c';
+    a.innerHTML = 'How to add or reset password?';
+    div.appendChild(a);
+    let footer = document.createElement('footer');
+    let span = document.createElement('span');
+    span.innerHTML = 'USER_PIN has been changed to USER_PASSWORD and must be at least 6 characters long.';
+    footer.appendChild(span);
+    modal.appendChild(header);
+    modal.appendChild(input);
+    modal.appendChild(enter);
+    modal.appendChild(div);
+    modal.appendChild(footer);
+    return modal;
 }
