@@ -168,29 +168,6 @@ function handleFileMenuClick(file) {
     let fileNameElem = document.createElement("p");
     fileNameElem.innerHTML = file.name;
     title.appendChild(fileNameElem);
-    let pickerElem = document.createElement("input");
-    pickerElem.type = "color";
-    pickerElem.value = file.color || "#ccc";
-    pickerElem.addEventListener("change", () => {
-        file.color = pickerElem.value;
-        folderColorPicker.backgroundColor = pickerElem.value;
-        file.project_id = globalProjectId;
-        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
-        .then(() => {
-            let fileElem = document.getElementById(`file-${file.hash}`);
-            fileElem.children[0].style.color = pickerElem.value;
-            showSnack(`Folder color changed successfully`, colorGreen, 'success');
-        })
-    });
-    let folderColorPicker = document.createElement("i");
-    folderColorPicker.className = "fa-solid fa-eye-dropper";
-    folderColorPicker.addEventListener("click", () => {
-        pickerElem.click();
-    });
-    if (file.type === "folder") {
-        title.appendChild(folderColorPicker);
-        title.appendChild(pickerElem);
-    }
     let bookmark = document.createElement("i");
     if (file.pinned) {
         bookmark.className = `fa-solid fa-bookmark`;
@@ -520,12 +497,27 @@ function newFileElem(file, isTrash = false) {
     if (file.type === 'folder' || file.color) {
         fileIcon.style.color = file.color;
     }
+    let pickerElem = document.createElement("input");
+    pickerElem.type = "color";
+    pickerElem.style.display = "none";
+    pickerElem.value = file.color || "#ccc";
+    pickerElem.addEventListener("change", () => {
+        file.color = pickerElem.value;
+        file.project_id = globalProjectId;
+        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
+        .then(() => {
+            fileIcon.style.color = file.color;
+            showSnack(`Folder color changed successfully`, colorGreen, 'success');
+        })
+    });
+    fileIcon.appendChild(pickerElem);
     fileIcon.className = 'file_icon';
     fileIcon.innerHTML = `<i class="${handleMimeIcon(file.mime)}"></i>`
     fileIcon.addEventListener("click", (ev) => {
         ev.stopPropagation();
         if (file.type === 'folder') {
-            return ;
+            pickerElem.click();
+            return;
         }
         if (!document.querySelector('.multi_select_options')) {
             let multiSelectOptions = document.createElement('div');

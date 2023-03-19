@@ -577,9 +577,6 @@ body {
     color: #0561da;
     padding: 10px;
 }
-.file_menu > .title > input[type="color"] {
-    display: none;
-}
 .file_menu > .file_menu_option {
     width: 100%;
     height: 50px;
