@@ -168,6 +168,29 @@ function handleFileMenuClick(file) {
     let fileNameElem = document.createElement("p");
     fileNameElem.innerHTML = file.name;
     title.appendChild(fileNameElem);
+    let pickerElem = document.createElement("input");
+    pickerElem.type = "color";
+    pickerElem.value = file.color || "#ccc";
+    pickerElem.addEventListener("change", () => {
+        file.color = pickerElem.value;
+        folderColorPicker.backgroundColor = pickerElem.value;
+        file.project_id = globalProjectId;
+        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
+        .then(() => {
+            let fileElem = document.getElementById(`file-${file.hash}`);
+            fileElem.children[0].style.color = pickerElem.value;
+            showSnack(`Folder color changed successfully`, colorGreen, 'success');
+        })
+    });
+    let folderColorPicker = document.createElement("i");
+    folderColorPicker.className = "fa-solid fa-eye-dropper";
+    folderColorPicker.addEventListener("click", () => {
+        pickerElem.click();
+    });
+    if (file.type === "folder") {
+        title.appendChild(folderColorPicker);
+        title.appendChild(pickerElem);
+    }
     let bookmark = document.createElement("i");
     if (file.pinned) {
         bookmark.className = `fa-solid fa-bookmark`;
@@ -494,6 +517,9 @@ function newFileElem(file, isTrash = false) {
     let li = document.createElement('li');
     li.id = `file-${file.hash}`
     let fileIcon = document.createElement('div');
+    if (file.type === 'folder' || file.color) {
+        fileIcon.style.color = file.color;
+    }
     fileIcon.className = 'file_icon';
     fileIcon.innerHTML = `<i class="${handleMimeIcon(file.mime)}"></i>`
     fileIcon.addEventListener("click", (ev) => {
