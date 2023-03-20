@@ -392,8 +392,22 @@ modalCloseButton.addEventListener('click', () => {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-    document.body.prepend(buildLoginModal());
     renderOriginalHeader();
+    let storedPassword = localStorage.getItem('password');
+    if (!storedPassword) {
+        document.body.prepend(buildLoginModal());
+        return;
+    }
+    fetch(`/api/key/${storedPassword}`)
+    .then((response) => {
+        if (response.status !== 200) {
+            document.body.prepend(buildLoginModal());
+        } else {
+            response.json().then((data) => {
+                handleStartup(data.key);
+            });
+        }
+    })
 });
 
 window.addEventListener('resize', () => {

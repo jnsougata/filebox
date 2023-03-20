@@ -20,8 +20,9 @@ Upload & organize files in your Personal Space Drive
 10. Multiple file selection and operations
 11. Send files to other instances (up to 30MB)
 
-### What's New (v2.3.2)
-- Now you can share files upto 50MB
+### What's New (v2.3.3)
+- Now you can set folder colors
+- Login with password just once
 
 ### Future 
 Filebox will no longer actively receive updates from original developer after v2.3. The project is open source and anyone can contribute to it. Looking for new maintainers with adequate knowledge in Svelte for framework migration and Golang for backend development.
