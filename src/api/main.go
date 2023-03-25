@@ -224,17 +224,24 @@ func HandleDownload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	skip, _ := strconv.Atoi(vars["skip"])
-	streamingResp := drive.Get(fileToDriveSavedName(resp.Data))
-	ChunkSize := 4 * 1024 * 1024
-	content, _ := io.ReadAll(streamingResp.Reader)
-	w.Header().Set("Content-Type", "application/octet-stream")
-	if (skip+1)*ChunkSize > len(content) {
-		_, _ = w.Write(content[skip*ChunkSize:])
-		return
+	projectKey := os.Getenv("DETA_PROJECT_KEY")
+	projectId := strings.Split(projectKey, "_")[0]
+	url := fmt.Sprintf(
+		"https://drive.deta.sh/v1/%s/filebox/files/download?name=%s",
+		projectId,
+		fileToDriveSavedName(resp.Data))
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-API-Key", projectKey)
+	if (skip+1)*4*1024*1024 > int(resp.Data["size"].(float64)) {
+		req.Header.Set("Range", fmt.Sprintf("bytes=%d-", skip*4*1024*1024))
 	} else {
-		_, _ = w.Write(content[skip*ChunkSize : (skip+1)*ChunkSize])
-		return
+		req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", skip*4*1024*1024, (skip+1)*4*1024*1024-1))
 	}
+	client := &http.Client{}
+	fResp, _ := client.Do(req)
+	content, _ := io.ReadAll(fResp.Body)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	_, _ = w.Write(content)
 }
 
 func HandleSharedMetadata(w http.ResponseWriter, r *http.Request) {
