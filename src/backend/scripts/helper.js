@@ -210,11 +210,6 @@ function handleFileMenuClick(file) {
         if (file.access === 'private') {
             visibility.className = `fa-solid fa-eye`;
             file.access = 'public';
-            if (file.size > 1024 * 1024 * 50) {
-                share.style.opacity = 0.3;
-            } else {
-                share.style.opacity = 1;
-            }
             if (file.size > 1024 * 1024 * 4) {
                 embed.style.opacity = 0.3;
             } else {
@@ -249,10 +244,6 @@ function handleFileMenuClick(file) {
     send.innerHTML = `<p>Send</p><span class="material-symbols-rounded">send</span>`;
     if (file.type !== "folder") {
         send.addEventListener("click", () => {
-            if (file.size > 1024 * 1024 * 30) {
-                showSnack("Can't send file larger than 30MB privately", colorOrange, 'info');
-                return;
-            }
             if (file.owner) {
                 showSnack("Can't send a file that you don't own", colorOrange, 'info');
                 return;
@@ -331,8 +322,6 @@ function handleFileMenuClick(file) {
     share.addEventListener("click", () => {
         if (file.access === "private") {
             showSnack(`Make file public to share via link`, colorOrange, 'warning');
-        } else if (file.size > 1024 * 1024 * 50) {
-            showSnack(`File is too large to share via link`, colorRed, 'error');
         } else {
             window.navigator.clipboard.writeText(`${window.location.origin}/shared/${file.hash}`)
             .then(() => {
@@ -367,7 +356,7 @@ function handleFileMenuClick(file) {
     if (file.type !== 'folder') {
         fileOptionPanel.appendChild(rename);
         fileOptionPanel.appendChild(downloadButton);
-        if (file.access === 'private' || file.size > 1024 * 1024 * 50) {
+        if (file.access === 'private') {
             share.style.opacity = 0.3;
         }
         fileOptionPanel.appendChild(share);
@@ -1234,10 +1223,6 @@ function buildDiscoveryModal() {
 
 function renderFileSenderModal(file) {
     fileOptionPanel.style.display = 'none';
-    if (file.size > 1024 * 1024 * 30) {
-        showSnack('File size larger than 30MB', colorOrange, 'warning');
-        return;
-    }
     let fileSender = document.querySelector('.file_sender');
     fileSender.innerHTML = '';
     let filename = document.createElement('p');

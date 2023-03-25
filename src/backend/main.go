@@ -21,13 +21,13 @@ func main() {
 func HandleIndex(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	content, _ := os.ReadFile("static/index.html")
-	_, _ = w.Write([]byte(content))
+	_, _ = w.Write(content)
 }
 
 func HandleDownloadPage(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	content, _ := os.ReadFile("static/shared.html")
-	_, _ = w.Write([]byte(content))
+	_, _ = w.Write(content)
 }
 
 func HandleAssets(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +35,7 @@ func HandleAssets(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	filename := vars["filename"]
 	content, _ := os.ReadFile("assets/" + filename)
-	_, _ = w.Write([]byte(content))
+	_, _ = w.Write(content)
 }
 
 func HandleScripts(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,7 @@ func HandleScripts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	filename := vars["filename"]
 	content, _ := os.ReadFile("scripts/" + filename)
-	_, _ = w.Write([]byte(content))
+	_, _ = w.Write(content)
 }
 
 func HandleStyles(w http.ResponseWriter, r *http.Request) {
@@ -51,5 +51,5 @@ func HandleStyles(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	filename := vars["filename"]
 	content, _ := os.ReadFile("styles/" + filename)
-	_, _ = w.Write([]byte(content))
+	_, _ = w.Write(content)
 }
