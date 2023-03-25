@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -16,7 +17,7 @@ import (
 var d = deta.New(nil)
 var drive = d.Drive("filebox")
 var base = d.Base("filebox_metadata")
-var collection_url = os.Getenv("GLOBAL_COLLECTION_URL")
+var collectionUrl = os.Getenv("GLOBAL_COLLECTION_URL")
 
 func main() {
 	r := mux.NewRouter()
@@ -34,7 +35,7 @@ func main() {
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
 	r.HandleFunc("/bulk/{project_id}", HandleBulkFileOps).Methods("DELETE", "PATCH")
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
-	r.HandleFunc("/__space/v0/actions", HandleOrphanClenup).Methods("POST")
+	r.HandleFunc("/__space/v0/actions", HandleOrphanCleanup).Methods("POST")
 	r.HandleFunc("/external/{recipient}/{owner}/{hash}/{skip}", HandleSharedFileLoad).Methods("GET", "POST")
 	r.HandleFunc("/discovery/{user_id}/{pin}", HandleDiscovery).Methods("PUT", "DELETE")
 	r.HandleFunc("/discovery/{user_id}/status", HandleDiscoveryStatus).Methods("GET")
@@ -143,7 +144,7 @@ func HandleMetadata(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusConflict)
 				return
 			} else {
-				base.Delete(file["hash"].(string))
+				_ = base.Delete(file["hash"].(string))
 				w.WriteHeader(http.StatusOK)
 				return
 			}
@@ -273,7 +274,7 @@ func HandleRename(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 }
 
-func HandleSpaceUsage(w http.ResponseWriter, r *http.Request) {
+func HandleSpaceUsage(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	q := deta.NewQuery()
 	q.NotEquals("type", "folder")
@@ -367,7 +368,7 @@ func HandleFolderItemCountBulk(w http.ResponseWriter, r *http.Request) {
 			parentMap[path].(map[string]interface{})["count"] = record.(map[string]interface{})["count"].(int) + 1
 		}
 	}
-	counts := []map[string]interface{}{}
+	var counts []interface{}
 	for _, v := range parentMap {
 		counts = append(counts, v.(map[string]interface{}))
 	}
@@ -405,8 +406,8 @@ func HandleBulkFileOps(w http.ResponseWriter, r *http.Request) {
 			hashes = append(hashes, item["hash"].(string))
 			driveNames = append(driveNames, fileToDriveSavedName(item))
 		}
-		base.Delete(hashes...)
-		drive.Delete(driveNames...)
+		_ = base.Delete(hashes...)
+		_ = drive.Delete(driveNames...)
 		w.WriteHeader(http.StatusOK)
 		return
 	case "PATCH":
@@ -417,7 +418,7 @@ func HandleBulkFileOps(w http.ResponseWriter, r *http.Request) {
 			record := deta.Record{Key: item["hash"].(string), Value: item}
 			files = append(files, record)
 		}
-		base.Put(files...)
+		_ = base.Put(files...)
 		w.WriteHeader(http.StatusOK)
 	}
 }
@@ -443,7 +444,7 @@ func HandleDetaKey(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(ba)
 }
 
-func HandleOrphanClenup(w http.ResponseWriter, _ *http.Request) {
+func HandleOrphanCleanup(_ http.ResponseWriter, _ *http.Request) {
 	data := drive.Files("", 0, "").Data
 	names := data["names"].([]interface{})
 	hashes := map[string]string{}
@@ -463,7 +464,7 @@ func HandleOrphanClenup(w http.ResponseWriter, _ *http.Request) {
 			orphanNames = append(orphanNames, v)
 		}
 	}
-	drive.Delete(orphanNames...)
+	_ = drive.Delete(orphanNames...)
 }
 
 func HandleSharedFileLoad(w http.ResponseWriter, r *http.Request) {
@@ -472,7 +473,7 @@ func HandleSharedFileLoad(w http.ResponseWriter, r *http.Request) {
 	recipient := vars["recipient"]
 	hash := vars["hash"]
 	skip := vars["skip"]
-	oresp, _ := http.Get(fmt.Sprintf("%s/users/%s", collection_url, owner))
+	oresp, _ := http.Get(fmt.Sprintf("%s/users/%s", collectionUrl, owner))
 	var ownerData map[string]interface{}
 	_ = json.NewDecoder(oresp.Body).Decode(&ownerData)
 	ownerInstanceUrl := ownerData["url"].(string)
@@ -492,43 +493,58 @@ func HandleSharedFileLoad(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(resp.Body)
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.WriteHeader(resp.StatusCode)
 	ba, _ := io.ReadAll(resp.Body)
-	w.Write(ba)
+	_, _ = w.Write(ba)
 }
 
 func HandleDiscoveryStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	user_id := vars["user_id"]
-	req, _ := http.Get(fmt.Sprintf("%s/users/%s/status", collection_url, user_id))
+	userId := vars["user_id"]
+	req, _ := http.Get(fmt.Sprintf("%s/users/%s/status", collectionUrl, userId))
 	ba, _ := io.ReadAll(req.Body)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(req.StatusCode)
-	w.Write(ba)
+	_, _ = w.Write(ba)
 }
 
 func HandleDiscovery(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	user_id := vars["user_id"]
+	userId := vars["user_id"]
 	pin := vars["pin"]
 
 	switch r.Method {
 	case "PUT":
-		req, _ := http.NewRequest("PUT", fmt.Sprintf("%s/users/%s/%s", collection_url, user_id, pin), r.Body)
+		req, _ := http.NewRequest("PUT", fmt.Sprintf("%s/users/%s/%s", collectionUrl, userId, pin), r.Body)
 		req.Header.Set("Content-Type", "application/json")
 		client := &http.Client{}
 		resp, _ := client.Do(req)
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				log.Println(err)
+			}
+		}(resp.Body)
 		w.WriteHeader(resp.StatusCode)
 		return
 
 	case "DELETE":
-		req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/users/%s/%s", collection_url, user_id, pin), nil)
+		req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/users/%s/%s", collectionUrl, userId, pin), nil)
 		client := &http.Client{}
 		resp, _ := client.Do(req)
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				log.Println(err)
+			}
+		}(resp.Body)
 		w.WriteHeader(resp.StatusCode)
 		return
 	}
@@ -536,8 +552,8 @@ func HandleDiscovery(w http.ResponseWriter, r *http.Request) {
 
 func HandleMetadataPush(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	target_id := vars["target_id"]
-	resp, _ := http.Get(fmt.Sprintf("%s/users/%s", collection_url, target_id))
+	targetId := vars["target_id"]
+	resp, _ := http.Get(fmt.Sprintf("%s/users/%s", collectionUrl, targetId))
 	var owner map[string]interface{}
 	_ = json.NewDecoder(resp.Body).Decode(&owner)
 	instanceURL, ok := owner["url"]
