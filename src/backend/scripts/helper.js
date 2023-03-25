@@ -210,6 +210,7 @@ function handleFileMenuClick(file) {
         if (file.access === 'private') {
             visibility.className = `fa-solid fa-eye`;
             file.access = 'public';
+            share.style.opacity = 1;
             if (file.size > 1024 * 1024 * 4) {
                 embed.style.opacity = 0.3;
             } else {
@@ -258,9 +259,6 @@ function handleFileMenuClick(file) {
                 }
             })  
         });
-        if (file.size > 1024 * 1024 * 30) {
-            send.style.opacity = 0.3;
-        }
         fileOptionPanel.appendChild(send);
     }
     let rename = document.createElement("div");
@@ -915,6 +913,8 @@ async function loadSharedFile(file) {
         return await resp.blob();
     } else {
         let skips = 0;
+        let progress = 0;
+        let loadingLevel = document.querySelector('#loading-amount');
         if (size % chunkSize === 0) {
             skips = size / chunkSize;
         } else {
@@ -929,8 +929,11 @@ async function loadSharedFile(file) {
                     return resp.blob();
                 })
                 .then((blob) => {
+                    progress += blob.size;
+                    let percentage = Math.floor((progress / size) * 100);
+                    loadingLevel.innerHTML = `${percentage}%`;
                     return blob;
-                }) 
+                })
             );
         });
         let blobs = await Promise.all(promises);
