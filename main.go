@@ -53,7 +53,8 @@ func main() {
 func SharedPage(c echo.Context) error {
 	hash := c.PathParam("hash")
 	metadata := base.Get(hash).Data
-	if metadata == nil {
+	_, ok := metadata["hash"].(string)
+	if !ok {
 		return c.String(http.StatusNotFound, "Not Found")
 	}
 	access, _ := metadata["access"].(string)

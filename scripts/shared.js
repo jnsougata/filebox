@@ -4,6 +4,7 @@ let fileNameElem = document.querySelector("#filename");
 let downloadButton = document.querySelector("#download");
 let footer = document.querySelector("footer");
 let percentage = document.querySelector("#percentage");
+let fileSizeBar = document.querySelector("#size");
 let fileInfo = null;
 
 
@@ -27,9 +28,11 @@ downloadButton.addEventListener('click', () => {
 
 function downloadByChunk(file) {
     isTaskRunning = true;
-    percentage.innerHTML = `Downloaded 0.00%`;
     footer.style.display = "block";
+    percentage.innerHTML = `Downloaded 0.00%`;
     let size = file.size;
+    let fileSizeMB = (size / (1024 * 1024)).toFixed(2);
+    fileSizeBar.innerHTML = `0.00 / ${fileSizeMB} MB`;
     let name = file.name;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
@@ -37,6 +40,7 @@ function downloadByChunk(file) {
         .then((response) => {
             if (response.status === 403) {
                 alert(`File access denied by owner!`);
+                return;
             } else {
                 return response.blob();
             }
@@ -48,6 +52,7 @@ function downloadByChunk(file) {
             a.download = name;
             percentage.innerHTML = `Downloaded 100%`;
             progressBar.style.width = "100%";
+            fileSizeBar.innerHTML = `${fileSizeMB} / ${fileSizeMB} MB`;
             a.click();
             isTaskRunning = false;
         })
@@ -74,12 +79,13 @@ function downloadByChunk(file) {
                         alert(`Server refused to deliver chunk ${head}, try again!`);
                         allOk = false;
                     }
-                    progress++;
-                    progressBar.style.width = `${(progress / skips * 100)}%`;
-                    percentage.innerHTML = `Downloaded ${(progress / skips * 100).toFixed(2)}%`;
                     return response.blob();
                 })
                 .then(blob => {
+                    progress++;
+                    progressBar.style.width = `${((progress / skips) * 100)}%`;
+                    percentage.innerHTML = `Downloaded ${((progress / skips) * 100).toFixed(2)}%`;
+                    fileSizeBar.innerHTML = `${(progress * chunkSize / (1024 * 1024)).toFixed(2)} / ${fileSizeMB} MB`;
                     return blob;
                 })
             );
@@ -95,6 +101,7 @@ function downloadByChunk(file) {
                 a.click();
                 progressBar.style.width = "100%";
                 percentage.innerHTML = `Downloaded 100%`;
+                fileSizeBar.innerHTML = `${fileSizeMB} / ${fileSizeMB} MB`;
             } else {
                 alert("File is very powerful. Please try again.");
             }
