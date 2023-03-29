@@ -20,12 +20,6 @@ micros:
       - main
     run: ./main
     path: api
-    actions:
-      - id: "clean_orphaned"
-        name: "Clean Up"
-        description: "Cleans up orphaned files"
-        trigger: "schedule"
-        default_interval: "0/15 * * * *"
 
   - name: backend
     src: .
@@ -33,20 +27,28 @@ micros:
     primary: true
     commands:
       - go get
-      - go build main.go
+      - go build .
     include:
-      - main
+      - backend
       - assets/
       - styles/
       - scripts/
       - static/
-      - pwa/
-    run: ./main
+      - manifest.json
+      - service-worker.js
+    run: ./backend
+    actions:
+      - id: "cleanup"
+        name: "cleanup"
+        description: "Cleans up orphaned files"
+        trigger: "schedule"
+        default_interval: "0/15 * * * *"
     public_routes:
-      - "/embed/*"
       - "/assets/*"
       - "/shared/*"
       - "/styles/*"
       - "/scripts/*"
+      - "/manifest.json"
+      - "/service-worker.js"
       - "/api/embed/*"
       - "/api/shared/*"

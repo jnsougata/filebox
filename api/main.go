@@ -35,7 +35,6 @@ func main() {
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
 	r.HandleFunc("/bulk/{project_id}", HandleBulkFileOps).Methods("DELETE", "PATCH")
 	r.HandleFunc("/items/count", HandleFolderItemCountBulk).Methods("POST")
-	r.HandleFunc("/__space/v0/actions", HandleOrphanCleanup).Methods("POST")
 	r.HandleFunc("/external/{recipient}/{owner}/{hash}/{skip}", HandleSharedFileLoad).Methods("GET", "POST")
 	r.HandleFunc("/discovery/{user_id}/{pin}", HandleDiscovery).Methods("PUT", "DELETE")
 	r.HandleFunc("/discovery/{user_id}/status", HandleDiscoveryStatus).Methods("GET")
@@ -449,29 +448,6 @@ func HandleDetaKey(w http.ResponseWriter, r *http.Request) {
 	ba, _ := json.Marshal(data)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(ba)
-}
-
-func HandleOrphanCleanup(_ http.ResponseWriter, _ *http.Request) {
-	data := drive.Files("", 0, "").Data
-	names := data["names"].([]interface{})
-	hashes := map[string]string{}
-	for _, name := range names {
-		fragments := strings.Split(name.(string), ".")
-		if len(fragments) > 1 {
-			hashes[fragments[0]] = name.(string)
-		} else {
-			hashes[name.(string)] = name.(string)
-		}
-	}
-	var orphanNames []string
-	for k, v := range hashes {
-		resp := base.Get(k).Data
-		_, ok := resp["hash"]
-		if !ok {
-			orphanNames = append(orphanNames, v)
-		}
-	}
-	_ = drive.Delete(orphanNames...)
 }
 
 func HandleSharedFileLoad(w http.ResponseWriter, r *http.Request) {
