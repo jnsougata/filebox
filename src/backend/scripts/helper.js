@@ -269,6 +269,7 @@ function handleFileMenuClick(file) {
         fileNameElem.spellcheck = false;
         fileNameElem.focus();
         fileNameElem.addEventListener('blur', (e) => {
+            fileNameElem.contentEditable = false;
             let oldName = file.name;
             let oldExtension = "";
             let oldNameFragments = oldName.split(".");
@@ -675,11 +676,9 @@ function newPinnedElem(file) {
     let card = document.createElement('div');
     card.className = 'card';
     card.id = `card-${file.hash}`;
-    let unpinDiv = document.createElement('div');
-    unpinDiv.className = 'unpin';
     let unpin = document.createElement('span');
     unpin.className = 'material-symbols-rounded';
-    unpin.innerHTML = 'cancel';
+    unpin.innerHTML = 'clear';
     unpin.addEventListener('click', (ev) => {
         ev.stopPropagation();
         fetch(`/api/pin/${globalProjectId}/${file.hash}`, {method: "DELETE"})
@@ -687,14 +686,13 @@ function newPinnedElem(file) {
             card.remove();
         })
     });
-    unpinDiv.appendChild(unpin);
     let fileIcon = document.createElement('i');
     fileIcon.className = handleMimeIcon(file.mime);
     let fileName = document.createElement('p');
     fileName.innerHTML = file.name;
-    card.appendChild(unpinDiv);
     card.appendChild(fileIcon);
     card.appendChild(fileName);
+    card.appendChild(unpin);
     card.addEventListener('click', () => {
         if (file.type === 'folder') {
             handleFolderClick(file);

@@ -23,8 +23,7 @@
   
 
 ::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    background: #363645bd;
+    background: var(--color-blackish-light);
 }
 
 body {
@@ -463,52 +462,47 @@ body {
 }
 .home_page > .pinned {
     width: 100%;
-    height: 150px;
-    display: flex;
-    align-items: center;
-    padding-left: 20px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    flex-shrink: 0;
+    max-height: 300px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-gap: 10px;
+    padding: 10px;
+    overflow-y: auto;
 }
 .home_page > .pinned > .card {
-    width: 200px;
-    height: 120px;
+    width: 100%;
+    height: 60px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    margin-right: 20px;
     cursor: pointer;
-    border-radius: 10px;
     background-color: #ffffff0c;
-    padding: 10px;
-    flex-shrink: 0;
+    padding: 15px;
 }
+
 .home_page > .pinned > .card > i {
-    font-size: 40px;
+    font-size: 18px;
     color: #ccc;
-    margin-top: -10px;
-    margin-bottom: 8px;
+    padding-right: 10px;
 }
 .home_page > .pinned > .card > p {
-    width: 160px;
-    font-size: 12px;
+    width: 100%;
+    font-size: 15px;
     color: #ccc;
     overflow: hidden;
-    text-align: center;
+    text-align: left;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-.home_page > .pinned > .card > .unpin {
-    width: 100%;
-    text-align: end;
-    color: #ffffff57;
-}
-.home_page > .pinned > .card > .unpin > span {
-    font-size: 20px;
+.home_page > .pinned > .card > span {
+    color: #ccc;
+    font-size: 13px;
+    padding: 3px;
+    background-color: #ffffff0c;
     border-radius: 50%;
     cursor: pointer;
+    padding: 5px;
+    margin-left: 10px;
 }
 
 @keyframes sildein {
@@ -731,13 +725,12 @@ body {
 }
     
 .queue {
-    top: 0;
     right: 0;
-    margin-top: 70px;
+    bottom: 0;
+    position: fixed;
     margin-right: 10px;
     width: 700px;
     height: 300px;
-    position: fixed;
     z-index: 1000;
     display: none;
     align-items: flex-start;
@@ -748,12 +741,12 @@ body {
     border-radius: 5px;
     overflow: hidden;
     box-shadow: 0 0 10px 0 #000000b2;
-    z-index: 100 !important;
-
+    z-index: 10000 !important;
 }
 .queue > .queue_close {
     top: 0;
     right: 0;
+    position: absolute;
     width: 25px;
     height: 25px;
     margin-top: 10px;
@@ -763,8 +756,8 @@ body {
     justify-content: center;
     cursor: pointer;
     border-radius: 50%;
-    position: absolute;
     color: #ccc;
+    font-size: 15px;
     background-color: var(--color-blackish-light);
 }
 .queue > .queue_content {
