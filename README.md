@@ -1,7 +1,7 @@
 # Filebox
 A personal cloud storage service for free (upto 10GB)
 
-- [Install on Deta Space](https://alpha.deta.space/discovery/@gyrooo/filebox)
+- [Install on Deta Space](https://deta.space/discovery/@gyrooo/filebox)
 
 ### Comes with
 
@@ -23,8 +23,7 @@ A personal cloud storage service for free (upto 10GB)
 <a href="https://www.flaticon.com/free-icons/box" title="box icons">Box icons created by srip - Flaticon</a>
 
 ## Mobile Preview
-![image](https://user-images.githubusercontent.com/53375272/213861362-acf9fa03-7ad0-4859-ad47-434ff3812acf.png)
-
+![image](https://user-images.githubusercontent.com/53375272/228587969-0aad3d1b-73dd-4a47-9ff7-c10388757e5b.png)
 
 ## Desktop Preview
-![image](https://user-images.githubusercontent.com/53375272/213861327-bfc43477-f6b4-4c5e-b50a-340b004af39c.png)
+![image](https://user-images.githubusercontent.com/53375272/228587167-ba81ebac-538d-4db1-86e5-fc795bb068ad.png)
