@@ -1,0 +1,18 @@
+{
+    "id": "com.filebox.app",
+    "name": "Filebox",
+    "short_name": "Filebox",
+    "description": "A free cloud storage app for your files",
+    "start_url": "/",
+    "scope": "./",
+    "icons": [
+      {
+        "src": "../assets/icon.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ],
+    "theme_color": "#f62f2e",
+    "background_color": "black",
+    "display": "standalone"
+}

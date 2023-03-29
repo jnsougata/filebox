@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Filebox</title>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1">
+        <link rel="icon" href="../assets/icon.png" type="image/x-icon">
+        <link rel="stylesheet" type="text/css" href="../styles/index.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
+    </head>
+    <body>
+        <div class="snackbar"></div>
+        <div class="file_sender"></div>
+        <div class="queue">
+            <div class="queue_close">
+                <i class="fa-solid fa-times"></i>
+            </div>
+            <div class="queue_content">
+                <p>Upload or Download Tasks</p>
+                <ul id="queue-task-list"></ul>
+            </div>
+        </div>
+        <div class="modal">
+            <div class="modal_close">
+                <i class="fa-solid fa-times"></i>
+            </div>
+            <div class="modal_content"></div>
+        </div>
+        <div class="floating_menu">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <div class="file_menu"></div>
+        <div class="blur-layer"></div>
+        <div class="container">
+            <div class="sidebar">
+                <div class="sidebar_logo">
+                    <img src="../assets/icon.png" alt="logo" />
+                    <h3>Filebox</h3>
+                </div>
+                <div class="wrapper">
+                    <div class="sidebar_option" id="home">
+                        <div class="icon">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        Recent
+                    </div>
+                    <div class="sidebar_option" id="my-files">
+                        <div class="icon">
+                            <i class="fa-solid fa-hard-drive"></i>
+                        </div>
+                        My Files
+                    </div>
+                    <div class="sidebar_option" id="queue">
+                        <div class="icon">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        Queue
+                    </div>
+                    <div class="sidebar_option" id="trash">
+                        <div class="icon">
+                            <i class="fa-solid fa-trash"></i>
+                        </div>
+                        Trash
+                    </div>
+                    <div class="sidebar_option" id="shared">
+                        <div class="icon">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        Shared
+                    </div>
+                    <div class="usage">
+                        <div class="icon">
+                            <i class="fa-solid fa-database"></i>
+                        </div>
+                        <p id="storage">0 B</p>
+                    </div>
+                    <div class="usage" style="height: max-content; margin-top: -10px;">
+                        <ul>
+                            <li id="pdfs" style="margin-top: 10px;">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-book-open"></i>
+                                    </div>
+                                    <p>PDFs</p>
+                                </div>
+                            </li>
+                            <li id="docs">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-file-lines"></i>
+                                    </div>
+                                    <p>Docs</p>
+                                </div>
+                            </li>
+                            <li id="images">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-image"></i>
+                                    </div>
+                                    <p>Images</p>
+                                </div>
+                            </li>
+                            <li id="videos">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-video"></i>
+                                    </div>
+                                    <p>Videos</p>
+                                </div>
+                            </li>
+                            <li id="audios">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-headphones"></i>
+                                    </div>
+                                    <p>Audios</p>
+                                </div>
+                            </li>
+                            <li id="others">
+                                <div class="wrapper">
+                                    <div class="icon">
+                                        <i class="fa-solid fa-file"></i>
+                                    </div>
+                                    <p>Others</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="wrapper" style="justify-content: flex-end;">
+                    <div class="user">
+                        <img alt="user" id="user-icon" src=""/>
+                        <p id="username">unknown</p>
+                        <span class="material-symbols-rounded" id="discovery" style="color: var(--color-blueish);">
+                            wifi_tethering
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+                <header id="content-header"></header>
+                <section id="main"></section>
+            </div>
+        </div>
+        <script src="../scripts/index.js"></script>
+        <script src="../scripts/helper.js"></script>
+        <script src="../scripts/worker.js"></script>
+        <script src="../scripts/login.js"></script>
+    </body>
+</html>
