@@ -176,7 +176,7 @@ function handleFileMenuClick(file) {
     }
     bookmark.addEventListener("click", () => {
         if (file.pinned) {
-            fetch(`/api/pin/${globalProjectId}/${file.hash}`, {method: "DELETE"})
+            fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "DELETE"})
             .then(() => {
                 showSnack(`Unpinned successfully!`, colorOrange, 'info');
                 let card = document.getElementById(`card-${file.hash}`);
@@ -187,7 +187,7 @@ function handleFileMenuClick(file) {
                 delete file.pinned;
             })
         } else {
-            fetch(`/api/pin/${globalProjectId}/${file.hash}`, {method: "POST"})
+            fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "POST"})
             .then(() => {
                 showSnack(`Pinned successfully!`, colorGreen, 'success');
                 let pinnedSection = document.querySelector('.pinned');
@@ -224,8 +224,8 @@ function handleFileMenuClick(file) {
             embed.style.opacity = 0.3;
             showSnack("File access changed to private", colorOrange, 'info');
         }
-        fetch(`/api/file/access`, {
-            method: "POST", 
+        fetch(`/api/file/access/${globalUserPassword}`, {
+            method: "PATCH", 
             body: JSON.stringify({hash: file.hash, access: file.access})
         })
     });
@@ -294,7 +294,7 @@ function handleFileMenuClick(file) {
             if (newName === oldName) {
                 return;
             }
-            fetch(`/api/rename/${globalProjectId}`, {method: "POST", body: JSON.stringify({hash: file.hash, name: newName})})
+            fetch(`/api/rename/${globalUserPassword}`, {method: "POST", body: JSON.stringify({hash: file.hash, name: newName})})
             .then((res) => {
                 if (res.status === 200) {
                     file.name = newName;
@@ -539,7 +539,7 @@ function newFileElem(file, isTrash = false) {
                             }
                         });
                     }
-                    fetch(`/api/bulk/${globalProjectId}`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
+                    fetch(`/api/bulk/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
                     .then(() => {
                         showSnack('Files Moved Successfully!', colorGreen, 'success');
                         if (globalContextFolder) {
@@ -565,7 +565,7 @@ function newFileElem(file, isTrash = false) {
                 globalMultiSelectBucket.forEach((file) => {
                     file.access = 'private';
                 });
-                fetch(`/api/bulk/${globalProjectId}`, {method: "PATCH", body: JSON.stringify(file)})
+                fetch(`/api/bulk/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
                 .then(() => {
                     showSnack(`Made selected files private`, colorOrange, 'info');
                 })
@@ -576,7 +576,7 @@ function newFileElem(file, isTrash = false) {
                 globalMultiSelectBucket.forEach((file) => {
                     file.access = 'public';
                 });
-                fetch(`/api/bulk/${globalProjectId}`, {method: "PATCH", body: JSON.stringify(file)})
+                fetch(`/api/bulk/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
                 .then(() => {
                     showSnack(`Made selected files public`, colorGreen, 'info');
                 })
@@ -585,7 +585,7 @@ function newFileElem(file, isTrash = false) {
             deleteButton.innerHTML = 'Delete';
             deleteButton.style.backgroundColor = colorRed;
             deleteButton.addEventListener("click", () => {
-                fetch(`/api/bulk/${globalProjectId}`, {method: "DELETE", body: JSON.stringify(globalMultiSelectBucket)})
+                fetch(`/api/bulk/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(globalMultiSelectBucket)})
                 .then(() => {
                     globalMultiSelectBucket.forEach((file) => {
                         let fileElem = document.getElementById(`file-${file.hash}`);
@@ -681,7 +681,7 @@ function newPinnedElem(file) {
     unpin.innerHTML = 'clear';
     unpin.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        fetch(`/api/pin/${globalProjectId}/${file.hash}`, {method: "DELETE"})
+        fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "DELETE"})
         .then(() => {
             card.remove();
         })

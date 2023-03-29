@@ -403,6 +403,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (response.status !== 200) {
             document.body.prepend(buildLoginModal());
         } else {
+            globalUserPassword = storedPassword;
             response.json().then((data) => {
                 handleStartup(data.key);
             });
