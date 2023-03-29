@@ -3,7 +3,7 @@
     "name": "Filebox",
     "short_name": "Filebox",
     "description": "A free cloud storage app for your files",
-    "start_url": "/",
+    "start_url": "./static/index.html",
     "scope": "./",
     "icons": [
       {
@@ -12,7 +12,7 @@
         "type": "image/png"
       }
     ],
-    "theme_color": "#f62f2e",
+    "theme_color": "#0561da",
     "background_color": "black",
     "display": "standalone"
 }
