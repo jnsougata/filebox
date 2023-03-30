@@ -137,7 +137,7 @@ homeButton.addEventListener('click', () => {
                 pinnedBlock = buildPinnedContent(data);
             }
         }),
-        fetch("/api/metadata")
+        fetch(`/api/metadata/${globalUserPassword}`)
         .then(response => response.json())
         .then(data => {
             if (data) {
@@ -167,7 +167,7 @@ myFilesButton.addEventListener('click', () => {
         renderOriginalHeader();
     }
     globalFolderQueue = [];
-    fetch("/api/metadata")
+    fetch(`/api/metadata/${globalUserPassword}`)
     .then(response => response.json())
     .then(data => {
         let files = [];
@@ -418,6 +418,7 @@ window.addEventListener('resize', () => {
         sidebarState = true;
     } else {
         sidebar.style.display = 'none';
+        cm.style.display = 'none';
         floatingMenuButton.display = 'block';
         floatingMenuButton.innerHTML = `<i class="fa-solid fa-bars"></i>`;
         sidebarState = false;

@@ -27,7 +27,7 @@ func main() {
 
 	api := echo.Group("/api")
 	api.GET("/key/:password", ProjectKey)
-	api.Any("/metadata", Metadata)
+	api.Any("/metadata/:password", Metadata)
 	api.POST("/folder", ExtraFolderMeta)
 	api.GET("/embed/:hash", EmbedFile)
 	api.GET("/file/:recipient/:hash/:part", DownloadFile)

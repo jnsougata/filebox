@@ -1,0 +1,288 @@
+let cm =  document.querySelector('.context_menu');
+
+function renderFileContextMenu(ev, file) {
+    cm.style.display = 'flex';
+    cm.style.left = `${ev.pageX}px`;
+    cm.style.top = `${ev.pageY}px`;
+    let cmRect = cm.getBoundingClientRect();
+    let windowWidth = window.innerWidth;
+    let windowHeight = window.innerHeight;
+    if (cmRect.right > windowWidth) {
+        cm.style.left = `${windowWidth - cmRect.width}px`;
+    }
+    if (cmRect.bottom > windowHeight) {
+        cm.style.top = `${windowHeight - cmRect.height}px`;
+    }
+    cm.innerHTML = '';
+    cm.appendChild(buildFileContextMenu(file));
+    cm.id = file.hash;
+    let fileElem = document.getElementById(`file-${file.hash}`);
+    fileElem.style.backgroundColor = `var(--color-blackish-hover)`;
+}
+
+window.addEventListener('click', (ev) => {
+    cm.style.display = 'none';
+    let fileElem = document.getElementById(`file-${cm.id}`);
+    if (fileElem) {
+        fileElem.style.backgroundColor = `transparent`;
+    }
+});
+
+function onSendClick(file) {
+    renderFileSenderModal(file);
+}
+
+function onRenameClick(file) {
+    let elem = document.querySelector(`#filename-${file.hash}`)
+    elem.contentEditable = true;
+    elem.focus();
+    elem.addEventListener('blur', (ev) => {
+        elem.contentEditable = false;
+        let extPattern = /\.[0-9a-z]+$/i;
+        let oldext = extPattern.exec(file.name) ? extPattern.exec(file.name)[0] : '';
+        let newext = extPattern.exec(ev.target.innerText) ? extPattern.exec(ev.target.innerText)[0] : '';
+        if (oldext !== newext) {
+            ev.target.innerHTML = file.name;
+            showSnack("File extension cannot be changed", colorOrange, 'warning');
+            return;
+        }
+        if (ev.target.innerText === file.name) {
+            return;
+        }
+        fetch(`/api/rename/${globalUserPassword}`, {
+            method: "POST",
+            body: JSON.stringify({hash: file.hash, name: ev.target.innerText})
+        })
+        .then((res) => {
+            if (res.status === 200) {
+                file.name = ev.target.innerText;
+                elem.innerHTML = ev.target.innerText;
+                showSnack(`File renamed to ${ev.target.innerText}`, colorGreen, 'success');
+            }
+        })
+    });
+}
+
+function onDownloadClick(file) {
+    download(file)
+}
+
+function onShareLinkClick(file) {
+    if (file.access === "private") {
+        showSnack(`Make file public to share via link`, colorOrange, 'warning');
+    } else {
+        window.navigator.clipboard.writeText(`${window.location.origin}/shared/${file.hash}`)
+        .then(() => {
+            showSnack(`Copied sharing URL to clipboard`, colorGreen, 'success');
+        })
+    }
+}
+
+function onEmbedClick(file) {
+    if (file.access === "private") {
+        showSnack(`Make file public to embed`, colorOrange, 'warning');
+    } else if (file.size > 1024 * 1024 * 4) {
+        showSnack(`File is too large to embed`, colorRed, 'error');
+    } else {
+        window.navigator.clipboard.writeText(`${window.location.origin}/api/embed/${file.hash}`)
+        .then(() => {
+            showSnack(`Copied embed URL to clipboard`, colorGreen, 'success');
+        })
+    }
+}
+
+function onMoveClick(file) {
+    isFileMoving = true;
+    myFilesButton.click();
+    renderOtherHeader(fileMover(file));
+}
+
+function onTrashClick(file) {
+    file.project_id = globalProjectId;
+    if (file.type === 'folder') {
+        fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
+        .then((resp) => {
+            if (resp.status === 409) {
+                showSnack(`Folder is not empty`, colorOrange, 'warning');
+                return;
+            } else if (resp.status === 200) {
+                showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
+                document.getElementById(`file-${file.hash}`).remove();
+            }
+        })
+    } else {
+        file.deleted = true;
+        fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+        .then(() => {
+            showSnack(`Moved to trash ${file.name}`, colorRed, 'warning');
+            document.getElementById(`file-${file.hash}`).remove();
+        })
+    }
+}
+
+function onColorClick(file) {
+    let pickerElem = document.createElement("input");
+    pickerElem.type = "color";
+    pickerElem.style.display = "none";
+    pickerElem.value = file.color || "#ccc";
+    pickerElem.addEventListener("change", () => {
+        file.color = pickerElem.value;
+        file.project_id = globalProjectId;
+        fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+        .then(() => {
+            let folder = document.getElementById(`file-${file.hash}`);
+            let folderIcon = folder.children[0];
+            folderIcon.style.color = file.color;
+            showSnack(`Folder color changed successfully`, colorGreen, 'success');
+        })
+    })
+    document.body.appendChild(pickerElem);
+    pickerElem.click();
+}
+
+function onRestoreClick(file) {
+    checkFileParentExists(file)
+    .then((exists) => {
+        if (!exists && file.parent !== undefined) {
+            showSnack(`Parent not found. Restoring to root`, colorOrange, 'warning');
+            delete file.parent;
+            delete file.deleted;
+        } else {
+            delete file.deleted;
+        }
+        file.project_id = globalProjectId;
+        fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+        .then(() => {
+            showSnack(`Restored ${file.name}`, colorGreen, 'success');
+            document.getElementById(`file-${file.hash}`).remove();
+            globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
+        })
+    })
+}
+
+function onDeletePermanentlyClick(file) {
+    fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
+    .then(() => {
+        showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
+        document.getElementById(`file-${file.hash}`).remove();
+        if (!file.shared) {
+            updateSpaceUsage(-file.size);
+        }
+        updateSpaceUsage(-file.size);
+        globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
+    })
+}
+
+const fileCMOptions = [
+    {
+        label: 'Send', 
+        icon: 'send', 
+        callback: onSendClick,
+        fileOnly: true
+    },
+    {
+        label: 'Rename', 
+        icon: 'edit', 
+        callback: onRenameClick,
+        fileOnly: true
+    },
+    {
+        label: 'Download', 
+        icon: 'download', 
+        callback: onDownloadClick,
+        fileOnly: true
+    },
+    {
+        label: 'Share Link', 
+        icon: 'link', 
+        callback: onShareLinkClick,
+        fileOnly: true
+    },
+    {
+        label: 'Embed URL', 
+        icon: 'code', 
+        callback: onEmbedClick,
+        fileOnly: true
+    },
+    {
+        label: 'move', 
+        icon: 'arrow_forward', 
+        callback: onMoveClick,
+        fileOnly: true
+    },
+    {
+        label: null,
+        folderLabel: 'Color',
+        icon: 'color_lens',
+        callback: onColorClick,
+        folderOnly: true
+    },
+    {
+        label: 'Trash',
+        folderLabel: 'Delete',
+        icon: 'delete', 
+        callback: onTrashClick,
+    },
+    {
+        label: 'Restore',
+        icon: 'replay',
+        callback: onRestoreClick,
+        trashOnly: true
+    },
+    {
+        label: 'Delete Permanently',
+        icon: 'delete_forever',
+        callback: onDeletePermanentlyClick,
+        trashOnly: true
+    }
+]
+
+function buildFileContextMenu(file) {
+    let ul = document.createElement('ul');
+    fileCMOptions.forEach(option => {
+        if (file.deleted) {
+            if (!option.trashOnly) {
+                return;
+            }
+            let li = cmItem(option.label, option.icon);
+            li.addEventListener('click', () => {
+                option.callback(file);
+            });
+            ul.appendChild(li);
+        } else if (file.type === 'folder') {
+            if (option.fileOnly || option.trashOnly) {
+                return;
+            }
+            let li = cmItem(option.folderLabel || option.label, option.icon);
+            li.addEventListener('click', () => {
+                option.callback(file);
+            });
+            ul.appendChild(li);
+        } else {
+            if (option.folderOnly || option.trashOnly) {
+                return;
+            }
+            let li = cmItem(option.label, option.icon);
+            if (option.callback) {
+                li.addEventListener('click', () => {
+                    option.callback(file);
+                });
+            }
+            ul.appendChild(li);
+        }
+        
+    });
+    return ul;
+}
+
+function cmItem(label, icon) {
+    let li = document.createElement('li');
+    let p = document.createElement('p');
+    p.innerHTML = label;
+    let span = document.createElement('span');
+    span.classList.add('material-symbols-rounded');
+    span.innerHTML = icon;
+    li.appendChild(p);
+    li.appendChild(span);
+    return li;
+}

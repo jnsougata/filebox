@@ -39,7 +39,7 @@ function uploadNew(file) {
                 body: ev.target.result,
             })
             .then(() => {
-                fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
+                fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(body)})
                 .then(() => {
                     bar.style.width = "100%";
                     percentageElem.innerHTML = "";
@@ -95,7 +95,7 @@ function uploadNew(file) {
                         })
                         .then(response => response.json())
                         .then(() => {
-                            fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
+                            fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(body)})
                             .then(() => {
                                 bar.style.width = "100%";
                                 percentageElem.innerHTML = "✓";

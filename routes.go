@@ -62,6 +62,10 @@ func ProjectKey(c echo.Context) error {
 }
 
 func Metadata(c echo.Context) error {
+	password := c.PathParam("password")
+	if ! MatchPassword(password) {
+		return c.String(http.StatusUnauthorized, "Unauthorized")
+	}
 	switch c.Request().Method {
 	case "GET":
 		q := deta.NewQuery()
@@ -170,6 +174,10 @@ func EmbedFile(c echo.Context) error {
 	access, ok := resp.Data["access"]
 	if ok && access.(string) == "private" {
 		c.String(http.StatusForbidden, "Unauthorized")
+	}
+	isDeleted, ok := resp.Data["deleted"]
+	if ok && isDeleted.(bool) {
+		return c.String(http.StatusNotFound, "File not found")
 	}
 	if resp.Data["size"].(float64) > 5*1024*1024 {
 		return c.String(http.StatusForbidden, "File too large")

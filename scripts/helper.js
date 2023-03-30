@@ -121,7 +121,7 @@ function handleTrashFileMenuClick(file) {
                 delete file.deleted;
             }
             file.project_id = globalProjectId;
-            fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
+            fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
             .then(() => {
                 showSnack(`Restored ${file.name}`, colorGreen, 'success');
                 document.getElementById(`file-${file.hash}`).remove();
@@ -138,7 +138,7 @@ function handleTrashFileMenuClick(file) {
     deleteButton.innerHTML = `<p>Delete Permanently</p><span class="material-symbols-rounded">delete_forever</span>`;
     deleteButton.addEventListener("click", () => {
         file.project_id = globalProjectId;
-        fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+        fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
         .then(() => {
             showSnack(`Permanently deleted ${file.name}`, colorRed, 'info');
             document.getElementById(`file-${file.hash}`).remove();
@@ -375,7 +375,7 @@ function handleFileMenuClick(file) {
     trashButton.addEventListener("click", () => {
         file.project_id = globalProjectId;
         if (file.type === 'folder') {
-            fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+            fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
             .then((resp) => {
                 if (resp.status === 409) {
                     showSnack(`Folder is not empty`, colorOrange, 'warning');
@@ -390,7 +390,7 @@ function handleFileMenuClick(file) {
             })
         } else {
             file.deleted = true;
-            fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
+            fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
             .then(() => {
                 showSnack(`Moved to trash ${file.name}`, colorRed, 'warning');
                 document.getElementById(`file-${file.hash}`).remove();
@@ -492,7 +492,7 @@ function newFileElem(file, isTrash = false) {
     pickerElem.addEventListener("change", () => {
         file.color = pickerElem.value;
         file.project_id = globalProjectId;
-        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
+        fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             fileIcon.style.color = file.color;
             showSnack(`Folder color changed successfully`, colorGreen, 'success');
@@ -668,6 +668,14 @@ function newFileElem(file, isTrash = false) {
             modalContent.appendChild(makeSpinnerElem());
             embedFile(file);
         }
+    });
+    li.addEventListener('contextmenu', (ev) => {
+        ev.preventDefault();
+        let prevFile = document.getElementById(`file-${cm.id}`);
+        if (prevFile) {
+            prevFile.style.backgroundColor = 'transparent';
+        }
+        renderFileContextMenu(ev, file);
     });
     return li;
 }
@@ -1019,7 +1027,7 @@ function fileMover(file) {
             }
         }
         file.project_id = globalProjectId;
-        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
+        fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             if (globalContextFolder) {
                 renderOriginalHeader();
@@ -1297,7 +1305,7 @@ function renderFileSenderModal(file) {
                 file.recipients = [userIdField.value];
             }
             file.project_id = globalProjectId;
-            fetch("/api/metadata", {method: "PATCH", body: JSON.stringify(file)})
+            fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
             .then((resp) => {
                 if (resp.status === 207) {
                     showSnack(`File shared with ${userIdField.value}`, colorGreen, 'success');
@@ -1352,7 +1360,7 @@ function buildPendingFileList(files) {
         reject.innerHTML = 'close';
         reject.style.color = colorRed;
         reject.addEventListener('click', () => {
-            fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+            fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
             .then((res) => {
                 if (res.status === 200) {
                     pendingFile.remove();
@@ -1368,7 +1376,7 @@ function buildPendingFileList(files) {
         accept.addEventListener('click', () => {
             delete file.pending;
             file.project_id = globalProjectId;
-            fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(file)})
+            fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(file)})
             .then((res) => {
                 if (res.status === 207) {
                     showSnack('File accepted', colorGreen, 'success')

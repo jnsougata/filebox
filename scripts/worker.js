@@ -52,7 +52,7 @@ function upload(file) {
                 headers: header
             })
             .then(() => {
-                fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
+                fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(body)})
                 .then(() => {
                     bar.style.width = "100%";
                     percentageElem.innerHTML = "✓";
@@ -109,7 +109,7 @@ function upload(file) {
                         })
                         .then(response => response.json())
                         .then(() => {
-                            fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
+                            fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(body)})
                             .then(() => {
                                 bar.style.width = "100%";
                                 percentageElem.innerHTML = "✓";
@@ -218,7 +218,7 @@ function createFolder() {
                 body.parent = globalContextFolder.name;
             }
         }
-        fetch("/api/metadata", {method: "POST", body: JSON.stringify(body)})
+        fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(body)})
         .then((resp) => {
             if (resp.status === 409) {
                 showSnack(`Folder with same name already exists`, colorRed, 'error');
