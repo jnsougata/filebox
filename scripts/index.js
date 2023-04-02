@@ -20,7 +20,7 @@ let globalTrashFiles = null;
 let globalMultiSelectBucket = [];
 let sidebar = document.querySelector('.sidebar');
 let blurLayer = document.querySelector('.blur-layer');
-let mainSection = document.querySelector('#main');
+let mainSection = document.querySelector('main');
 let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('#storage');
 

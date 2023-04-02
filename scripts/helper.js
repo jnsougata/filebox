@@ -190,9 +190,9 @@ function handleFileMenuClick(file) {
             fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "POST"})
             .then(() => {
                 showSnack(`Pinned successfully!`, colorGreen, 'success');
-                let pinnedSection = document.querySelector('.pinned');
-                if (pinnedSection) {
-                    pinnedSection.appendChild(newPinnedElem(file));
+                let pins = document.querySelector('.pinned_files');
+                if (pins) {
+                    pins.appendChild(newFileElem(file));
                 }
                 bookmark.className = `fa-solid fa-bookmark`;
                 file.pinned = true;
@@ -427,6 +427,30 @@ function handleMimeIcon(mime) {
     }
 }
 
+function setIconByMime(mime, elem) {
+    if (mime === undefined) {
+        elem.innerHTML = `<span class="material-symbols-rounded">folder</span>`;
+    } else if (mime.startsWith("image")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">image</span>`;
+    } else if (mime.startsWith("video")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">movie</span>`;
+    } else if (mime.startsWith("audio")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">music_note</span>`;
+    } else if (mime.startsWith("text")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">text_snippet</span>`;
+    } else if (mime.startsWith("application/pdf")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">book</span>`;
+    } else if (mime.startsWith("application/zip")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">archive</span>`;
+    } else if (mime.startsWith("application/x-rar-compressed")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">archive</span>`;
+    } else if (mime.startsWith("font")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">format_size</span>`;
+    } else {
+        elem.innerHTML = `<span class="material-symbols-rounded">draft</span>`;
+    }
+}
+
 function handleFolderClick(folder) {
     fileOptionPanel.style.display = 'none';
     globalContextFolder = folder;
@@ -500,7 +524,7 @@ function newFileElem(file, isTrash = false) {
     });
     fileIcon.appendChild(pickerElem);
     fileIcon.className = 'file_icon';
-    fileIcon.innerHTML = `<i class="${handleMimeIcon(file.mime)}"></i>`
+    setIconByMime(file.mime, fileIcon)
     fileIcon.addEventListener("click", (ev) => {
         ev.stopPropagation();
         if (file.type === 'folder') {
@@ -606,14 +630,14 @@ function newFileElem(file, isTrash = false) {
             return;
         } else {
             li.style.backgroundColor = "rgba(255, 255, 255, 0.055)";
-            fileIcon.innerHTML = `<i class="fa-solid fa-square-check" style="color: var(--color-blueish)"></i>`;
+            fileIcon.innerHTML = `<span class="material-symbols-rounded" style="color: var(--color-blueish)">done</span>`;
             let index = globalMultiSelectBucket.findIndex((f) => f.hash === file.hash);
             if (index === -1) {
                 globalMultiSelectBucket.push(file);
             } else {
                 globalMultiSelectBucket.splice(index, 1);
                 li.style.backgroundColor = "transparent";
-                fileIcon.innerHTML = `<i class="${handleMimeIcon(file.mime)}"></i>`;
+                setIconByMime(file.mime, fileIcon)
             }
             if (globalMultiSelectBucket.length === 0) {
                 renderOriginalHeader();
@@ -680,44 +704,18 @@ function newFileElem(file, isTrash = false) {
     return li;
 }
 
-function newPinnedElem(file) {
-    let card = document.createElement('div');
-    card.className = 'card';
-    card.id = `card-${file.hash}`;
-    let unpin = document.createElement('span');
-    unpin.className = 'material-symbols-rounded';
-    unpin.innerHTML = 'clear';
-    unpin.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "DELETE"})
-        .then(() => {
-            card.remove();
-        })
-    });
-    let fileIcon = document.createElement('i');
-    fileIcon.className = handleMimeIcon(file.mime);
-    let fileName = document.createElement('p');
-    fileName.innerHTML = file.name;
-    card.appendChild(fileIcon);
-    card.appendChild(fileName);
-    card.appendChild(unpin);
-    card.addEventListener('click', () => {
-        if (file.type === 'folder') {
-            handleFolderClick(file);
-        } else {
-            handleFileMenuClick(file);
-        }
-    })
-    return card;
-}
-
 function buildPinnedContent(data) {
-    let pinned = document.createElement('div');
-    pinned.className = 'pinned';
+    let ul = document.createElement('ul');
+    ul.className = 'pinned_files';
     data.forEach((file) => {
-        pinned.appendChild(newPinnedElem(file));
+        let elem = newFileElem(file);
+        elem.id = `card-${file.hash}`;
+        ul.appendChild(elem);
     });
-    return pinned;
+    let fileList = document.createElement('div');
+    fileList.className = 'file_list';
+    fileList.appendChild(ul);
+    return fileList;
 }
 
 function buildRecentUL(data) {
@@ -809,7 +807,7 @@ function prependQueueElem(file, isUpload = true) {
     let li = document.createElement('li');
     let icon = document.createElement('div');
     icon.className = 'icon';
-    icon.innerHTML = `<i class="${handleMimeIcon(file.mime)}"></i>`;
+    setIconByMimeType(file.mime, icon);
     let info = document.createElement('div');
     info.className = 'info';
     let name = document.createElement('p');
@@ -1343,7 +1341,7 @@ function buildPendingFileList(files) {
         pendingFile.className = 'pending_file';
         let icon = document.createElement('div');
         icon.className = 'icon';
-        icon.innerHTML = `<i class="${handleMimeIcon(file.mime)}"></i>`;
+        setIconByMimeType(file.mime, icon);
         let fileInfo = document.createElement('div');
         fileInfo.className = 'file_info';
         let filename = document.createElement('p');

@@ -1,4 +1,4 @@
-v: 1
+v: 0
 app_name: "Filebox"
 icon: ./assets/app_icon.png
 micros:

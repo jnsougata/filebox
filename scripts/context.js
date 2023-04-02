@@ -1,6 +1,8 @@
 let cm =  document.querySelector('.context_menu');
+let cg = document.querySelector('.click_guard');
 
 function renderFileContextMenu(ev, file) {
+    cg.style.display = 'block';
     cm.style.display = 'flex';
     cm.style.left = `${ev.pageX}px`;
     cm.style.top = `${ev.pageY}px`;
@@ -15,17 +17,18 @@ function renderFileContextMenu(ev, file) {
     }
     cm.innerHTML = '';
     cm.appendChild(buildFileContextMenu(file));
-    cm.id = file.hash;
-    let fileElem = document.getElementById(`file-${file.hash}`);
-    fileElem.style.backgroundColor = `var(--color-blackish-hover)`;
+    let parent = ev.target.parentElement;
+    parent.style.backgroundColor = `var(--color-blackish-hover)`;
+    cm.id = parent.id;
 }
 
 window.addEventListener('click', (ev) => {
     cm.style.display = 'none';
-    let fileElem = document.getElementById(`file-${cm.id}`);
-    if (fileElem) {
-        fileElem.style.backgroundColor = `transparent`;
-    }
+    cg.style.display = 'none';
+    let parentId = cm.id;
+    cm.id = '';
+    let parent = document.getElementById(parentId);
+    parent && (parent.style.backgroundColor = `transparent`);
 });
 
 function onSendClick(file) {
@@ -173,6 +176,30 @@ function onDeletePermanentlyClick(file) {
     })
 }
 
+function onPinUnpinClick(file) {
+    if (file.pinned) {
+        fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "DELETE"})
+        .then(() => {
+            showSnack(`Unpinned successfully!`, colorOrange, 'info');
+            let card = document.getElementById(`card-${file.hash}`);
+            if (card) {
+                card.remove();
+            }
+            delete file.pinned;
+        })
+    } else {
+        fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "POST"})
+        .then(() => {
+            showSnack(`Pinned successfully!`, colorGreen, 'success');
+            let pinnedSection = document.querySelector('.pinned_files');
+            if (pinnedSection) {
+                pinnedSection.appendChild(newFileElem(file));
+            }
+            file.pinned = true;
+        })
+    }
+}
+
 const fileCMOptions = [
     {
         label: 'Send', 
@@ -239,6 +266,13 @@ const fileCMOptions = [
 
 function buildFileContextMenu(file) {
     let ul = document.createElement('ul');
+    let li = file.pinned ? cmItem('Unpin', 'remove') : cmItem('Pin', 'add');
+    li.addEventListener('click', () => {
+        onPinUnpinClick(file);
+    });
+    if (!file.deleted) {
+        ul.appendChild(li);
+    }
     fileCMOptions.forEach(option => {
         if (file.deleted) {
             if (!option.trashOnly) {
