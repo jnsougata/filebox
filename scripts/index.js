@@ -376,7 +376,9 @@ modalCloseButton.addEventListener('click', () => {
 });
 
 blurLayer.addEventListener('click', () => {
-    sidebarState(false);
+    if (sidebar.style.display === 'flex') {
+        sidebarState(false);
+    }
 });
 
 window.addEventListener('DOMContentLoaded', () => {
