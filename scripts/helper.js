@@ -128,7 +128,7 @@ function handleTrashFileMenuClick(file) {
                 close.click();
                 globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
                 if (globalTrashFiles.length === 0) {
-                    renderOriginalHeader();
+                    renderOriginalNav();
                 }
             })
         })
@@ -148,7 +148,7 @@ function handleTrashFileMenuClick(file) {
             close.click();
             globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
             if (globalTrashFiles.length === 0) {
-                renderOriginalHeader();
+                renderOriginalNav();
             }
         })
     });
@@ -348,7 +348,7 @@ function handleFileMenuClick(file) {
     move.innerHTML = `<p>Move</p><span class="material-symbols-rounded">arrow_forward</span>`;
     move.addEventListener("click", () => {
         close.click();
-        renderOtherHeader(fileMover(file));
+        renderAuxNav(fileMover(file));
         isFileMoving = true;
         myFilesButton.click();
     });
@@ -544,7 +544,7 @@ function newFileElem(file, isTrash = false) {
                 let cancelButton = document.createElement('button');
                 cancelButton.innerHTML = 'Cancel';
                 cancelButton.addEventListener('click', () => {
-                    renderOriginalHeader();
+                    renderOriginalNav();
                 });
                 let selectButton = document.createElement('button');
                 selectButton.innerHTML = 'Select';
@@ -567,7 +567,7 @@ function newFileElem(file, isTrash = false) {
                     .then(() => {
                         showSnack('Files Moved Successfully!', colorGreen, 'success');
                         if (globalContextFolder) {
-                            renderOriginalHeader();
+                            renderOriginalNav();
                             handleFolderClick(globalContextFolder);
                         } else {
                             isFileMoving = false;
@@ -580,7 +580,7 @@ function newFileElem(file, isTrash = false) {
                 fileMover.appendChild(cancelButton);
                 fileMover.appendChild(p);
                 fileMover.appendChild(selectButton);
-                renderOtherHeader(fileMover);
+                renderAuxNav(fileMover);
                 globalMultiSelectBucketUpdated = true;
             });
             let privateButton = document.createElement('button');
@@ -616,14 +616,14 @@ function newFileElem(file, isTrash = false) {
                         fileElem.remove();
                     });
                     showSnack(`Deleted selected files`, colorRed, 'info');
-                    renderOriginalHeader();
+                    renderOriginalNav();
                 })
             });
             multiSelectOptions.appendChild(moveButton);
             multiSelectOptions.appendChild(privateButton);
             multiSelectOptions.appendChild(publicButton);
             multiSelectOptions.appendChild(deleteButton);
-            renderOtherHeader(multiSelectOptions);
+            renderAuxNav(multiSelectOptions);
         }
         if (globalMultiSelectBucket.length === 25) {
             showSnack(`Can't select more than 25 items`, colorOrange, 'warning');
@@ -640,7 +640,7 @@ function newFileElem(file, isTrash = false) {
                 setIconByMime(file.mime, fileIcon)
             }
             if (globalMultiSelectBucket.length === 0) {
-                renderOriginalHeader();
+                renderOriginalNav();
             }
         }
     });
@@ -1009,7 +1009,7 @@ function fileMover(file) {
     let cancelButton = document.createElement('button');
     cancelButton.innerHTML = 'Cancel';
     cancelButton.addEventListener('click', () => {
-        renderOriginalHeader();
+        renderOriginalNav();
     });
     let selectButton = document.createElement('button');
     selectButton.innerHTML = 'Select';
@@ -1028,7 +1028,7 @@ function fileMover(file) {
         fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             if (globalContextFolder) {
-                renderOriginalHeader();
+                renderOriginalNav();
                 if (document.querySelector(`#file-${file.hash}`)) {
                     showSnack('File is already here!', colorOrange, 'info');
                     return;
@@ -1049,14 +1049,14 @@ function fileMover(file) {
     return fileMover;
 }
 
-function renderOriginalHeader() {
+function renderOriginalNav() {
     isFileMoving = false;
     globalMultiSelectBucket = [];
-    let header = document.querySelector('#content-header');
-    header.style.paddingLeft = '10px';
-    header.style.paddingRight = '10px';
-    let icon = document.createElement('i');
-    icon.className = 'fa-solid fa-magnifying-glass';
+    navBar.style.paddingLeft = '10px';
+    navBar.style.paddingRight = '10px';
+    let icon = document.createElement('span');
+    icon.className = 'material-symbols-rounded';
+    icon.innerHTML = 'search';
     let inputBar = document.createElement('input');
     inputBar.type = 'text';
     inputBar.placeholder = 'Search in Drive';
@@ -1126,7 +1126,7 @@ function renderOriginalHeader() {
         }, 500);
     });
     let newFolderButton = document.createElement('button');
-    newFolderButton.innerHTML = '<i class="fa-solid fa-plus"></i>Folder';
+    newFolderButton.innerHTML = '<span class="material-symbols-rounded">add</span>Folder';
     newFolderButton.addEventListener('click', () => {
         createFolder();
     });
@@ -1135,7 +1135,7 @@ function renderOriginalHeader() {
     newHiddenFileInput.multiple = true;
     newHiddenFileInput.style.display = 'none';
     let newFileButton = document.createElement('button');
-    newFileButton.innerHTML = '<i class="fa-solid fa-paperclip"></i>Upload';
+    newFileButton.innerHTML = '<span class="material-symbols-rounded">attach_file</span>Upload';
     newFileButton.addEventListener('click', () => {
         newHiddenFileInput.click();
     });
@@ -1145,23 +1145,21 @@ function renderOriginalHeader() {
             upload(ev.target.files[i]);
         }
     });
-    header.innerHTML = '';
-    header.appendChild(icon);
-    header.appendChild(inputBar);
-    header.appendChild(newFolderButton);
-    header.appendChild(newFileButton);
-    header.appendChild(newHiddenFileInput);
+    navBar.innerHTML = '';
+    navBar.appendChild(icon);
+    navBar.appendChild(inputBar);
+    navBar.appendChild(newFolderButton);
+    navBar.appendChild(newFileButton);
+    navBar.appendChild(newHiddenFileInput);
 }
 
-function renderOtherHeader(elem){
-    switchToOriginalHeader = true;
-    let header = document.querySelector('#content-header');
-    header.style.padding = '0px';
+function renderAuxNav(elem){
+    navBar.style.padding = '0px';
     let wrapper = document.createElement('div');
     wrapper.className = 'other';
-    header.innerHTML = '';
+    navBar.innerHTML = '';
     wrapper.appendChild(elem);
-    header.appendChild(wrapper);
+    navBar.appendChild(wrapper);
 }
 
 function buildDiscoveryModal() {

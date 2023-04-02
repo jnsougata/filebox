@@ -4,20 +4,21 @@ const colorBlue = "#2E83F3";
 const colorOrange = "#FF6700";
 let runningTaskCount = 0;
 let sidebarState = false;
-let globalUserPassword = null;
-let globalDiscoveryStatus = null;
+let isFileMoving = false;
+let globalUserId = null;
+let globalConsumption = 0;
+let globalFolderQueue = [];
 let globalSecretKey = null;
 let globalProjectId = null;
-let globalUserId = null;
-let globalFolderQueue = [];
-let globalConsumption = 0;
+let globalTrashFiles = null;
 let globalContextFile = null;
+let isUserSubscribed = false;
+let globalUserPassword = null;
 let globalContextFolder = null;
 let globalContextOption = null;
-let isFileMoving = false;
-let isUserSubscribed = false;
-let globalTrashFiles = null;
+let globalDiscoveryStatus = null;
 let globalMultiSelectBucket = [];
+let navBar = document.querySelector('nav');
 let sidebar = document.querySelector('.sidebar');
 let blurLayer = document.querySelector('.blur-layer');
 let mainSection = document.querySelector('main');
@@ -78,7 +79,7 @@ function sidebarOptionSwitch() {
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
-    renderOriginalHeader();
+    renderOriginalNav();
     globalContextFolder = null;
     fileOptionPanel.style.display = 'none';
 }
@@ -123,7 +124,7 @@ homeButton.addEventListener('click', () => {
     if (window.innerWidth < 768) {
         sidebarEventState(false);
     }
-    renderOriginalHeader();
+    renderOriginalNav();
     let pinnedBlock = null;
     let recentBlock = null;
     Promise.all([
@@ -164,7 +165,7 @@ myFilesButton.addEventListener('click', () => {
         sidebarEventState(false);
     }
     if (!isFileMoving) {
-        renderOriginalHeader();
+        renderOriginalNav();
     }
     globalFolderQueue = [];
     fetch(`/api/metadata/${globalUserPassword}`)
@@ -194,7 +195,7 @@ sharedButton.addEventListener('click', () => {
         sidebarEventState(false);
     }
     if (!isFileMoving) {
-        renderOriginalHeader();
+        renderOriginalNav();
     }
     mainSection.innerHTML = '';
     let fileList = document.createElement('div');
@@ -289,7 +290,7 @@ trashButton.addEventListener('click', () => {
     .then(data => {
         mainSection.innerHTML = '';
         if (!data) {
-            renderOriginalHeader();
+            renderOriginalNav();
             showSnack("There's nothing in the trash", colorOrange, 'info');
             return;
         }
@@ -323,11 +324,11 @@ trashButton.addEventListener('click', () => {
                 });
                 updateSpaceUsage(-totalSpaceFreed);
                 fileList.innerHTML = '';
-                renderOriginalHeader();
+                renderOriginalNav();
             })
         });
         trashOptions.appendChild(emptyTrash);
-        renderOtherHeader(trashOptions);
+        renderAuxNav(trashOptions);
         mainSection.appendChild(fileList);
     });
     if (window.innerWidth < 768) {
@@ -392,7 +393,7 @@ modalCloseButton.addEventListener('click', () => {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-    renderOriginalHeader();
+    renderOriginalNav();
     let storedPassword = localStorage.getItem('password');
     if (!storedPassword) {
         document.body.prepend(buildLoginModal());
