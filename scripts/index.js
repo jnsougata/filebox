@@ -3,7 +3,6 @@ const colorGreen = "#2AA850";
 const colorBlue = "#2E83F3";
 const colorOrange = "#FF6700";
 let runningTaskCount = 0;
-let sidebarState = false;
 let isFileMoving = false;
 let globalUserId = null;
 let globalConsumption = 0;
@@ -20,7 +19,7 @@ let globalDiscoveryStatus = null;
 let globalMultiSelectBucket = [];
 let navBar = document.querySelector('nav');
 let sidebar = document.querySelector('.sidebar');
-let blurLayer = document.querySelector('.blur-layer');
+let blurLayer = document.querySelector('.blur_layer');
 let mainSection = document.querySelector('main');
 let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('#storage');
@@ -59,47 +58,26 @@ function getContextOptionElem(option) {
     return options[option];
 }
 
-function sidebarEventState(enable = true) {
-    if (!enable) {
+function sidebarState(enabled = true) {
+    if (!enabled) {
         blurLayer.style.display = 'none';
         sidebar.style.display = 'none';
-        floatingMenuButton.innerHTML = `<i class="fa-solid fa-bars"></i>`;
-        sidebarState = false;
     } else {
+        sidebar.style.display = 'flex';
         if (window.innerWidth < 768) {
             blurLayer.style.display = 'block';
         }
-        sidebar.style.display = 'flex';
-        floatingMenuButton.innerHTML = `<i class="fa-solid fa-times"></i>`;
-        sidebarState = true;
     }
 }
 
 function sidebarOptionSwitch() {
     if (window.innerWidth < 768) {
-        sidebarEventState(false);
+        sidebarState(false);
     }
     renderOriginalNav();
     globalContextFolder = null;
     fileOptionPanel.style.display = 'none';
 }
-
-let floatingMenuButton = document.querySelector('.floating_menu');
-floatingMenuButton.addEventListener('click', () => {
-    if (sidebarState) {
-        blurLayer.style.display = 'none';
-        sidebar.style.display = 'none';
-        floatingMenuButton.innerHTML = `<i class="fa-solid fa-bars"></i>`;
-        sidebarState = false;
-    } else {
-        if (window.innerWidth < 768) {
-            blurLayer.style.display = 'block';
-        }
-        sidebar.style.display = 'flex';
-        floatingMenuButton.innerHTML = `<i class="fa-solid fa-times"></i>`;
-        sidebarState = true;
-    }
-});
 
 let sidebarOptions = document.querySelectorAll('.sidebar_option');
 let previousOption = null;
@@ -122,7 +100,7 @@ homeButton.addEventListener('click', () => {
     globalContextFolder = null;
     fileOptionPanel.style.display = 'none';
     if (window.innerWidth < 768) {
-        sidebarEventState(false);
+        sidebarState(false);
     }
     renderOriginalNav();
     let pinnedBlock = null;
@@ -134,18 +112,23 @@ homeButton.addEventListener('click', () => {
         })
         .then(response => response.json())
         .then(data => {
-            if (data) {
+            if (data && data.length > 0) {
+                let folders = data.filter((file) => {
+                    return file.type === 'folder';
+                });
+                let files = data.filter((file) => {
+                    return file.type !== 'folder';
+                });
+                data = folders.concat(files);
                 pinnedBlock = buildPinnedContent(data);
             }
         }),
         fetch(`/api/metadata/${globalUserPassword}`)
         .then(response => response.json())
         .then(data => {
-            if (data) {
+            if (data && data.length > 0) {
                 data = sortFileByTimestamp(data)
-                if (data.length > 0) {
-                    recentBlock = buildRecentUL(data.slice(0, 9));
-                }
+                recentBlock = buildRecentUL(data.slice(0, 9));
             }
         })
     ])
@@ -162,7 +145,7 @@ myFilesButton.addEventListener('click', () => {
     globalContextFolder = null;
     fileOptionPanel.style.display = 'none';
     if (window.innerWidth < 768) {
-        sidebarEventState(false);
+        sidebarState(false);
     }
     if (!isFileMoving) {
         renderOriginalNav();
@@ -192,7 +175,7 @@ let sharedButton = document.querySelector('#shared');
 sharedButton.addEventListener('click', () => {
     globalContextOption = "shared";
     if (window.innerWidth < 768) {
-        sidebarEventState(false);
+        sidebarState(false);
     }
     if (!isFileMoving) {
         renderOriginalNav();
@@ -241,7 +224,7 @@ queueButton.addEventListener('click', () => {
     globalContextOption = "queue";
     queueModal.style.display = 'block';
     if (window.innerWidth < 768) {
-        sidebarEventState(false);
+        sidebarState(false);
     }
 });
 
@@ -313,7 +296,7 @@ trashButton.addEventListener('click', () => {
         let emptyTrash = document.createElement('button');
         emptyTrash.innerHTML = '<i class="fa-solid fa-trash"></i>';
         emptyTrash.addEventListener('click', () => {
-            fetch(`/api/bulk/${globalProjectId}`, {method: 'DELETE', body: JSON.stringify(globalTrashFiles)})
+            fetch(`/api/bulk/${globalUserPassword}`, {method: 'DELETE', body: JSON.stringify(globalTrashFiles)})
             .then(() => {
                 showSnack('Trash Emptied Successfully!', colorGreen, 'success');
                 let totalSpaceFreed = 0;
@@ -332,7 +315,7 @@ trashButton.addEventListener('click', () => {
         mainSection.appendChild(fileList);
     });
     if (window.innerWidth < 768) {
-        sidebarEventState(false);
+        sidebarState(false);
     }    
 });
 
@@ -392,6 +375,10 @@ modalCloseButton.addEventListener('click', () => {
     handleModalClose();
 });
 
+blurLayer.addEventListener('click', () => {
+    sidebarState(false);
+});
+
 window.addEventListener('DOMContentLoaded', () => {
     renderOriginalNav();
     let storedPassword = localStorage.getItem('password');
@@ -414,15 +401,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
 window.addEventListener('resize', () => {
     blurLayer.style.display = 'none';
+    let navIcon = document.querySelector('#dyn-nav-icon');
+    if (navIcon) {
+        navIcon.parentNode.replaceChild(buildDynamicNavIcon(), navIcon);
+    }
     if (window.innerWidth > 768) {
         sidebar.style.display = 'flex';
-        sidebarState = true;
     } else {
         sidebar.style.display = 'none';
         cm.style.display = 'none';
-        floatingMenuButton.display = 'block';
-        floatingMenuButton.innerHTML = `<i class="fa-solid fa-bars"></i>`;
-        sidebarState = false;
     }
 });
 

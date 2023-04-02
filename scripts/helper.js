@@ -402,31 +402,6 @@ function handleFileMenuClick(file) {
     fileOptionPanel.style.display = 'flex';
 }
 
-function handleMimeIcon(mime) {
-    if (mime === undefined) {
-        return "fa-solid fa-folder";
-    }
-    if (mime.startsWith("image")) {
-        return "fa-solid fa-image";
-    } else if (mime.startsWith("video")) {
-        return "fa-solid fa-video";
-    } else if (mime.startsWith("audio")) {
-        return "fa-solid fa-headphones";
-    } else if (mime.startsWith("text")) {
-        return  "fa-solid fa-file-lines";
-    } else if (mime.startsWith("application/pdf")) {
-        return "fa-solid fa-book-open";
-    } else if (mime.startsWith("application/zip")) {
-        return "fa-solid fa-file-zipper";
-    } else if (mime.startsWith("application/x-rar-compressed")) {
-        return "fa-solid fa-file-zipper";
-    } else if (mime.startsWith("font")) {
-        return "fa-solid fa-font";
-    } else {
-        return "fa-solid fa-file";
-    }
-}
-
 function setIconByMime(mime, elem) {
     if (mime === undefined) {
         elem.innerHTML = `<span class="material-symbols-rounded">folder</span>`;
@@ -807,7 +782,7 @@ function prependQueueElem(file, isUpload = true) {
     let li = document.createElement('li');
     let icon = document.createElement('div');
     icon.className = 'icon';
-    setIconByMimeType(file.mime, icon);
+    setIconByMime(file.mime, icon);
     let info = document.createElement('div');
     info.className = 'info';
     let name = document.createElement('p');
@@ -1049,14 +1024,33 @@ function fileMover(file) {
     return fileMover;
 }
 
+function buildDynamicNavIcon() {
+    let icon = document.createElement('span');
+    icon.className = 'material-symbols-rounded';
+    icon.id = 'dyn-nav-icon';
+    if (window.innerWidth < 768) {
+        icon.innerHTML = 'menu';
+        icon.style.color = "#ccc"
+        icon.style.padding = '0px 10px';
+        icon.addEventListener('click', () => {
+            blurLayer.style.display = 'block';
+            sidebar.style.display = 'flex';
+        });
+    } else {
+        icon.innerHTML = 'search';
+        icon.style.color = "var(--color-blueish)";
+        icon.style.padding = '0px';
+        icon.style.paddingRight = '10px';
+    }
+    return icon;
+}
+
 function renderOriginalNav() {
     isFileMoving = false;
     globalMultiSelectBucket = [];
     navBar.style.paddingLeft = '10px';
     navBar.style.paddingRight = '10px';
-    let icon = document.createElement('span');
-    icon.className = 'material-symbols-rounded';
-    icon.innerHTML = 'search';
+    let icon = buildDynamicNavIcon();
     let inputBar = document.createElement('input');
     inputBar.type = 'text';
     inputBar.placeholder = 'Search in Drive';
@@ -1080,7 +1074,7 @@ function renderOriginalNav() {
             .then(response => response.json())
             .then(data => {
                 if (window.innerWidth < 768) {
-                    sidebarEventState(false);
+                    sidebarState(false);
                 }
                 let resultsPage = document.createElement('div');
                 resultsPage.className = 'my_files';
