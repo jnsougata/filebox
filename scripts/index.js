@@ -50,7 +50,6 @@ function getContextOptionElem(option) {
         "videos" : videoButton,
         "audios" : audioButton,
         "docs" : docsButton,
-        "queue" : queueButton,
         "others" : otherButton,
         "trash": trashButton,
         "shared": sharedButton,
@@ -94,7 +93,7 @@ for (let i = 0; i < sidebarOptions.length; i++) {
     });
 }
 
-let homeButton = document.querySelector('#home');
+let homeButton = document.querySelector('#recent');
 homeButton.addEventListener('click', () => {
     globalContextOption = "home";
     globalContextFolder = null;
@@ -103,43 +102,18 @@ homeButton.addEventListener('click', () => {
         sidebarState(false);
     }
     renderOriginalNav();
-    let pinnedBlock = null;
-    let recentBlock = null;
-    Promise.all([
-        fetch("/api/query", {
-            method: 'POST',
-            body: JSON.stringify({"pinned": true, "deleted?ne": true}),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.length > 0) {
-                let folders = data.filter((file) => {
-                    return file.type === 'folder';
-                });
-                let files = data.filter((file) => {
-                    return file.type !== 'folder';
-                });
-                data = folders.concat(files);
-                pinnedBlock = buildPinnedContent(data);
-            }
-        }),
-        fetch(`/api/metadata/${globalUserPassword}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.length > 0) {
-                data = sortFileByTimestamp(data)
-                recentBlock = buildRecentUL(data.slice(0, 9));
-            }
-        })
-    ])
-    .then(() => {
-        let homePage = buildHomePage(pinnedBlock, recentBlock);
-        mainSection.innerHTML = '';
-        mainSection.appendChild(homePage);
-    });
+    fetch(`/api/metadata/${globalUserPassword}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data) {
+            data = sortFileByTimestamp(data)
+            mainSection.innerHTML = '';
+            mainSection.appendChild(buildRecentContent(data.slice(0, 20)));
+        }
+    })
 });
 
-let myFilesButton = document.querySelector('#my-files');
+let myFilesButton = document.querySelector('#browse');
 myFilesButton.addEventListener('click', () => {
     globalContextOption = "my-files";
     globalContextFolder = null;
@@ -163,7 +137,7 @@ myFilesButton.addEventListener('click', () => {
                 files.push(file);
             }
         });
-        let myFiles = buildMyFilesBlock(buildAllFileUL(folders.concat(files)));
+        let myFiles = buildMyFilesBlock(buildFileBrowser(folders.concat(files)));
         mainSection.innerHTML = '';
         mainSection.appendChild(myFiles);
         updateFolderStats(folders);
@@ -214,6 +188,27 @@ sharedButton.addEventListener('click', () => {
     })
 });
 
+let pinned = document.querySelector('#pinned');
+pinned.addEventListener('click', () => {
+    fetch("/api/query", {method: 'POST', body: JSON.stringify({"pinned": true, "deleted?ne": true}),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data) {
+            let folders = data.filter((file) => {
+                return file.type === 'folder';
+            });
+            let files = data.filter((file) => {
+                return file.type !== 'folder';
+            });
+            data = folders.concat(files);
+            mainSection.innerHTML = '';
+            mainSection.appendChild(buildPinnedContent(data));
+        }
+    })
+});
+
+let queueModalState = false;
 let queueModal = document.querySelector('.queue');
 let queueModalCloseButton = document.querySelector('.queue_close');
 queueModalCloseButton.addEventListener('click', () => {
@@ -221,11 +216,16 @@ queueModalCloseButton.addEventListener('click', () => {
 });
 let queueButton = document.querySelector('#queue');
 queueButton.addEventListener('click', () => {
-    globalContextOption = "queue";
-    queueModal.style.display = 'block';
     if (window.innerWidth < 768) {
         sidebarState(false);
     }
+    if (queueModalState) {
+        queueModalState = false;
+        queueModal.style.display = 'none';
+        return;
+    }
+    queueModalState = true;
+    queueModal.style.display = 'block';
 });
 
 let pdfButton = document.querySelector('#pdfs');

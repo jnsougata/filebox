@@ -3,7 +3,6 @@ function handleStartup(key) {
     globalProjectId = globalSecretKey.split('_')[0];
     globalUserId = /-(.*?)\./.exec(window.location.hostname)[1];  // issues in custom domains
     document.querySelector('#username').innerHTML = globalUserId
-    document.querySelector('#user-icon').src = getAvatarURL(globalUserId, true);
     fetch("/api/consumption")
     .then(response => response.json())
     .then(data => {

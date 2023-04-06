@@ -213,7 +213,7 @@ body {
 }
 .user > span {
     font-size: 16px;
-    color: white;
+    color: var(--color-blueish);
     cursor: pointer;
     padding: 8px;
     border-radius: 50%;
@@ -249,6 +249,7 @@ body {
     color: #0561da;
     z-index: 2;
     margin-right: 10px;
+    font-weight: 800;
 }
 .content > nav > input[type="text"] {
     width: 100%;
@@ -318,13 +319,13 @@ body {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .file_list {
     width: 100%;
     height: max-content;
-    padding: 10px 0;
     display: flex;
     overflow-x: hidden;
     overflow-y: auto;
@@ -442,17 +443,17 @@ body {
 .file_menu {
     right: 0;
     bottom: 0;
+    position: fixed;
     width: 500px;
     height: max-content;
     display: none;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    background-color: #1a1c20;
-    position: fixed;
     border-radius:  20px 20px 0 0;
     z-index: 10000 !important;
     animation: sildein 0.5s;
+    background-color: #1a1c20;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.425);
 }
 .file_menu > .file_menu_close {
@@ -660,11 +661,12 @@ body {
     align-items: flex-start;
     flex-direction: column;
     justify-content: center;
-    background-color: var(--color-blackish);
     padding: 10px;
     border-radius: 5px 5px 0 0;
     overflow: hidden;
-    box-shadow: 0 0 10px 0 #000000b2;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    background-color: rgba(0, 0, 0, 0.103);
     z-index: 10000 !important;
 }
 .queue > .queue_close {
@@ -673,8 +675,8 @@ body {
     position: absolute;
     width: 25px;
     height: 25px;
-    margin-top: 10px;
-    margin-right: 10px;
+    margin-top: 15px;
+    margin-right: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -692,23 +694,22 @@ body {
     flex-direction: column;
     justify-content: flex-start;
 }
-.queue > .queue_content > ul {
-    width: 100%;
-    height: 100%;
-    padding: 10px;
-    font-size: 20px;
-    text-align: left;
-    overflow-y: auto;
-    border-radius: 5px;
-    background-color: var(--color-blackish);
-}
 .queue > .queue_content > p {
     font-size: 15px;
     color: white;
     margin-bottom: 10px;
     padding: 5px 15px;
     border-radius: 25px;
-    background-color: var(--color-blackish-hover);
+}
+.queue > .queue_content > ul {
+    width: 100%;
+    height: 100%;
+    padding: 10px 0;
+    font-size: 20px;
+    text-align: left;
+    overflow-y: auto;
+    border-radius: 5px;
+    background-color: transparent;
 }
 .queue > .queue_content > ul > li {
     width: 100%;
@@ -716,9 +717,7 @@ body {
     padding: 3px 8px 3px 3px;
     flex-shrink: 0;
     font-size: 20px;
-    border-radius: 5px;
     margin-bottom: 8px;
-    background-color: var(--color-blackish-hover);
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -729,17 +728,12 @@ body {
     color: white;
     text-align: center;
     border-radius: 5px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    margin-left: 10px;
-    flex-shrink: 0;
-    background-color: var(--color-blackish-hover);
+    padding-top: 20px;
 }
 .queue > .queue_content > ul > li > .icon {
     font-size: 18px;
     color: white;
-    padding: 8px 18px;
-    border-radius: 25px;
+    padding: 8px 16px;
 }
 .queue > .queue_content > ul > li > .info {
     width: 100%;
@@ -1272,7 +1266,7 @@ body {
     height: 100vh;
     height: 100dvh;
     position: fixed;
-    z-index: 10001;
+    z-index: 9998;
     display: none;
     background-color: transparent;
 }
@@ -1286,14 +1280,13 @@ body {
     background-color: var(--color-blackish);
     border-radius: 5px;
     color: white;
-    z-index: 1000;
     display: none;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     padding: 10px;
     box-shadow: 0 0 10px 0 rgba(0,0,0,0.5);
-    z-index: 10002 !important;
+    z-index: 9999 !important;
 }
 
 .context_menu > ul {

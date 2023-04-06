@@ -41,15 +41,17 @@ function onRenameClick(file) {
     elem.focus();
     elem.addEventListener('blur', (ev) => {
         elem.contentEditable = false;
+        if (ev.target.innerText === file.name) {
+            return;
+        }
         let extPattern = /\.[0-9a-z]+$/i;
-        let oldext = extPattern.exec(file.name) ? extPattern.exec(file.name)[0] : '';
-        let newext = extPattern.exec(ev.target.innerText) ? extPattern.exec(ev.target.innerText)[0] : '';
+        let oldext = extPattern.exec(file.name);
+        oldext = oldext ? oldext[0] : '';
+        let newext = extPattern.exec(ev.target.innerText);
+        newext = newext ? newext[0] : '';
         if (oldext !== newext) {
             ev.target.innerHTML = file.name;
             showSnack("File extension cannot be changed", colorOrange, 'warning');
-            return;
-        }
-        if (ev.target.innerText === file.name) {
             return;
         }
         fetch(`/api/rename/${globalUserPassword}`, {
@@ -200,7 +202,7 @@ function onPinUnpinClick(file) {
     }
 }
 
-const fileCMOptions = [
+const fileContextOptions = [
     {
         label: 'Send', 
         icon: 'send', 
@@ -223,32 +225,39 @@ const fileCMOptions = [
         label: 'Share Link', 
         icon: 'link', 
         callback: onShareLinkClick,
-        fileOnly: true
+        fileOnly: true,
+        ownerOnly: true
     },
     {
         label: 'Embed URL', 
         icon: 'code', 
         callback: onEmbedClick,
-        fileOnly: true
+        fileOnly: true,
+        ownerOnly: true
     },
     {
-        label: 'move', 
+        label: 'Move', 
         icon: 'arrow_forward', 
         callback: onMoveClick,
         fileOnly: true
     },
     {
-        label: null,
-        folderLabel: 'Color',
+        label: 'Color',
         icon: 'color_lens',
         callback: onColorClick,
         folderOnly: true
     },
     {
         label: 'Trash',
-        folderLabel: 'Delete',
         icon: 'delete', 
         callback: onTrashClick,
+        fileOnly: true
+    },
+    {   
+        label: 'Delete',
+        icon: 'delete', 
+        callback: onTrashClick,
+        folderOnly: true
     },
     {
         label: 'Restore',
@@ -273,38 +282,37 @@ function buildFileContextMenu(file) {
     if (!file.deleted) {
         ul.appendChild(li);
     }
-    fileCMOptions.forEach(option => {
+    fileContextOptions.forEach(option => {
         if (file.deleted) {
             if (!option.trashOnly) {
                 return;
             }
-            let li = cmItem(option.label, option.icon);
-            li.addEventListener('click', () => {
-                option.callback(file);
-            });
-            ul.appendChild(li);
-        } else if (file.type === 'folder') {
-            if (option.fileOnly || option.trashOnly) {
-                return;
-            }
-            let li = cmItem(option.folderLabel || option.label, option.icon);
-            li.addEventListener('click', () => {
-                option.callback(file);
-            });
-            ul.appendChild(li);
-        } else {
-            if (option.folderOnly || option.trashOnly) {
-                return;
-            }
-            let li = cmItem(option.label, option.icon);
-            if (option.callback) {
-                li.addEventListener('click', () => {
-                    option.callback(file);
-                });
-            }
-            ul.appendChild(li);
         }
-        
+        if (!file.deleted) {
+            if (option.trashOnly) {
+                return;
+            }
+        }
+        if (file.shared) {
+            if (option.ownerOnly) {
+                return;
+            }
+        }
+        if (file.type === 'folder') {
+            if (option.fileOnly) {
+                return;
+            }
+        }
+        if (file.type !== 'folder') {
+            if (option.folderOnly) {
+                return;
+            }
+        }        
+        let li = cmItem(option.label, option.icon);
+        li.addEventListener('click', () => {
+            option.callback(file);
+        });
+        ul.appendChild(li);
     });
     return ul;
 }

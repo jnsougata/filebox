@@ -270,36 +270,29 @@ function handleFileMenuClick(file) {
         fileNameElem.focus();
         fileNameElem.addEventListener('blur', (e) => {
             fileNameElem.contentEditable = false;
-            let oldName = file.name;
-            let oldExtension = "";
-            let oldNameFragments = oldName.split(".");
-            if (oldNameFragments.length > 1) {
-                oldExtension = oldNameFragments.pop();
-            } else {
-                oldExtension = "";
+            if (file.name === fileNameElem.innerText) {
+                return;
             }
-            let newName = e.target.innerText;
-            let newExtension = "";
-            let newNameFragments = newName.split(".");
-            if (newNameFragments.length > 1) {
-                newExtension = newNameFragments.pop();
-            } else {
-                newExtension = "";
-            }
-            if (oldExtension !== newExtension) {
-                e.target.innerHTML = oldName;
+            let extPattern = /\.[0-9a-z]+$/i;
+            let oldext = extPattern.exec(file.name);
+            oldext = oldext ? oldext[0] : '';
+            let newext = extPattern.exec(fileNameElem.innerText);
+            newext = newext ? newext[0] : '';
+            fileNameElem.contentEditable = false;
+            if (oldext !== newext) {
+                e.target.innerHTML = file.name;
                 showSnack("File extension cannot be changed", colorOrange, 'warning');
                 return;
             }
-            if (newName === oldName) {
-                return;
-            }
-            fetch(`/api/rename/${globalUserPassword}`, {method: "POST", body: JSON.stringify({hash: file.hash, name: newName})})
+            fetch(`/api/rename/${globalUserPassword}`, {
+                method: "POST", 
+                body: JSON.stringify({hash: file.hash, name: fileNameElem.innerText})
+            })
             .then((res) => {
                 if (res.status === 200) {
-                    file.name = newName;
-                    document.querySelector(`#filename-${file.hash}`).innerHTML = newName;
-                    showSnack(`File renamed to ${newName}`, colorGreen, 'success');
+                    file.name = fileNameElem.innerText;
+                    document.querySelector(`#filename-${file.hash}`).innerHTML = file.name;
+                    showSnack(`File renamed to ${file.name}`, colorGreen, 'success');
                 }
             })
         });
@@ -693,7 +686,7 @@ function buildPinnedContent(data) {
     return fileList;
 }
 
-function buildRecentUL(data) {
+function buildRecentContent(data) {
     let ul = document.createElement('ul');
     ul.className = 'recent_files';
     data.forEach((file) => {
@@ -707,7 +700,7 @@ function buildRecentUL(data) {
     return fileList;
 }
 
-function buildAllFileUL(data) {
+function buildFileBrowser(data) {
     let ul = document.createElement('ul');
     ul.className = 'all_files';
     data.forEach((file) => {
@@ -720,24 +713,6 @@ function buildAllFileUL(data) {
     fileList.className = 'file_list';
     fileList.appendChild(ul);
     return fileList;
-}
-
-function buildHomePage(pinnedBlock, recentBlock) {
-    let homePage = document.createElement('div');
-    homePage.className = 'home_page';
-    if (pinnedBlock) {
-        let pinnedTitle = document.createElement('p');
-        pinnedTitle.innerHTML = 'Pinned';
-        homePage.appendChild(pinnedTitle);
-        homePage.appendChild(pinnedBlock);
-    }
-    if (recentBlock) {
-        let recentTitle = document.createElement('p');
-        recentTitle.innerHTML = 'Recent';
-        homePage.appendChild(recentTitle);
-        homePage.appendChild(recentBlock);
-    }
-    return homePage;
 }
 
 function buildPrompt() {
