@@ -415,22 +415,6 @@ body {
     }
 }
 
-.home_page {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    background-color: #1a1c20;
-}
-.home_page > p {
-    width: 100%;
-    font-size: 20px;
-    color: #ccc;
-    padding: 10px 10px;
-}
-
 @keyframes sildein {
     0% {
         bottom: -150px;

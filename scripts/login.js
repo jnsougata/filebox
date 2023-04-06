@@ -9,7 +9,7 @@ function handleStartup(key) {
         updateSpaceUsage(data.size);
     })
     modal.style.display = 'none';
-    homeButton.click();
+    recentButton.click();
     fetch(`/api/discovery/${globalUserId}/status`)
     .then((resp) => resp.json())
     .then((data) => {

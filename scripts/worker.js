@@ -60,8 +60,7 @@ function upload(file) {
                     if (globalContextFolder) {
                         handleFolderClick(globalContextFolder)
                     } else {
-                        if (globalContextOption === "my-files" || globalContextOption === "home")
-                        getContextOptionElem(globalContextOption).click();
+                        getContextOptionElem().click();
                     }
                     updateSpaceUsage(file.size);
                     runningTaskCount --;
@@ -118,8 +117,7 @@ function upload(file) {
                                 if (globalContextFolder) {
                                     handleFolderClick(globalContextFolder)
                                 } else {
-                                    if (globalContextOption === "my-files" || globalContextOption === "home")
-                                    getContextOptionElem(globalContextOption).click();
+                                    getContextOptionElem().click();
                                 }
                             })
                         })
@@ -227,7 +225,7 @@ function createFolder() {
                 if (body.parent) {
                     handleFolderClick(globalContextFolder);
                 } else {
-                    myFilesButton.click();
+                    browseButton.click();
                 }
             }
         })

@@ -98,7 +98,7 @@ function onEmbedClick(file) {
 
 function onMoveClick(file) {
     isFileMoving = true;
-    myFilesButton.click();
+    browseButton.click();
     renderAuxNav(fileMover(file));
 }
 

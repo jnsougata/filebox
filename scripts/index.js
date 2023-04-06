@@ -41,20 +41,21 @@ function filterNonDeletedFiles(files) {
     });
 }
 
-function getContextOptionElem(option) {
+function getContextOptionElem() {
     let options = {
-        "home" : homeButton,
-        "my-files" : myFilesButton,
+        "recent" : recentButton,
+        "browse" : browseButton,
+        "pinned" : pinnedButton,
+        "trash": trashButton,
+        "shared": sharedButton,
         "pdfs" : pdfButton,
         "images" : imgButton,
         "videos" : videoButton,
         "audios" : audioButton,
         "docs" : docsButton,
         "others" : otherButton,
-        "trash": trashButton,
-        "shared": sharedButton,
     }
-    return options[option];
+    return options[globalContextOption];
 }
 
 function sidebarState(enabled = true) {
@@ -93,9 +94,9 @@ for (let i = 0; i < sidebarOptions.length; i++) {
     });
 }
 
-let homeButton = document.querySelector('#recent');
-homeButton.addEventListener('click', () => {
-    globalContextOption = "home";
+let recentButton = document.querySelector('#recent');
+recentButton.addEventListener('click', () => {
+    globalContextOption = "browse";
     globalContextFolder = null;
     fileOptionPanel.style.display = 'none';
     if (window.innerWidth < 768) {
@@ -108,14 +109,14 @@ homeButton.addEventListener('click', () => {
         if (data) {
             data = sortFileByTimestamp(data)
             mainSection.innerHTML = '';
-            mainSection.appendChild(buildRecentContent(data.slice(0, 20)));
+            mainSection.appendChild(buildRecentContent(data.slice(0, 15)));
         }
     })
 });
 
-let myFilesButton = document.querySelector('#browse');
-myFilesButton.addEventListener('click', () => {
-    globalContextOption = "my-files";
+let browseButton = document.querySelector('#browse');
+browseButton.addEventListener('click', () => {
+    globalContextOption = "browse";
     globalContextFolder = null;
     fileOptionPanel.style.display = 'none';
     if (window.innerWidth < 768) {
@@ -188,8 +189,9 @@ sharedButton.addEventListener('click', () => {
     })
 });
 
-let pinned = document.querySelector('#pinned');
-pinned.addEventListener('click', () => {
+let pinnedButton = document.querySelector('#pinned');
+pinnedButton.addEventListener('click', () => {
+    globalContextOption = "pinned";
     fetch("/api/query", {method: 'POST', body: JSON.stringify({"pinned": true, "deleted?ne": true}),
     })
     .then(response => response.json())
@@ -266,6 +268,7 @@ otherButton.addEventListener('click', () => {
 
 let trashButton = document.querySelector('#trash');
 trashButton.addEventListener('click', () => {
+    renderOriginalNav();
     sidebarOptionSwitch();
     globalContextOption = "trash";
     fetch("/api/query", {method: "POST", body: JSON.stringify({"deleted": true})})
@@ -273,7 +276,6 @@ trashButton.addEventListener('click', () => {
     .then(data => {
         mainSection.innerHTML = '';
         if (!data) {
-            renderOriginalNav();
             showSnack("There's nothing in the trash", colorOrange, 'info');
             return;
         }
@@ -293,25 +295,6 @@ trashButton.addEventListener('click', () => {
         p.style.color = 'white';
         p.style.fontSize = '14px';
         trashOptions.appendChild(p);
-        let emptyTrash = document.createElement('button');
-        emptyTrash.innerHTML = '<i class="fa-solid fa-trash"></i>';
-        emptyTrash.addEventListener('click', () => {
-            fetch(`/api/bulk/${globalUserPassword}`, {method: 'DELETE', body: JSON.stringify(globalTrashFiles)})
-            .then(() => {
-                showSnack('Trash Emptied Successfully!', colorGreen, 'success');
-                let totalSpaceFreed = 0;
-                globalTrashFiles.forEach((file) => {
-                    if (file.shared) {
-                        totalSpaceFreed += file.size;
-                    }
-                });
-                updateSpaceUsage(-totalSpaceFreed);
-                fileList.innerHTML = '';
-                renderOriginalNav();
-            })
-        });
-        trashOptions.appendChild(emptyTrash);
-        renderAuxNav(trashOptions);
         mainSection.appendChild(fileList);
     });
     if (window.innerWidth < 768) {

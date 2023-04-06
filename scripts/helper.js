@@ -343,7 +343,7 @@ function handleFileMenuClick(file) {
         close.click();
         renderAuxNav(fileMover(file));
         isFileMoving = true;
-        myFilesButton.click();
+        browseButton.click();
     });
     if (file.type !== 'folder') {
         fileOptionPanel.appendChild(rename);
@@ -506,7 +506,7 @@ function newFileElem(file, isTrash = false) {
             moveButton.innerHTML = 'Move';
             moveButton.addEventListener("click", () => {
                 isFileMoving = true;
-                myFilesButton.click();
+                browseButton.click();
                 let fileMover = document.createElement('div');
                 fileMover.className = 'file_mover';
                 let cancelButton = document.createElement('button');
@@ -518,6 +518,9 @@ function newFileElem(file, isTrash = false) {
                 selectButton.innerHTML = 'Select';
                 selectButton.style.backgroundColor = 'var(--color-blueish)';
                 selectButton.addEventListener('click', () => {
+                    globalMultiSelectBucket.forEach((file) => {
+                        delete file.deleted;
+                    });
                     if (!globalContextFolder) {
                         globalMultiSelectBucket.forEach((file) => {
                             delete file.parent;
@@ -531,7 +534,10 @@ function newFileElem(file, isTrash = false) {
                             }
                         });
                     }
-                    fetch(`/api/bulk/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
+                    fetch(`/api/bulk/${globalUserPassword}`, {
+                        method: "PATCH", 
+                        body: JSON.stringify(globalMultiSelectBucket)}
+                    )
                     .then(() => {
                         showSnack('Files Moved Successfully!', colorGreen, 'success');
                         if (globalContextFolder) {
@@ -539,7 +545,7 @@ function newFileElem(file, isTrash = false) {
                             handleFolderClick(globalContextFolder);
                         } else {
                             isFileMoving = false;
-                            myFilesButton.click();
+                            browseButton.click();
                         }
                     })
                 });
@@ -733,7 +739,7 @@ function buildPrompt() {
         } else {
             globalContextFolder = null;
             globalFolderQueue.pop();
-            myFilesButton.click();
+            getContextOptionElem().click();
         }
     });
     prompt.appendChild(fragment);
@@ -987,7 +993,7 @@ function fileMover(file) {
                 document.querySelector('#folder-view').appendChild(newFileElem(file))
             } else {
                 isFileMoving = false;
-                myFilesButton.click();
+                browseButton.click();
             }
         })
     });
@@ -1039,7 +1045,7 @@ function renderOriginalNav() {
         inputTimer = setTimeout(() => {
             let query = ev.target.value;
             if (query.length === 0) {
-                getContextOptionElem(globalContextOption).click();
+                getContextOptionElem().click();
                 return;
             }
             fetch(`/api/query`, {
