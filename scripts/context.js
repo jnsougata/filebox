@@ -18,6 +18,9 @@ function renderFileContextMenu(ev, file) {
     cm.innerHTML = '';
     cm.appendChild(buildFileContextMenu(file));
     let parent = ev.target.parentElement;
+    while (parent.tagName !== 'LI') {
+        parent = parent.parentElement;
+    }
     parent.style.backgroundColor = `var(--color-blackish-hover)`;
     cm.id = parent.id;
 }

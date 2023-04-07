@@ -1,28 +1,16 @@
-const CACHE_NAME = 'cache-v1';
-const urlsToCache = [
-    '/',
-    '/manifest.json',
-    '/service-worker.js',
-    '/assets/icon.png',
-    '/scripts/index.js',
-    '/scripts/helper.js',
-    '/scripts/worker.js',
-    '/scripts/uploader.js',
-    '/scripts/login.js',
-    '/scripts/shared.js',
-    '/styles/index.css',
-    
-];
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
-self.addEventListener('install', (ev) => {
-    ev.waitUntil(
-        caches.open(CACHE_NAME)
-        .then((cache) => {
-            return cache.addAll(urlsToCache);
-        })
-    );
-});
+workbox.routing.registerRoute(
+    /\.(?:png|gif|jpg|jpeg|svg)$/,
+    new workbox.strategies.CacheFirst(),
+);
 
-self.addEventListener('fetch',  (ev) => {
-    
-});
+workbox.routing.registerRoute(
+    /.*(?:googleapis|gstatic)\.com.*$/,
+    new workbox.strategies.StaleWhileRevalidate(),
+)
+
+workbox.routing.registerRoute(
+    /\.(?:js|css)$/,
+    new workbox.strategies.StaleWhileRevalidate(),
+)

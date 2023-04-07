@@ -1070,9 +1070,6 @@ function renderOriginalNav() {
                     fileOptionPanel.style.display = 'none';
                     return;
                 }
-                data = data.filter((file) => {
-                    return !(file.type === 'folder');
-                });
                 let absoluteResults = data.filter((file) => {
                     if (file.name.startsWith(query)) {
                         data.splice(data.indexOf(file), 1);

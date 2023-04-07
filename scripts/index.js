@@ -384,6 +384,15 @@ window.addEventListener('DOMContentLoaded', () => {
     })
 });
 
+
+window.addEventListener('load', () => {
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/service-worker.js");
+    } else {
+        console.log("Service worker not supported");
+    }
+});
+
 window.addEventListener('resize', () => {
     blurLayer.style.display = 'none';
     let navIcon = document.querySelector('#dyn-nav-icon');
@@ -413,7 +422,3 @@ window.addEventListener("paste", (e) => {
         queueButton.click();
     }
 });
-
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js");
-}
