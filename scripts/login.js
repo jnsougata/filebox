@@ -1,7 +1,12 @@
 function handleStartup(key) {
     globalSecretKey = key;
     globalProjectId = globalSecretKey.split('_')[0];
-    globalUserId = /-(.*?)\./.exec(window.location.hostname)[1];  // issues in custom domains
+    globalUserIdParts = /-(.*?)\./.exec(window.location.hostname);
+    if (globalUserIdParts) {
+        globalUserId = globalUserIdParts[1];
+    } else {
+        globalUserId = 'unknown';
+    }
     document.querySelector('#username').innerHTML = globalUserId
     fetch("/api/consumption")
     .then(response => response.json())

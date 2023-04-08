@@ -8,15 +8,12 @@ let fileSizeBar = document.querySelector("#size");
 let fileInfo = null;
 
 
-window.onload = function() {
+window.addEventListener('DOMContentLoaded', async () => {
     let hash = window.location.href.split("/").pop();
-    fetch(`/api/file/metadata/${hash}`)
-    .then(res => res.json())
-    .then(data => {
-        fileNameElem.innerHTML = data.name;
-        fileInfo = data;
-    })
-}
+    let resp = await fetch(`/api/file/metadata/${hash}`)
+    fileInfo = await resp.json();
+    fileNameElem.innerHTML = fileInfo.name;
+});
 
 downloadButton.addEventListener('click', () => {
     if (!isTaskRunning) {

@@ -12,6 +12,7 @@ let globalProjectId = null;
 let globalTrashFiles = null;
 let globalContextFile = null;
 let isUserSubscribed = false;
+let globalPreviewFile = null;
 let globalUserPassword = null;
 let globalContextFolder = null;
 let globalContextOption = null;
@@ -184,7 +185,7 @@ sharedButton.addEventListener('click', () => {
             }
             mainSection.appendChild(fileList);
         } else {
-            showSnack('No files shared with you', colorOrange, 'info');
+            showSnack("You don't have any shared file.", colorOrange, 'info');
         }
     })
 });
@@ -364,6 +365,23 @@ blurLayer.addEventListener('click', () => {
     }
 });
 
+let previewModal = document.querySelector('.preview');
+let previewBackButton = document.querySelector('#preview-close');
+previewBackButton.addEventListener('click', () => {
+    globalPreviewFile = null;
+    previewModal.style.display = 'none';
+    document.querySelector('embed').remove();
+});
+
+let previewDownloadButton = document.querySelector('#preview-download');
+previewDownloadButton.addEventListener('click', () => {
+    if (globalPreviewFile.shared) {
+        downloadShared(globalPreviewFile);
+    } else {
+        download(globalPreviewFile);
+    }
+});
+
 window.addEventListener('DOMContentLoaded', () => {
     renderOriginalNav();
     let storedPassword = localStorage.getItem('password');
@@ -391,6 +409,20 @@ window.addEventListener('load', () => {
     } else {
         console.log("Service worker not supported");
     }
+    // let isNotificationsEnabled = localStorage.getItem('notifications');
+    // if (isNotificationsEnabled === null) {
+    //     return;
+    // } else if (isNotificationsEnabled === 'granted') {
+    //     return;
+    // } else if (isNotificationsEnabled === 'denied') {
+    //     return;
+    // } else {
+    //     Notification.requestPermission().then((result) => {
+    //         if (result === 'granted') {
+    //             localStorage.setItem('notifications', true);
+    //         }
+    //     });
+    // }
 });
 
 window.addEventListener('resize', () => {

@@ -15,6 +15,22 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
     </head>
     <body>
+        <div class="preview">
+            <div class="head">
+                <div class="part" style="justify-content: flex-start;">
+                    <button id="preview-close">
+                        <span class="material-symbols-rounded">arrow_back</span>
+                    </button>
+                    <p id="preview-name">index.html</p>
+                </div>
+                <div class="part" style="justify-content: flex-end;">
+                    <p id="preview-loaded" style="margin-right: 10px; font-size: 15px;"></p>
+                    <button id="preview-download">
+                        <span class="material-symbols-rounded">download</span>
+                    </button>
+                </div>
+            </div>
+        </div>
         <div class="click_guard"></div>
         <div class="context_menu"></div>
         <div class="snackbar"></div>
@@ -24,7 +40,7 @@
                 <i class="fa-solid fa-times"></i>
             </div>
             <div class="queue_content">
-                <p>Upload or Download Tasks</p>
+                <p>Uploads and Downloads</p>
                 <ul id="queue-task-list"></ul>
             </div>
         </div>
@@ -146,11 +162,11 @@
                 </div>
                 <div class="wrapper" style="justify-content: flex-end;">
                     <div class="user">
-                        <p id="username">unknown</p>
+                        <p id="username"></p>
                         <span class="material-symbols-rounded" id="discovery" style="color: var(--color-blueish);">
                             wifi_tethering
                         </span>
-                        <span class="material-symbols-rounded" id="queue">clock_loader_40</span>
+                        <span class="material-symbols-rounded" id="queue" style="color: var(--color-blueish);">clock_loader_40</span>
                     </div>
                 </div>
             </div>

@@ -223,7 +223,8 @@ func DownloadFile(c echo.Context) error {
 	url := fmt.Sprintf(
 		"https://drive.deta.sh/v1/%s/filebox/files/download?name=%s",
 		ProjectId,
-		FileToDriveSavedName(resp.Data))
+		FileToDriveSavedName(resp.Data),
+	)
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-API-Key", ProjectKey)
 	if (skip+1)*4*1024*1024 > int(resp.Data["size"].(float64)) {

@@ -1,10 +1,25 @@
 let fileOptionPanel = document.querySelector('.file_menu');
-let queueTaskList = document.querySelector('#queue-task-list');
 let queueContent = document.querySelector('.queue_content');
+let queueTaskList = document.querySelector('#queue-task-list');
+let previewNameElem = document.querySelector('#preview-name');
+let previewLoadLevl = document.querySelector('#preview-loaded');
+let previewEmbedElem = document.querySelector('#preview-embed');
 
 queueContent.addEventListener('click', () => {
     queueModalCloseButton.click();
 });
+
+// function sendNotification(body, tag = 'filebox') {
+//     let enabled = Notification.permission === 'granted';
+//     if (!enabled) {
+//         return;
+//     }
+//     new Notification("Filebox", {
+//         body: body,
+//         tag: tag || 'filebox',
+//         icon: '/assets/icon.png',
+//     });
+// }
 
 async function passwordToSHA256Hex(str) {
     let digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -86,6 +101,30 @@ function formatDateString(date) {
 function updateSpaceUsage(incr) {
     globalConsumption += incr;
     totalSizeWidget.innerText = `${handleSizeUnit(globalConsumption)}`;
+}
+
+function setIconByMime(mime, elem) {
+    if (mime === undefined) {
+        elem.innerHTML = `<span class="material-symbols-rounded">folder</span>`;
+    } else if (mime.startsWith("image")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">image</span>`;
+    } else if (mime.startsWith("video")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">movie</span>`;
+    } else if (mime.startsWith("audio")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">music_note</span>`;
+    } else if (mime.startsWith("text")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">text_snippet</span>`;
+    } else if (mime.startsWith("application/pdf")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">book</span>`;
+    } else if (mime.startsWith("application/zip")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">archive</span>`;
+    } else if (mime.startsWith("application/x-rar-compressed")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">archive</span>`;
+    } else if (mime.startsWith("font")) {
+        elem.innerHTML = `<span class="material-symbols-rounded">format_size</span>`;
+    } else {
+        elem.innerHTML = `<span class="material-symbols-rounded">draft</span>`;
+    }
 }
 
 function handleTrashFileMenuClick(file) {
@@ -395,30 +434,6 @@ function handleFileMenuClick(file) {
     fileOptionPanel.style.display = 'flex';
 }
 
-function setIconByMime(mime, elem) {
-    if (mime === undefined) {
-        elem.innerHTML = `<span class="material-symbols-rounded">folder</span>`;
-    } else if (mime.startsWith("image")) {
-        elem.innerHTML = `<span class="material-symbols-rounded">image</span>`;
-    } else if (mime.startsWith("video")) {
-        elem.innerHTML = `<span class="material-symbols-rounded">movie</span>`;
-    } else if (mime.startsWith("audio")) {
-        elem.innerHTML = `<span class="material-symbols-rounded">music_note</span>`;
-    } else if (mime.startsWith("text")) {
-        elem.innerHTML = `<span class="material-symbols-rounded">text_snippet</span>`;
-    } else if (mime.startsWith("application/pdf")) {
-        elem.innerHTML = `<span class="material-symbols-rounded">book</span>`;
-    } else if (mime.startsWith("application/zip")) {
-        elem.innerHTML = `<span class="material-symbols-rounded">archive</span>`;
-    } else if (mime.startsWith("application/x-rar-compressed")) {
-        elem.innerHTML = `<span class="material-symbols-rounded">archive</span>`;
-    } else if (mime.startsWith("font")) {
-        elem.innerHTML = `<span class="material-symbols-rounded">format_size</span>`;
-    } else {
-        elem.innerHTML = `<span class="material-symbols-rounded">draft</span>`;
-    }
-}
-
 function handleFolderClick(folder) {
     fileOptionPanel.style.display = 'none';
     globalContextFolder = folder;
@@ -492,7 +507,7 @@ function newFileElem(file, isTrash = false) {
     });
     fileIcon.appendChild(pickerElem);
     fileIcon.className = 'file_icon';
-    setIconByMime(file.mime, fileIcon)
+    setIconByMime(file.mime, fileIcon);
     fileIcon.addEventListener("click", (ev) => {
         ev.stopPropagation();
         if (file.type === 'folder') {
@@ -636,7 +651,8 @@ function newFileElem(file, isTrash = false) {
     li.appendChild(fileIcon);
     li.appendChild(fileInfo);
     let menuOptionSpan = document.createElement('span');
-    menuOptionSpan.className = 'fa-solid fa-ellipsis';
+    menuOptionSpan.className = 'material-symbols-rounded';
+    menuOptionSpan.innerHTML = "more_horiz";
     menuOptionSpan.addEventListener('click', (ev) => {
         ev.stopPropagation();
         if (fileOptionPanel.style.display === 'flex' && fileOptionPanel.id === `panel-${file.hash}`) {
@@ -650,21 +666,11 @@ function newFileElem(file, isTrash = false) {
         }
     });
     li.appendChild(menuOptionSpan);
-    li.addEventListener('click', () => {
+    li.addEventListener('dblclick', () => {
         if (file.type === 'folder') {
             handleFolderClick(file);
         } else {
-            fileOptionPanel.style.display = 'none';
-            modal.style.display = 'flex';
-            modalContent.innerHTML = '';
-            let warning = document.createElement('p');
-            warning.innerHTML = "Preview uses progressive loading, so it may take a while to load large files.";
-            warning.className = 'warning';
-            warning.style.color = colorOrange;
-            warning.style.padding = '10px';
-            modalContent.appendChild(warning);
-            modalContent.appendChild(makeSpinnerElem());
-            embedFile(file);
+            showFilePreview(file);
         }
     });
     li.addEventListener('contextmenu', (ev) => {
@@ -901,29 +907,42 @@ async function loadSharedFile(file) {
     }
 }
 
-async function fetchMediaBlob(file) {
-    // this will suck at large files
-    // will implement streaming later
-    // this is just a basic implementation
+
+// this will suck at large files
+// will implement streaming later
+// this is just a basic implementation
+async function showFilePreview(file) {
+    globalPreviewFile = file;
+    previewModal.style.display = 'flex';
+    previewNameElem.innerHTML = file.name;
+    let embed = document.createElement('embed');
+    embed.type = file.mime;
     if (file.shared) {
-        return await loadSharedFile(file);
+        loadSharedFile(file).then((blob) => {
+            embed.src = URL.createObjectURL(blob);
+            previewModal.appendChild(embed);
+        });
+    }
+    let extRegex = /(?:\.([^.]+))?$/;
+    let extension = extRegex.exec(file.name);
+    if (extension) {
+        extension = extension[1];
+    } else {
+        extension = '';
+    }
+    let filename;
+    if (extension === file.name) {
+        filename = file.hash;
+    } else {
+        filename = `${file.hash}.${extension}`
     }
     let projectId = globalSecretKey.split("_")[0];
-    let fragments = file.name.split('.');
-    let extension = fragments.pop();
-    let qualifiedName = "";
-    if (extension === file.name) {
-        qualifiedName = file.hash;
-    } else {
-        qualifiedName = `${file.hash}.${extension}`
-    }
-    let url = `https://drive.deta.sh/v1/${projectId}/filebox/files/download?name=${qualifiedName}`;
+    let url = `https://drive.deta.sh/v1/${projectId}/filebox/files/download?name=${filename}`;
     const response = await fetch(url, { 
         method: "GET", 
         headers: {"X-Api-Key": globalSecretKey},
     });
     let progress = 0;
-    let loadingLevel = document.querySelector('#loading-amount');
     const reader = response.body.getReader();
     const stream = new ReadableStream({
         start(controller) {
@@ -936,27 +955,16 @@ async function fetchMediaBlob(file) {
                     }
                     controller.enqueue(value);
                     progress += value.length;
-                    loadingLevel.innerHTML = `${Math.round((progress / file.size) * 100)}%`;
+                    previewLoadLevl.innerHTML = `${Math.round((progress / file.size) * 100)}%`;
                     return pump();
                 });
             }
         }
     });
-    const blobResponse = new Response(stream);
-    let blob = await blobResponse.blob();
-    return new Blob([blob], { type: file.mime });
-}
-
-async function embedFile(file) {
-    let blob = await fetchMediaBlob(file);
-    let embed = document.createElement('embed');
-    embed.src = URL.createObjectURL(blob);
-    embed.type = file.mime;
-    embed.style.width = '100%';
-    embed.style.height = '100%';
-    embed.style.objectFit = 'contain';
-    modalContent.innerHTML = '';
-    modalContent.appendChild(embed);
+    const br = new Response(stream);
+    const blob = await br.blob();
+    embed.src = URL.createObjectURL(new Blob([blob], {type: file.mime}));
+    previewModal.appendChild(embed);
 }
 
 function fileMover(file) {
