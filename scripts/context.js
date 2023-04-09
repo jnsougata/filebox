@@ -235,7 +235,7 @@ const fileContextOptions = [
         ownerOnly: true
     },
     {
-        label: 'Embed URL', 
+        label: 'Embed Link', 
         icon: 'code', 
         callback: onEmbedClick,
         fileOnly: true,
@@ -260,7 +260,7 @@ const fileContextOptions = [
         fileOnly: true
     },
     {   
-        label: 'Delete',
+        label: 'Delete Permanently',
         icon: 'delete', 
         callback: onTrashClick,
         folderOnly: true

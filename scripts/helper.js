@@ -416,7 +416,7 @@ function handleFileMenuClick(file) {
     let trashButton = document.createElement("div");
     trashButton.className = "file_menu_option";
     if (file.type === 'folder') {
-        trashButton.innerHTML = `<p>Delete</p><span class="material-symbols-rounded">delete_forever</span>`;
+        trashButton.innerHTML = `<p>Delete Permanently</p><span class="material-symbols-rounded">delete_forever</span>`;
     } else {
         trashButton.innerHTML = `<p>Trash</p><span class="material-symbols-rounded">delete_forever</span>`;
     }
@@ -614,6 +614,10 @@ function newFileElem(file, isTrash = false) {
             deleteButton.innerHTML = 'Delete';
             deleteButton.style.backgroundColor = colorRed;
             deleteButton.addEventListener("click", () => {
+                let confirmation = confirm('Are you sure you want to delete these files permanently?');
+                if (!confirmation) {
+                    return;
+                }
                 fetch(`/api/bulk/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(globalMultiSelectBucket)})
                 .then(() => {
                     globalMultiSelectBucket.forEach((file) => {
@@ -743,13 +747,24 @@ function buildFileBrowser(data) {
     return fileList;
 }
 
+function updatePromptFragment(text = 'home') {
+    let fragment ;
+    if (text === 'home') {
+        fragment = 'Home';
+    } else {
+        fragment = text.split('/').pop();
+    }
+    document.querySelector('.fragment').innerHTML = fragment;
+}
+
 function buildPrompt() {
     let prompt = document.createElement('div');
     prompt.className = 'prompt';
     let fragment = document.createElement('p');
     fragment.className = 'fragment';
     let backButton = document.createElement('i');
-    backButton.className = 'fa-solid fa-chevron-left';
+    backButton.className = 'material-symbols-rounded';
+    backButton.innerHTML = 'arrow_back';
     backButton.addEventListener('click', () => {
         if (globalFolderQueue.length === 0) {
             globalContextFolder = null;
@@ -764,8 +779,8 @@ function buildPrompt() {
             getContextOptionElem().click();
         }
     });
-    prompt.appendChild(fragment);
     prompt.appendChild(backButton);
+    prompt.appendChild(fragment);
     return prompt;
 }
 
@@ -775,10 +790,6 @@ function buildMyFilesBlock(allFilesBlock) {
     myFiles.appendChild(buildPrompt());
     myFiles.appendChild(allFilesBlock);
     return myFiles;
-}
-
-function updatePromptFragment(text = '~') {
-    document.querySelector('.fragment').innerHTML = text;
 }
 
 function prependQueueElem(file, isUpload = true) {
@@ -1050,6 +1061,9 @@ function renderOriginalNav() {
     inputBar.spellcheck = false;
     inputBar.autocomplete = 'on'; 
     let inputTimer = null;
+    inputBar.addEventListener('blur', (ev) => {
+        getContextOptionElem().click();
+    });
     inputBar.addEventListener('input', (ev) => {
         if (inputTimer) {
             clearTimeout(inputTimer);
@@ -1057,7 +1071,6 @@ function renderOriginalNav() {
         inputTimer = setTimeout(() => {
             let query = ev.target.value;
             if (query.length === 0) {
-                getContextOptionElem().click();
                 return;
             }
             fetch(`/api/query`, {
@@ -1075,8 +1088,8 @@ function renderOriginalNav() {
                     mainSection.innerHTML = '';
                     let p = document.createElement('p');
                     let symbol = `<i class="fa-solid fa-circle-exclamation"></i> `;
-                    p.innerHTML = `${symbol} No results found for '${query}'`;
-                    p.style.color = "rgb(247, 70, 70)";
+                    p.innerHTML = `${symbol} No results found for *${query}*`;
+                    p.style.backgroundColor = "#e44d27";
                     resultsPage.appendChild(p);
                     mainSection.appendChild(resultsPage);
                     fileOptionPanel.style.display = 'none';
@@ -1092,7 +1105,8 @@ function renderOriginalNav() {
                 });
                 data = absoluteResults.concat(data);
                 let p = document.createElement('p');
-                p.innerHTML = `Search results for '${query}'`;
+                p.innerHTML = `Search results for *${query}*`;
+                p.style.backgroundColor = "#317840";
                 resultsPage.appendChild(p);
                 let fileList = document.createElement('div');
                 fileList.className = 'file_list';

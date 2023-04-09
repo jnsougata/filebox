@@ -20,8 +20,10 @@ Upload & organize files in your Personal Space Drive
 10. Multiple file selection and operations
 11. Send files to other instances of Filebox
 
-### Changelog (v2.3.4)
-- Bug fix: Now you can share file of **any size** publicly or privately. The size limitation has been removed.
+### Changelog (v2.3.5)
+- Install as PWA
+- UX improvements
+- custom context menu for file operations
   
 ### Future 
 Filebox will no longer actively receive updates from original developer after v2.3. The project is open source and anyone can contribute to it. Looking for new maintainers with adequate knowledge in Svelte for framework migration and Golang for backend development.
