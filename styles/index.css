@@ -1378,7 +1378,8 @@ body {
     cursor: pointer;
     margin-right: 10px;
 }
-.preview > .head > .part > button > span {
+.preview > .head > .part > button > span, a {
+    text-decoration: none;
     font-size: 20px;
     padding: 5px;
     color: #ccc;

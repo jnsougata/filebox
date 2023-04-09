@@ -906,16 +906,20 @@ async function loadSharedFile(file, controller) {
 // will implement streaming later
 // this is just a basic implementation
 async function showFilePreview(file) {
+    let a = previewDownloadButton.firstElementChild;
+    a.href = '';
+    a.style.opacity = '0.5';
+    a.style.pointerEvents = 'none';
     controller = new AbortController();
     globalPreviewFile = file;
     previewModal.style.display = 'flex';
     previewNameElem.innerHTML = file.name;
     let embed = document.createElement('embed');
     embed.type = file.mime;
+    let src;
     if (file.shared) {
         loadSharedFile(file, controller).then((blob) => {
-            embed.src = URL.createObjectURL(blob);
-            previewModal.appendChild(embed);
+            src = URL.createObjectURL(blob);
         });
     }
     let extRegex = /(?:\.([^.]+))?$/;
@@ -934,7 +938,6 @@ async function showFilePreview(file) {
     let projectId = globalSecretKey.split("_")[0];
     let url = `https://drive.deta.sh/v1/${projectId}/filebox/files/download?name=${filename}`;
     const response = await fetch(url, { 
-        method: "GET", 
         headers: {"X-Api-Key": globalSecretKey},
         signal: controller.signal
     });
@@ -959,7 +962,12 @@ async function showFilePreview(file) {
     });
     const br = new Response(stream);
     const blob = await br.blob();
-    embed.src = URL.createObjectURL(new Blob([blob], {type: file.mime}));
+    src = URL.createObjectURL(new Blob([blob], {type: file.mime}));
+    embed.src = src;
+    a.href = src;
+    a.download = file.name;
+    a.style.opacity = '1';
+    a.style.pointerEvents = 'auto';
     previewModal.appendChild(embed);
 }
 

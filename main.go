@@ -13,7 +13,7 @@ func main() {
 	echo.Use(
 		middleware.Gzip(),
 		middleware.LoggerWithConfig(middleware.LoggerConfig{
-			Format: "${method} ${status} ${uri}",
+			Format: "method=${method}, uri=${uri}, status=${status}\n",
 		}),
 	)
 	echo.File("/", "static/index.html")
@@ -43,7 +43,6 @@ func main() {
 	api.Any("/discovery/:id/:password", Discovery)
 	api.GET("/discovery/:id/status", UserStatus)
 	api.POST("/push/:id/metadata", PushFileMeta)
-
 
 	if err := echo.Start(":8080"); err != http.ErrServerClosed {
 		log.Fatal(err)

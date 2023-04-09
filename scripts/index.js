@@ -110,7 +110,7 @@ recentButton.addEventListener('click', () => {
         if (data) {
             data = sortFileByTimestamp(data)
             mainSection.innerHTML = '';
-            mainSection.appendChild(buildRecentContent(data.slice(0, 15)));
+            mainSection.appendChild(buildRecentContent(data.slice(0, 10)));
         }
     })
 });
@@ -367,6 +367,7 @@ blurLayer.addEventListener('click', () => {
 
 let previewModal = document.querySelector('.preview');
 let previewBackButton = document.querySelector('#preview-close');
+let previewDownloadButton = document.querySelector('#preview-download');
 previewBackButton.addEventListener('click', () => {
     globalPreviewFile = null;
     previewModal.style.display = 'none';
@@ -375,14 +376,13 @@ previewBackButton.addEventListener('click', () => {
     document.querySelector('embed').remove();
 });
 
-let previewDownloadButton = document.querySelector('#preview-download');
-previewDownloadButton.addEventListener('click', () => {
-    if (globalPreviewFile.shared) {
-        downloadShared(globalPreviewFile);
-    } else {
-        download(globalPreviewFile);
-    }
-});
+// previewDownloadButton.addEventListener('click', () => {
+//     if (globalPreviewFile.shared) {
+//         downloadShared(globalPreviewFile);
+//     } else {
+//         download(globalPreviewFile);
+//     }
+// });
 
 window.addEventListener('DOMContentLoaded', () => {
     renderOriginalNav();
