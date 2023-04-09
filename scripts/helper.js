@@ -1,3 +1,4 @@
+let controller;
 let fileOptionPanel = document.querySelector('.file_menu');
 let queueContent = document.querySelector('.queue_content');
 let queueTaskList = document.querySelector('#queue-task-list');
@@ -20,6 +21,21 @@ queueContent.addEventListener('click', () => {
 //         icon: '/assets/icon.png',
 //     });
 // }
+
+function dateStringToTimestamp(dateString) {
+    let date = new Date(dateString);
+    return date.getTime();
+}
+
+function sortFileByTimestamp(data) {
+    data = data.filter((file) => {
+        return !(file.type === 'folder');
+    });
+    data = data.sort((a, b) => {
+        return dateStringToTimestamp(b.date) - dateStringToTimestamp(a.date);
+    });
+    return data;
+}
 
 async function passwordToSHA256Hex(str) {
     let digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -666,7 +682,7 @@ function newFileElem(file, isTrash = false) {
         }
     });
     li.appendChild(menuOptionSpan);
-    li.addEventListener('dblclick', () => {
+    li.addEventListener('click', () => {
         if (file.type === 'folder') {
             handleFolderClick(file);
         } else {
@@ -849,33 +865,11 @@ function renderFilesByMime(query) {
     });
 }
 
-function dateStringToTimestamp(dateString) {
-    let date = new Date(dateString);
-    return date.getTime();
-}
-
-function sortFileByTimestamp(data) {
-    data = data.filter((file) => {
-        return !(file.type === 'folder');
-    });
-    data = data.sort((a, b) => {
-        return dateStringToTimestamp(b.date) - dateStringToTimestamp(a.date);
-    });
-    return data;
-}
-
-function makeSpinnerElem() {
-    let spinner = document.createElement('div');
-    spinner.className = 'spinner';
-    spinner.innerHTML = `<p id="loading-amount"></p><div></div><div></div><div></div><div></div>`;
-    return spinner;
-}
-
-async function loadSharedFile(file) {
+async function loadSharedFile(file, controller) {
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
-        let resp = await fetch(`/api/external/${globalUserId}/${file.owner}/${file.hash}/0`);
+        let resp = await fetch(`/api/external/${globalUserId}/${file.owner}/${file.hash}/0`, {signal: controller.signal});
         return await resp.blob();
     } else {
         let skips = 0;
@@ -912,13 +906,14 @@ async function loadSharedFile(file) {
 // will implement streaming later
 // this is just a basic implementation
 async function showFilePreview(file) {
+    controller = new AbortController();
     globalPreviewFile = file;
     previewModal.style.display = 'flex';
     previewNameElem.innerHTML = file.name;
     let embed = document.createElement('embed');
     embed.type = file.mime;
     if (file.shared) {
-        loadSharedFile(file).then((blob) => {
+        loadSharedFile(file, controller).then((blob) => {
             embed.src = URL.createObjectURL(blob);
             previewModal.appendChild(embed);
         });
@@ -941,6 +936,7 @@ async function showFilePreview(file) {
     const response = await fetch(url, { 
         method: "GET", 
         headers: {"X-Api-Key": globalSecretKey},
+        signal: controller.signal
     });
     let progress = 0;
     const reader = response.body.getReader();

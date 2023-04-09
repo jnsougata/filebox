@@ -370,6 +370,8 @@ let previewBackButton = document.querySelector('#preview-close');
 previewBackButton.addEventListener('click', () => {
     globalPreviewFile = null;
     previewModal.style.display = 'none';
+    controller.abort();
+    previewLoadLevl.innerHTML = '0%';
     document.querySelector('embed').remove();
 });
 

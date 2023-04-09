@@ -25,7 +25,7 @@ function renderFileContextMenu(ev, file) {
     cm.id = parent.id;
 }
 
-window.addEventListener('click', (ev) => {
+cg.addEventListener('click', (ev) => {
     cm.style.display = 'none';
     cg.style.display = 'none';
     let parentId = cm.id;
@@ -41,9 +41,12 @@ function onSendClick(file) {
 function onRenameClick(file) {
     let elem = document.querySelector(`#filename-${file.hash}`)
     elem.contentEditable = true;
+    cg.style.display = 'block';
+    elem.style.zIndex = 9999;
     elem.focus();
     elem.addEventListener('blur', (ev) => {
         elem.contentEditable = false;
+        elem.style.zIndex = 1;
         if (ev.target.innerText === file.name) {
             return;
         }
@@ -313,6 +316,7 @@ function buildFileContextMenu(file) {
         }        
         let li = cmItem(option.label, option.icon);
         li.addEventListener('click', () => {
+            cm.style.display = 'none';
             option.callback(file);
         });
         ul.appendChild(li);
