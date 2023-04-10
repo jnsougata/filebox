@@ -489,7 +489,7 @@ function handleFolderClick(folder) {
         let fileView = document.createElement('div');
         fileView.className = 'my_files';
         fileView.innerHTML = '';
-        fileView.appendChild(buildPrompt());
+        fileView.appendChild(buildPrompt(files));
         fileView.appendChild(fileList);
         mainSection.innerHTML = '';
         mainSection.appendChild(fileView);
@@ -751,11 +751,12 @@ function updatePromptFragment(text = 'home') {
     document.querySelector('.fragment').innerHTML = fragment;
 }
 
-function buildPrompt() {
+function buildPrompt(files) {
     let prompt = document.createElement('div');
     prompt.className = 'prompt';
     let fragment = document.createElement('p');
     fragment.className = 'fragment';
+    let div = document.createElement('div');
     let backButton = document.createElement('i');
     backButton.className = 'material-symbols-rounded';
     backButton.innerHTML = 'arrow_back';
@@ -773,17 +774,21 @@ function buildPrompt() {
             getContextOptionElem().click();
         }
     });
+    let selectAll = document.createElement('i');
+    selectAll.className = 'material-symbols-rounded';
+    selectAll.innerHTML = 'select_all';
+    selectAll.addEventListener('click', () => {
+        let files25 = files.slice(0, 25);
+        files25.forEach((file) => {
+            let elem = document.getElementById(`file-${file.hash}`);
+            elem.firstElementChild.click();
+        });
+    });
     prompt.appendChild(backButton);
-    prompt.appendChild(fragment);
+    div.appendChild(fragment);
+    div.appendChild(selectAll);
+    prompt.appendChild(div);
     return prompt;
-}
-
-function buildMyFilesBlock(allFilesBlock) {
-    let myFiles = document.createElement('div');
-    myFiles.className = 'my_files';
-    myFiles.appendChild(buildPrompt());
-    myFiles.appendChild(allFilesBlock);
-    return myFiles;
 }
 
 function prependQueueElem(file, isUpload = true) {
@@ -929,13 +934,13 @@ async function showFilePreview(file) {
     }
     let extRegex = /(?:\.([^.]+))?$/;
     let extension = extRegex.exec(file.name);
-    if (extension) {
+    if (extension && extension[1]) {
         extension = extension[1];
     } else {
         extension = '';
     }
     let filename;
-    if (extension === file.name) {
+    if (extension === '') {
         filename = file.hash;
     } else {
         filename = `${file.hash}.${extension}`
@@ -1234,9 +1239,9 @@ function renderOriginalNav() {
     navBar.innerHTML = '';
     navBar.appendChild(icon);
     navBar.appendChild(inputBar);
-    navBar.appendChild(newFileButton);
     navBar.appendChild(newFolderButton);
     navBar.appendChild(folderUploadButton);
+    navBar.appendChild(newFileButton);
     navBar.appendChild(newHiddenFileInput);
     navBar.appendChild(newHiddenFolderInput);
 }

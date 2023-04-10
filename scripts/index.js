@@ -141,9 +141,12 @@ browseButton.addEventListener('click', () => {
                 }
             }
         });
-        let myFiles = buildMyFilesBlock(buildFileBrowser(folders.concat(files)));
+        let fileView = document.createElement('div');
+        fileView.className = 'my_files';
+        fileView.appendChild(buildPrompt(files));
+        fileView.appendChild(buildFileBrowser(folders.concat(files)));
         mainSection.innerHTML = '';
-        mainSection.appendChild(myFiles);
+        mainSection.appendChild(fileView);
         updateFolderStats(folders);
         updatePromptFragment();
     })
@@ -377,14 +380,6 @@ previewBackButton.addEventListener('click', () => {
     previewLoadLevl.innerHTML = '0%';
     document.querySelector('embed').remove();
 });
-
-// previewDownloadButton.addEventListener('click', () => {
-//     if (globalPreviewFile.shared) {
-//         downloadShared(globalPreviewFile);
-//     } else {
-//         download(globalPreviewFile);
-//     }
-// });
 
 window.addEventListener('DOMContentLoaded', () => {
     renderOriginalNav();

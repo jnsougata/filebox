@@ -276,7 +276,7 @@ body {
 }
 .content > nav > button > span {
     font-size: 20px;
-    color: #d2e4ff87;
+    color: #d2e4ffbf;
 }
 .content > nav > .other {
     width: 100%;
@@ -305,7 +305,7 @@ body {
     }
     .content > nav > button {
         font-size: 12px;
-        padding: 6px 10px;
+        padding: 6px;
     }
     .content > nav > .other {
         padding: 0;
@@ -559,13 +559,19 @@ body {
     overflow-y: hidden;
     overflow-x: auto;
 }
+.prompt div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+}
 .prompt > i {
     color: #ccc;
     font-size: 20px;
     padding: 10px;
     cursor: pointer;
 }
-.prompt > p {
+.prompt > div > p {
     width: fit-content;
     max-width: 600px;
     padding: 4px 8px;
@@ -576,6 +582,15 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.prompt > div > i {
+    color: #ccc;
+    font-size: 18px;
+    padding: 5px;
+    cursor: pointer;
+    background-color: var(--color-blackish-hover);
+    border-radius: 50%;
+    margin-left: 5px;
 }
 
 @media screen and (max-width: 768px) {

@@ -179,7 +179,6 @@ function onDeletePermanentlyClick(file) {
         if (!file.shared) {
             updateSpaceUsage(-file.size);
         }
-        updateSpaceUsage(-file.size);
         globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
     })
 }
