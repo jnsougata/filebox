@@ -133,10 +133,12 @@ browseButton.addEventListener('click', () => {
         let files = [];
         let folders = [];
         data.forEach((file) => {
-            if (file.type === 'folder') {
-                folders.push(file);
-            } else {
-                files.push(file);
+            if (!file.parent){
+                if (file.type === 'folder') {
+                    folders.push(file);
+                } else {
+                    files.push(file);
+                }
             }
         });
         let myFiles = buildMyFilesBlock(buildFileBrowser(folders.concat(files)));

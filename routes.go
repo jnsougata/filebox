@@ -63,7 +63,7 @@ func ProjectKey(c echo.Context) error {
 
 func Metadata(c echo.Context) error {
 	password := c.PathParam("password")
-	if ! MatchPassword(password) {
+	if !MatchPassword(password) {
 		return c.String(http.StatusUnauthorized, "Unauthorized")
 	}
 	switch c.Request().Method {
@@ -354,7 +354,7 @@ func FolderItemCountBulk(c echo.Context) error {
 	for _, v := range parentMap {
 		counts = append(counts, v.(map[string]interface{}))
 	}
-	return c.JSON(http.StatusOK, counts)
+	return c.JSON(resp.StatusCode, counts)
 }
 
 func FileBulkOps(c echo.Context) error {
@@ -429,7 +429,7 @@ func Discovery(c echo.Context) error {
 	switch c.Request().Method {
 	case "PUT":
 		req, _ := http.NewRequest(
-			"PUT", 
+			"PUT",
 			fmt.Sprintf("%s/users/%s/%s", collectionUrl, userId, password), c.Request().Body,
 		)
 		req.Header.Set("Content-Type", "application/json")

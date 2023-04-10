@@ -461,13 +461,10 @@ function handleFolderClick(folder) {
     } else {
         globalFolderQueue.push(folder);
     }
-    let fragment;
     let parentOf;
     if (folder.parent) {
-        fragment = `/${folder.parent}/${folder.name}`;
         parentOf = `${folder.parent}/${folder.name}`;
     } else {
-        fragment = `/${folder.name}`;
         parentOf = folder.name;
     }
     fetch(`/api/folder`, {
@@ -497,7 +494,7 @@ function handleFolderClick(folder) {
         mainSection.innerHTML = '';
         mainSection.appendChild(fileView);
         updateFolderStats(folders);
-        updatePromptFragment(`~${fragment}`);
+        updatePromptFragment(folder.name);
     })
 }
 
@@ -736,10 +733,7 @@ function buildFileBrowser(data) {
     let ul = document.createElement('ul');
     ul.className = 'all_files';
     data.forEach((file) => {
-        if (!file.parent) {
-            let li = newFileElem(file);
-            ul.appendChild(li);
-        }
+        ul.appendChild(newFileElem(file));
     });
     let fileList = document.createElement('div');
     fileList.className = 'file_list';
@@ -748,11 +742,11 @@ function buildFileBrowser(data) {
 }
 
 function updatePromptFragment(text = 'home') {
-    let fragment ;
+    let fragment;
     if (text === 'home') {
         fragment = 'Home';
     } else {
-        fragment = text.split('/').pop();
+        fragment = text
     }
     document.querySelector('.fragment').innerHTML = fragment;
 }
@@ -1061,9 +1055,9 @@ function renderOriginalNav() {
     inputBar.spellcheck = false;
     inputBar.autocomplete = 'on'; 
     let inputTimer = null;
-    inputBar.addEventListener('blur', (ev) => {
-        getContextOptionElem().click();
-    });
+    // inputBar.addEventListener('blur', (ev) => {
+    //     getContextOptionElem().click();
+    // });
     inputBar.addEventListener('input', (ev) => {
         if (inputTimer) {
             clearTimeout(inputTimer);
@@ -1124,16 +1118,110 @@ function renderOriginalNav() {
         }, 500);
     });
     let newFolderButton = document.createElement('button');
-    newFolderButton.innerHTML = '<span class="material-symbols-rounded">add</span>Folder';
+    newFolderButton.innerHTML = '<span class="material-symbols-rounded">create_new_folder</span>';
     newFolderButton.addEventListener('click', () => {
         createFolder();
+    });
+    let newHiddenFolderInput = document.createElement('input');
+    newHiddenFolderInput.type = 'file';
+    newHiddenFolderInput.multiple = true;
+    newHiddenFolderInput.style.display = 'none';
+    newHiddenFolderInput.webkitdirectory = true;
+    newHiddenFolderInput.addEventListener('change', (ev) => {
+        let relativePaths = [];
+        for (let i = 0; i < ev.target.files.length; i++) {
+            relativePaths.push(ev.target.files[i].webkitRelativePath);
+        }
+        let uniqueFolders = [];
+        for (let i = 0; i < relativePaths.length; i++) {
+            let folderPath = relativePaths[i].split('/');
+            folderPath.pop();
+            folderPath = folderPath.join('/');
+            if (!uniqueFolders.includes(folderPath)) {
+                uniqueFolders.push(folderPath);
+            }
+        }
+        let parents = [];
+        uniqueFolders.forEach((folder) => {
+            let folderPath = folder.split('/');
+            let currentPath = '';
+            folderPath.forEach((folder) => {
+                currentPath += folder + '/';
+                if (!parents.includes(currentPath)) {
+                    parents.push(currentPath);
+                }
+            });
+        });
+        let strippedParents = parents.map((parent) => {
+            return parent.slice(0, -1);
+        });
+        strippedParents.forEach((parent) => {
+            let relativePath;
+            if (globalContextFolder) {
+                if (globalContextFolder.parent) {
+                    relativePath = `${globalContextFolder.parent}/${globalContextFolder.name}`;
+                } else {
+                    relativePath = globalContextFolder.name;
+                }
+            }
+            let folderName;
+            let folderPath = '';
+            if (parent.includes('/')) {
+                let parentParts = parent.split('/');
+                folderName = parentParts.pop();
+                folderPath = `${parentParts.join('/')}`;
+            } else {
+                folderName = parent;
+            }
+            if (relativePath) {
+                folderPath = `${relativePath}/${folderPath}`;
+            }
+            let body = {
+                "name": folderName,
+                "type": "folder",
+                "hash": randId(),
+                "date": new Date().toISOString(),
+            }
+            if (folderPath) {
+                body.parent = folderPath;
+            }
+            fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(body)})
+        });
+        for (let i = 0; i < ev.target.files.length; i++) {
+            let file = ev.target.files[i];
+            let relativePath = ev.target.files[i].webkitRelativePath;
+            let parentFramnets = relativePath.split('/');
+            parentFramnets.pop();
+            let parent = parentFramnets.join('/');
+            if (globalContextFolder) {
+                if (globalContextFolder.parent) {
+                    parent = `${globalContextFolder.parent}/${globalContextFolder.name}/${parent}`;
+                } else {
+                    parent = `${globalContextFolder.name}/${parent}`;
+                }
+            }
+            let metadata = {
+                "name": file.name,
+                "hash": randId(),
+                "date": new Date().toISOString(),
+                "size": file.size,
+                "parent": parent,
+                "mime": file.type,
+            }
+            upload(file, metadata);
+        }
+    });
+    let folderUploadButton = document.createElement('button');
+    folderUploadButton.innerHTML = '<span class="material-symbols-rounded">drive_folder_upload</span>';
+    folderUploadButton.addEventListener('click', () => {
+        newHiddenFolderInput.click();
     });
     let newHiddenFileInput = document.createElement('input');
     newHiddenFileInput.type = 'file';
     newHiddenFileInput.multiple = true;
     newHiddenFileInput.style.display = 'none';
     let newFileButton = document.createElement('button');
-    newFileButton.innerHTML = '<span class="material-symbols-rounded">attach_file</span>Upload';
+    newFileButton.innerHTML = '<span class="material-symbols-rounded">upload_file</span>';
     newFileButton.addEventListener('click', () => {
         newHiddenFileInput.click();
     });
@@ -1146,9 +1234,11 @@ function renderOriginalNav() {
     navBar.innerHTML = '';
     navBar.appendChild(icon);
     navBar.appendChild(inputBar);
-    navBar.appendChild(newFolderButton);
     navBar.appendChild(newFileButton);
+    navBar.appendChild(newFolderButton);
+    navBar.appendChild(folderUploadButton);
     navBar.appendChild(newHiddenFileInput);
+    navBar.appendChild(newHiddenFolderInput);
 }
 
 function renderAuxNav(elem){

@@ -10,27 +10,34 @@ function closeQueue() {
     }
 }
 
-function upload(file) {
+function upload(file, metadata=null) {
+    let hash;
     let header = {"X-Api-Key": globalSecretKey, "Content-Type": file.type}
-    let hash = randId();
     let projectId = globalSecretKey.split("_")[0];
     const ROOT = 'https://drive.deta.sh/v1';
     let reader = new FileReader();
     reader.onload = (ev) => {
-        let body = {
-            "hash": hash,
-            "name": file.name,
-            "size": file.size,
-            "mime": file.type,
-            "access": "private",
-            "date": new Date().toISOString(),
-        }
-        if (globalContextFolder) {
-            if (globalContextFolder.parent) {
-                body.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
-            } else {
-                body.parent = globalContextFolder.name;
+        let body;
+        hash = randId();
+        if (!metadata) {
+            body = {
+                "hash": hash,
+                "name": file.name,
+                "size": file.size,
+                "mime": file.type,
+                "access": "private",
+                "date": new Date().toISOString(),
             }
+            if (globalContextFolder) {
+                if (globalContextFolder.parent) {
+                    body.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
+                } else {
+                    body.parent = globalContextFolder.name;
+                }
+            }
+        } else {
+            hash = metadata.hash;
+            body = metadata;
         }
         showSnack(`Uploading ${file.name}`, colorBlue, 'info');
         let content = ev.target.result;
@@ -57,13 +64,16 @@ function upload(file) {
                     bar.style.width = "100%";
                     percentageElem.innerHTML = "✓";
                     showSnack(`Uploaded ${file.name}`, colorBlue, 'success');
+                    updateSpaceUsage(file.size);
+                    runningTaskCount --;
+                    if (metadata) {
+                        return;
+                    }
                     if (globalContextFolder) {
                         handleFolderClick(globalContextFolder)
                     } else {
                         getContextOptionElem().click();
                     }
-                    updateSpaceUsage(file.size);
-                    runningTaskCount --;
                     closeQueue();
                 })
             })
