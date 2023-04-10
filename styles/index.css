@@ -535,6 +535,7 @@ body {
 }
 .my_files > p {
     width: max-content;
+    flex-shrink: 0;
     padding: 3px 13px;
     margin: 10px 0;
     border-radius: 20px;

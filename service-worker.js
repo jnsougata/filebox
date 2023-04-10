@@ -8,9 +8,9 @@ workbox.routing.registerRoute(
 workbox.routing.registerRoute(
     /.*(?:googleapis|gstatic)\.com.*$/,
     new workbox.strategies.StaleWhileRevalidate(),
-)
+);
 
 workbox.routing.registerRoute(
     /\.(?:js|css)$/,
     new workbox.strategies.NetworkFirst(),
-)
+);

@@ -25,9 +25,10 @@ let mainSection = document.querySelector('main');
 let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('#storage');
 
-const nativeFetch = window.fetch;
+
+const fetchx = window.fetch;
 window.fetch = async (...args) => {
-    const response = await nativeFetch(...args);
+    const response = await fetchx(...args);
     if (response.status === 502) {
         showSnack("Bad Gateway! Try again.", colorOrange, 'warning');
     }
