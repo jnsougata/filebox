@@ -1178,8 +1178,10 @@ function renderOriginalNav() {
             } else {
                 folderName = parent;
             }
-            if (relativePath) {
+            if (relativePath && folderPath) {
                 folderPath = `${relativePath}/${folderPath}`;
+            } else if (relativePath) {
+                folderPath = relativePath;
             }
             let body = {
                 "name": folderName,

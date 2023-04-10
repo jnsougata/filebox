@@ -25,7 +25,6 @@ Upload & organize files in your Personal Space Drive
 - UX improvements
 - Custom context menu for file operations
 - **Upload and store folders** (limited browser support)
-
   
 ### Future 
 Filebox will no longer actively receive updates from original developer after v2.3. The project is open source and anyone can contribute to it. Looking for new maintainers with adequate knowledge in Svelte for framework migration and Golang for backend development.
