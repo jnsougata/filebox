@@ -767,6 +767,9 @@ function buildPrompt(files) {
     backButton.className = 'material-symbols-rounded';
     backButton.innerHTML = 'arrow_back';
     backButton.addEventListener('click', () => {
+        if (!isFileMoving) {
+            globalMultiSelectBucket = [];
+        }
         if (globalFolderQueue.length === 0) {
             globalContextFolder = null;
             return;
@@ -1054,6 +1057,60 @@ function buildDynamicNavIcon() {
     return icon;
 }
 
+function renderSearchResults(query) {
+    if (query.length === 0) {
+        return;
+    }
+    fetch(`/api/query`, {
+        method: "POST",
+        body: JSON.stringify({"name?contains": query}),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (window.innerWidth < 768) {
+            sidebarState(false);
+        }
+        let resultsPage = document.createElement('div');
+        resultsPage.className = 'my_files';
+        if (!data) {
+            mainSection.innerHTML = '';
+            let p = document.createElement('p');
+            let symbol = `<i class="fa-solid fa-circle-exclamation"></i> `;
+            p.innerHTML = `${symbol} No results found for *${query}*`;
+            p.style.backgroundColor = "#e44d27";
+            resultsPage.appendChild(p);
+            mainSection.appendChild(resultsPage);
+            fileOptionPanel.style.display = 'none';
+            return;
+        }
+        let absoluteResults = data.filter((file) => {
+            if (file.name.startsWith(query)) {
+                data.splice(data.indexOf(file), 1);
+                return true;
+            } else {
+                return false;
+            }
+        });
+        data = absoluteResults.concat(data);
+        let p = document.createElement('p');
+        p.innerHTML = `Search results for *${query}*`;
+        p.style.backgroundColor = "#317840";
+        resultsPage.appendChild(p);
+        let fileList = document.createElement('div');
+        fileList.className = 'file_list';
+        let ul = document.createElement('ul');
+        ul.className = 'all_files';
+        data.forEach((file) => {
+            ul.appendChild(newFileElem(file));
+        });
+        fileList.appendChild(ul);
+        resultsPage.appendChild(fileList);
+        mainSection.innerHTML = '';
+        mainSection.appendChild(resultsPage);
+        fileOptionPanel.style.display = 'none';
+    })
+}
+
 function renderOriginalNav() {
     isFileMoving = false;
     globalMultiSelectBucket = [];
@@ -1066,66 +1123,17 @@ function renderOriginalNav() {
     inputBar.spellcheck = false;
     inputBar.autocomplete = 'on'; 
     let inputTimer = null;
-    // inputBar.addEventListener('blur', (ev) => {
-    //     getContextOptionElem().click();
-    // });
+    inputBar.addEventListener('focus', () => {
+        if (inputBar.value.length > 0) {
+            renderSearchResults(inputBar.value);
+        }
+    });
     inputBar.addEventListener('input', (ev) => {
         if (inputTimer) {
             clearTimeout(inputTimer);
         }
         inputTimer = setTimeout(() => {
-            let query = ev.target.value;
-            if (query.length === 0) {
-                return;
-            }
-            fetch(`/api/query`, {
-                method: "POST",
-                body: JSON.stringify({"name?contains": query}),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (window.innerWidth < 768) {
-                    sidebarState(false);
-                }
-                let resultsPage = document.createElement('div');
-                resultsPage.className = 'my_files';
-                if (!data) {
-                    mainSection.innerHTML = '';
-                    let p = document.createElement('p');
-                    let symbol = `<i class="fa-solid fa-circle-exclamation"></i> `;
-                    p.innerHTML = `${symbol} No results found for *${query}*`;
-                    p.style.backgroundColor = "#e44d27";
-                    resultsPage.appendChild(p);
-                    mainSection.appendChild(resultsPage);
-                    fileOptionPanel.style.display = 'none';
-                    return;
-                }
-                let absoluteResults = data.filter((file) => {
-                    if (file.name.startsWith(query)) {
-                        data.splice(data.indexOf(file), 1);
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
-                data = absoluteResults.concat(data);
-                let p = document.createElement('p');
-                p.innerHTML = `Search results for *${query}*`;
-                p.style.backgroundColor = "#317840";
-                resultsPage.appendChild(p);
-                let fileList = document.createElement('div');
-                fileList.className = 'file_list';
-                let ul = document.createElement('ul');
-                ul.className = 'all_files';
-                data.forEach((file) => {
-                    ul.appendChild(newFileElem(file));
-                });
-                fileList.appendChild(ul);
-                resultsPage.appendChild(fileList);
-                mainSection.innerHTML = '';
-                mainSection.appendChild(resultsPage);
-                fileOptionPanel.style.display = 'none';
-            })
+            renderSearchResults(ev.target.value);
         }, 500);
     });
     let newFolderButton = document.createElement('button');
