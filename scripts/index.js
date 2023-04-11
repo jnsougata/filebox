@@ -221,6 +221,7 @@ let queueModalState = false;
 let queueModal = document.querySelector('.queue');
 let queueModalCloseButton = document.querySelector('.queue_close');
 queueModalCloseButton.addEventListener('click', () => {
+    queueModalState = false;
     queueModal.style.display = 'none';
 });
 let queueButton = document.querySelector('#queue');

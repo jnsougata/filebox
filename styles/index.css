@@ -197,7 +197,7 @@ body {
 .user > p {
     max-width: 125px;
     font-size: 15px;
-    color: white;
+    color: #d2e4ffbf;
     padding: 5px 14px;
     border-radius: 16px;
     text-overflow: ellipsis;
@@ -666,14 +666,14 @@ body {
     position: fixed;
     margin-right: 10px;
     width: 700px;
-    height: 300px;
+    height: 285px;
     z-index: 1000;
     display: none;
     align-items: flex-start;
     flex-direction: column;
     justify-content: center;
     padding: 10px;
-    border-radius: 5px 5px 0 0;
+    border-radius: 15px 15px 0 0;
     overflow: hidden;
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
@@ -783,7 +783,7 @@ body {
         width: 100vw;
         height: 250px;
         padding: 5px;
-        border-radius: 0;
+        border-radius: 20px;
         margin: 0;
     }
     .queue > .queue_close {

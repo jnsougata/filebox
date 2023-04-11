@@ -6,9 +6,6 @@ let previewNameElem = document.querySelector('#preview-name');
 let previewLoadLevl = document.querySelector('#preview-loaded');
 let previewEmbedElem = document.querySelector('#preview-embed');
 
-queueContent.addEventListener('click', () => {
-    queueModalCloseButton.click();
-});
 
 // function sendNotification(body, tag = 'filebox') {
 //     let enabled = Notification.permission === 'granted';
