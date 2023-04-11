@@ -23,7 +23,9 @@ A personal cloud storage service for free (upto 10GB)
 <a href="https://www.flaticon.com/free-icons/box" title="box icons">Box icons created by srip - Flaticon</a>
 
 ## Mobile Preview
-![image](https://user-images.githubusercontent.com/53375272/228587969-0aad3d1b-73dd-4a47-9ff7-c10388757e5b.png)
+![image](https://user-images.githubusercontent.com/53375272/231085609-7ea57b15-a884-4d63-8a57-fb57c66ff9ba.png)
+
 
 ## Desktop Preview
-![image](https://user-images.githubusercontent.com/53375272/228587167-ba81ebac-538d-4db1-86e5-fc795bb068ad.png)
+![image](https://user-images.githubusercontent.com/53375272/231085403-bf305e7d-b6b3-4d3a-9e1a-39426211bd92.png)
+
