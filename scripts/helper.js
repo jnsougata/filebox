@@ -633,7 +633,16 @@ function newFileElem(file, isTrash = false) {
             return;
         } else {
             li.style.backgroundColor = "rgba(255, 255, 255, 0.055)";
-            fileIcon.innerHTML = `<span class="material-symbols-rounded" style="color: var(--color-blueish)">done</span>`;
+            let checkIcon = document.createElement('span');
+            checkIcon.className = 'material-symbols-rounded';
+            checkIcon.innerHTML = 'done';
+            checkIcon.style.color = 'rgb(30, 112, 30)';
+            checkIcon.style.backgroundColor = 'var(--color-blackish-hover)';
+            checkIcon.style.borderRadius = '50%';
+            checkIcon.style.padding = '5px';
+            checkIcon.style.fontSize = '20px';
+            fileIcon.innerHTML = '';
+            fileIcon.appendChild(checkIcon);
             let index = globalMultiSelectBucket.findIndex((f) => f.hash === file.hash);
             if (index === -1) {
                 globalMultiSelectBucket.push(file);
