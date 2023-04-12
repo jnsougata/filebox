@@ -51,7 +51,7 @@ func ProjectKey(c echo.Context) error {
 			"error": "no password set",
 		})
 	}
-	if password != os.Getenv("USER_PASSWORD") {
+	if !MatchPassword(password) {
 		return c.JSON(http.StatusForbidden, map[string]string{
 			"error": "incorrect password",
 		})

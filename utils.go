@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"strings"
@@ -11,7 +13,10 @@ func MatchProjectId(id string) bool {
 }
 
 func MatchPassword(password string) bool {
-	return password == os.Getenv("USER_PASSWORD")
+	p := os.Getenv("USER_PASSWORD")
+	hash := sha256.Sum256([]byte(p))
+	hexPassword := hex.EncodeToString(hash[:])
+	return password == hexPassword
 }
 
 func FileToDriveSavedName(file map[string]interface{}) string {

@@ -60,30 +60,38 @@ function buildLoginModal() {
             showSnack('Password must be at least 6 characters long', colorOrange, 'info');
             return;
         }
-        fetch(`/api/key/${input.value}`)
-        .then(response => {
-            if (response.status === 200) {
-                localStorage.setItem("password", input.value)
-                globalUserPassword = input.value;
-                return response.json();
-            } else if (response.status === 404) {
-                showSnack('You did not set any Password, check App Config.', colorOrange, 'info');
-                return null;
-            }  else if (response.status === 403) {
-                showSnack('Wrong Password, try again.', colorRed, 'info');
-                return null;
-            } else {
-                showSnack('Something went wrong, try again.', colorOrange, 'info');
-                return null;
-            }
-        })
-        .then(data => {
-            if (!data) {
-                return;
-            }
-            modal.style.display = 'none';
-            handleStartup(data.key);
-        })
+        let hash = crypto.subtle.digest('SHA-256', new TextEncoder().encode(input.value));
+        hash.then((hash) => {
+            let hashArray = Array.from(new Uint8Array(hash));
+            let hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            fetch(`/api/key/${hashHex}`)
+            .then(response => {
+                if (response.status === 200) {
+                    let hash = crypto.subtle.digest('SHA-256', new TextEncoder().encode(input.value));
+                    hash.then((hash) => {
+                        localStorage.setItem("password", hashHex);
+                        globalUserPasswordHash = hashHex;
+                    });
+                    return response.json();
+                } else if (response.status === 404) {
+                    showSnack('You did not set any Password, check App Config.', colorOrange, 'info');
+                    return null;
+                }  else if (response.status === 403) {
+                    showSnack('Wrong Password, try again.', colorRed, 'info');
+                    return null;
+                } else {
+                    showSnack('Something went wrong, try again.', colorOrange, 'info');
+                    return null;
+                }
+            })
+            .then(data => {
+                if (!data) {
+                    return;
+                }
+                modal.style.display = 'none';
+                handleStartup(data.key);
+            })
+        });
     });
     let div = document.createElement('div');
     let a = document.createElement('a');
