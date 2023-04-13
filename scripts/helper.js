@@ -166,7 +166,7 @@ function handleTrashFileMenuClick(file) {
         checkFileParentExists(file)
         .then((exists) => {
             if (!exists && file.parent !== undefined) {
-                showSnack(`Parent not found. Restoring to root!`, colorOrange, 'warning');
+                showSnack(`Parent not found. Restoring to root`, colorOrange, 'warning');
                 delete file.parent;
                 delete file.deleted;
             } else {
@@ -230,7 +230,7 @@ function handleFileMenuClick(file) {
         if (file.pinned) {
             fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "DELETE"})
             .then(() => {
-                showSnack(`Unpinned successfully!`, colorOrange, 'info');
+                showSnack(`Unpinned successfully`, colorOrange, 'info');
                 let card = document.getElementById(`card-${file.hash}`);
                 if (card) {
                     card.remove();
@@ -241,7 +241,7 @@ function handleFileMenuClick(file) {
         } else {
             fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "POST"})
             .then(() => {
-                showSnack(`Pinned successfully!`, colorGreen, 'success');
+                showSnack(`Pinned successfully`, colorGreen, 'success');
                 let pins = document.querySelector('.pinned_files');
                 if (pins) {
                     pins.appendChild(newFileElem(file));
@@ -369,7 +369,7 @@ function handleFileMenuClick(file) {
         } else {
             window.navigator.clipboard.writeText(`${window.location.origin}/shared/${file.hash}`)
             .then(() => {
-                showSnack(`Copied sharing URL to clipboard`, colorGreen, 'success');
+                showSnack(`Copied sharing link to clipboard`, colorGreen, 'success');
             })
         }
     });
@@ -384,7 +384,7 @@ function handleFileMenuClick(file) {
         } else {
             window.navigator.clipboard.writeText(`${window.location.origin}/api/embed/${file.hash}`)
             .then(() => {
-                showSnack(`Copied embed URL to clipboard`, colorGreen, 'success');
+                showSnack(`Copied embed link to clipboard`, colorGreen, 'success');
             })
         }
     });
@@ -564,7 +564,7 @@ function newFileElem(file, isTrash = false) {
                         body: JSON.stringify(globalMultiSelectBucket)}
                     )
                     .then(() => {
-                        showSnack('Files Moved Successfully!', colorGreen, 'success');
+                        showSnack('Files Moved Successfully', colorGreen, 'success');
                         if (globalContextFolder) {
                             renderOriginalNav();
                             handleFolderClick(globalContextFolder);
@@ -1017,10 +1017,10 @@ function fileMover(file) {
             if (globalContextFolder) {
                 renderOriginalNav();
                 if (document.querySelector(`#file-${file.hash}`)) {
-                    showSnack('File is already here!', colorOrange, 'info');
+                    showSnack('File is already here', colorOrange, 'info');
                     return;
                 }   
-                showSnack('File Moved Successfully!', colorGreen, 'success');
+                showSnack('File Moved Successfully', colorGreen, 'success');
                 document.querySelector('#folder-view').appendChild(newFileElem(file))
             } else {
                 isFileMoving = false;
@@ -1285,7 +1285,7 @@ function buildDiscoveryModal() {
         let url = window.location.href;
         let apiKey = apiKeyInput.value;
         if (apiKey.length === 0) {
-            showSnack('API key can\'t be empty', colorOrange, 'warning');
+            showSnack("API key can't be empty", colorOrange, 'warning');
             return;
         }
         let checkbox = document.querySelector('#agree');
@@ -1385,7 +1385,7 @@ function renderFileSenderModal(file) {
     sendButton.style.backgroundColor = colorGreen;
     sendButton.addEventListener('click', () => {
         if (userIdField.value === globalUserId) {
-            showSnack('You can\'t send a file to yourself', colorOrange, 'warning');
+            showSnack("You can't send a file to yourself", colorOrange, 'warning');
             return;
         }
         let fileClone = JSON.parse(JSON.stringify(file));
@@ -1399,7 +1399,7 @@ function renderFileSenderModal(file) {
         .then((resp) => {
             if (resp.status !== 207) {
                 fileSender.style.display = 'none';
-                showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                showSnack('Something went wrong. Please try again', colorRed, 'error');
                 return;
             }
             if (file.recipients) {
@@ -1416,7 +1416,7 @@ function renderFileSenderModal(file) {
                     showSnack(`File shared with ${userIdField.value}`, colorGreen, 'success');
                     fileSender.style.display = 'none';
                 } else {
-                    showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                    showSnack('Something went wrong. Please try again', colorRed, 'error');
                 }
             })
         })
@@ -1471,7 +1471,7 @@ function buildPendingFileList(files) {
                     pendingFile.remove();
                     showSnack('File rejected', colorOrange, 'warning')
                 } else {
-                    showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                    showSnack('Something went wrong. Please try again', colorRed, 'error');
                 }
             })
         });
@@ -1489,7 +1489,7 @@ function buildPendingFileList(files) {
                     pendingFile.remove();
                     fileList.appendChild(newFileElem(file));
                 } else {
-                    showSnack('Something went wrong! Please try again.', colorRed, 'error');
+                    showSnack('Something went wron. Please try again', colorRed, 'error');
                 }
             })
         });
