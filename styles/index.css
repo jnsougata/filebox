@@ -1401,7 +1401,15 @@ body {
     cursor: pointer;
     margin-right: 10px;
 }
-.preview > .head > .part > button > span, a {
+.preview > .head > .part > button > span {
+    font-size: 20px;
+    padding: 5px;
+    color: #ccc;
+    border-radius: 50%;
+    transition: 0.2s;
+    background-color: var(--color-blackish-hover);
+}
+.preview > .head > .part > button > a {
     text-decoration: none;
     font-size: 20px;
     padding: 5px;
@@ -1410,6 +1418,7 @@ body {
     transition: 0.2s;
     background-color: var(--color-blackish-hover);
 }
+
 .preview > .head > .part > button > span:hover {
     background-color: var(--color-redish);
 }
