@@ -2,6 +2,7 @@ let controller;
 let fileOptionPanel = document.querySelector('.file_menu');
 let queueContent = document.querySelector('.queue_content');
 let queueTaskList = document.querySelector('#queue-task-list');
+let previewContainer = document.querySelector('#preview');
 let previewNameElem = document.querySelector('#preview-name');
 let previewLoadLevl = document.querySelector('#preview-loaded');
 let previewEmbedElem = document.querySelector('#preview-embed');
@@ -987,7 +988,8 @@ async function showFilePreview(file) {
     a.download = file.name;
     a.style.opacity = '1';
     a.style.pointerEvents = 'auto';
-    previewModal.appendChild(embed);
+    previewContainer.innerHTML = '';
+    previewContainer.appendChild(embed);
 }
 
 function fileMover(file) {
