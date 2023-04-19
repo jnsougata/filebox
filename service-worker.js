@@ -12,5 +12,5 @@ workbox.routing.registerRoute(
 
 workbox.routing.registerRoute(
     /\.(?:js|css)$/,
-    new workbox.strategies.NetworkFirst(),
+    new workbox.strategies.NetworkOnly(),
 );
