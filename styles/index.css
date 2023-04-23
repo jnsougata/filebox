@@ -983,10 +983,8 @@ body {
 @media screen and (max-width: 768px) {
     .multi_select_options > button {
         justify-content: space-evenly;
-        margin-right: 0;
     }
 }
-
 .connection {
     width: 500px;
     height: max-content;
