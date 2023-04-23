@@ -25,7 +25,7 @@ function renderFileContextMenu(ev, file) {
     cm.id = parent.id;
 }
 
-cg.addEventListener('click', (ev) => {
+cg.addEventListener('click', () => {
     cm.style.display = 'none';
     cg.style.display = 'none';
     let parentId = cm.id;
@@ -42,11 +42,11 @@ function onRenameClick(file) {
     let elem = document.querySelector(`#filename-${file.hash}`)
     elem.contentEditable = true;
     cg.style.display = 'block';
-    elem.style.zIndex = 9999;
+    elem.style.zIndex = "9999";
     elem.focus();
     elem.addEventListener('blur', (ev) => {
         elem.contentEditable = false;
-        elem.style.zIndex = 1;
+        elem.style.zIndex = "1";
         if (ev.target.innerText === file.name) {
             return;
         }
@@ -115,7 +115,6 @@ function onTrashClick(file) {
         .then((resp) => {
             if (resp.status === 409) {
                 showSnack(`Folder is not empty`, colorOrange, 'warning');
-                return;
             } else if (resp.status === 200) {
                 showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
                 document.getElementById(`file-${file.hash}`).remove();

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/jnsougata/deta-go/deta"
-	"github.com/labstack/echo/v5"
 )
 
 var d = deta.New(nil)
@@ -19,7 +19,7 @@ var drive = d.Drive("filebox")
 var base = d.Base("filebox_metadata")
 var collectionUrl = os.Getenv("GLOBAL_COLLECTION_URL")
 
-func Action(c echo.Context) error {
+func Action(c *gin.Context) {
 	data := drive.Files("", 0, "").Data
 	names := data["names"].([]interface{})
 	hashes := map[string]string{}
@@ -40,43 +40,48 @@ func Action(c echo.Context) error {
 		}
 	}
 	r := drive.Delete(orphanNames...)
-	return c.JSON(r.StatusCode, r.Data)
+	c.JSON(r.StatusCode, r.Data)
 }
 
-func ProjectKey(c echo.Context) error {
-	password := c.PathParam("password")
+func ProjectKey(c *gin.Context) {
+	password := c.Param("password")
 	userPin := os.Getenv("USER_PASSWORD")
 	if userPin == "" {
-		return c.JSON(http.StatusForbidden, map[string]string{
+		c.JSON(http.StatusForbidden, map[string]string{
 			"error": "no password set",
 		})
+		return
 	}
 	if !MatchPassword(password) {
-		return c.JSON(http.StatusForbidden, map[string]string{
+		c.JSON(http.StatusForbidden, map[string]string{
 			"error": "incorrect password",
 		})
+		return
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	c.JSON(http.StatusOK, map[string]interface{}{
 		"key": os.Getenv("DETA_API_KEY"),
 	})
+	return
 }
 
-func Metadata(c echo.Context) error {
-	password := c.PathParam("password")
+func Metadata(c *gin.Context) {
+	password := c.Param("password")
 	if !MatchPassword(password) {
-		return c.String(http.StatusUnauthorized, "Unauthorized")
+		c.String(http.StatusUnauthorized, "Unauthorized")
+		return
 	}
-	switch c.Request().Method {
+	switch c.Request.Method {
 	case "GET":
 		q := deta.NewQuery()
 		q.NotEquals("deleted", true)
 		resp := base.FetchUntilEnd(q)
 		items := resp.Data["items"]
-		return c.JSON(http.StatusOK, items)
+		c.JSON(http.StatusOK, items)
+		return
 
 	case "POST":
 		var data map[string]interface{}
-		_ = json.NewDecoder(c.Request().Body).Decode(&data)
+		_ = json.NewDecoder(c.Request.Body).Decode(&data)
 		key := data["hash"].(string)
 		data["key"] = key
 		_, hasPrent := data["parent"]
@@ -92,7 +97,8 @@ func Metadata(c echo.Context) error {
 				}
 			}
 			if len(tmp) > 0 {
-				return c.JSON(http.StatusConflict, nil)
+				c.JSON(http.StatusConflict, nil)
+				return
 			}
 		}
 		if hasPrent && isFolder {
@@ -101,26 +107,30 @@ func Metadata(c echo.Context) error {
 			q.Equals("name", data["name"].(string))
 			resp := base.FetchUntilEnd(q).Data["items"].([]map[string]interface{})
 			if len(resp) > 0 {
-				return c.JSON(http.StatusConflict, nil)
+				c.JSON(http.StatusConflict, nil)
+				return
 			}
 		}
 		resp := base.Put(deta.Record{Key: key, Value: data})
-		return c.JSON(resp.StatusCode, resp.Data)
+		c.JSON(resp.StatusCode, resp.Data)
+		return
 
 	case "PATCH":
 		var data map[string]interface{}
-		_ = json.NewDecoder(c.Request().Body).Decode(&data)
+		_ = json.NewDecoder(c.Request.Body).Decode(&data)
 		projId, ok := data["project_id"]
 		if !ok || !MatchProjectId(projId.(string)) {
-			return c.String(http.StatusForbidden, "Unauthorized")
+			c.String(http.StatusForbidden, "Unauthorized")
+			return
 		}
 		key := data["hash"].(string)
 		data["key"] = key
 		resp := base.Put(deta.Record{Key: key, Value: data})
-		return c.JSON(resp.StatusCode, resp.Data)
+		c.JSON(resp.StatusCode, resp.Data)
+		return
 
 	case "DELETE":
-		metadata, _ := io.ReadAll(c.Request().Body)
+		metadata, _ := io.ReadAll(c.Request.Body)
 		var file map[string]interface{}
 		_ = json.Unmarshal(metadata, &file)
 		projId, ok := file["project_id"]
@@ -142,34 +152,36 @@ func Metadata(c echo.Context) error {
 			resp := base.FetchUntilEnd(q)
 			children := resp.Data["items"].([]map[string]interface{})
 			if len(children) > 0 {
-				return c.JSON(http.StatusConflict, nil)
+				c.JSON(http.StatusConflict, nil)
 			} else {
 				_ = base.Delete(file["hash"].(string))
-				return c.JSON(http.StatusOK, nil)
+				c.JSON(http.StatusOK, nil)
 			}
 		}
 		hash := file["hash"].(string)
 		_ = base.Delete(hash)
 		_ = drive.Delete(FileToDriveSavedName(file))
-		return c.JSON(http.StatusOK, nil)
+		c.JSON(http.StatusOK, nil)
+		return
 
 	default:
-		return c.JSON(http.StatusMethodNotAllowed, nil)
+		c.JSON(http.StatusMethodNotAllowed, nil)
+		return
 	}
 }
 
-func ExtraFolderMeta(c echo.Context) error {
+func ExtraFolderMeta(c *gin.Context) {
 	var body map[string]interface{}
-	_ = json.NewDecoder(c.Request().Body).Decode(&body)
+	_ = json.NewDecoder(c.Request.Body).Decode(&body)
 	parent := body["parent"].(string)
 	q := deta.NewQuery()
 	q.Equals("parent", parent)
 	resp := base.Fetch(q).Data["items"]
-	return c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, resp)
 }
 
-func EmbedFile(c echo.Context) error {
-	hash := c.PathParam("hash")
+func EmbedFile(c *gin.Context) {
+	hash := c.Param("hash")
 	resp := base.Get(hash)
 	access, ok := resp.Data["access"]
 	if ok && access.(string) == "private" {
@@ -177,33 +189,43 @@ func EmbedFile(c echo.Context) error {
 	}
 	isDeleted, ok := resp.Data["deleted"]
 	if ok && isDeleted.(bool) {
-		return c.String(http.StatusNotFound, "File not found")
+		c.String(http.StatusNotFound, "File not found")
+		return
 	}
 	if resp.Data["size"].(float64) > 5*1024*1024 {
-		return c.String(http.StatusForbidden, "File too large")
+		c.String(http.StatusForbidden, "File too large")
+		return
 	}
 	fileName := resp.Data["name"].(string)
 	mime := resp.Data["mime"].(string)
-	c.Response().Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=%s", fileName))
-	c.Response().Header().Set("Content-Type", mime)
+	c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%s", fileName))
+	c.Header("Content-Type", mime)
 	streamingResp := drive.Get(FileToDriveSavedName(resp.Data))
-	return c.Stream(http.StatusOK, mime, streamingResp.Reader)
+	c.Stream(func(w io.Writer) bool {
+		_, err := io.Copy(w, streamingResp.Reader)
+		if err != nil {
+			return false
+		}
+		return true
+	})
 }
 
-func DownloadFile(c echo.Context) error {
-	hash := c.PathParam("hash")
-	part := c.PathParam("part")
-	recipient := c.PathParam("recipient")
+func DownloadFile(c *gin.Context) {
+	hash := c.Param("hash")
+	part := c.Param("part")
+	recipient := c.Param("recipient")
 	resp := base.Get(hash)
 	if recipient == "na" {
 		access, ok := resp.Data["access"]
 		if ok && access.(string) == "private" {
-			return c.String(http.StatusForbidden, "Unauthorized")
+			c.String(http.StatusForbidden, "Unauthorized")
+			return
 		}
 	} else {
 		recipients, ok := resp.Data["recipients"]
 		if !ok {
-			return c.String(http.StatusForbidden, "Unauthorized")
+			c.String(http.StatusForbidden, "Unauthorized")
+			return
 		}
 		recipientsList := recipients.([]interface{})
 		found := false
@@ -214,7 +236,8 @@ func DownloadFile(c echo.Context) error {
 			}
 		}
 		if !found {
-			return c.String(http.StatusForbidden, "Unauthorized")
+			c.String(http.StatusForbidden, "Unauthorized")
+			return
 		}
 	}
 	skip, _ := strconv.Atoi(part)
@@ -234,11 +257,18 @@ func DownloadFile(c echo.Context) error {
 	}
 	client := &http.Client{}
 	fResp, _ := client.Do(req)
-	return c.Stream(http.StatusOK, "application/octet-stream", fResp.Body)
+	c.Header("Content-Type", "application/octet-stream")
+	c.Stream(func(w io.Writer) bool {
+		_, err := io.Copy(w, fResp.Body)
+		if err != nil {
+			return false
+		}
+		return true
+	})
 }
 
-func SharedMeta(c echo.Context) error {
-	hash := c.PathParam("hash")
+func SharedMeta(c *gin.Context) {
+	hash := c.Param("hash")
 	resp := base.Get(hash)
 	data := resp.Data
 	delete(data, "key")
@@ -247,33 +277,34 @@ func SharedMeta(c echo.Context) error {
 	delete(data, "access")
 	delete(data, "parent")
 	delete(data, "project_id")
-	return c.JSON(http.StatusOK, data)
+	c.JSON(http.StatusOK, data)
 }
 
-func Query(c echo.Context) error {
+func Query(c *gin.Context) {
 	var body map[string]interface{}
-	_ = json.NewDecoder(c.Request().Body).Decode(&body)
+	_ = json.NewDecoder(c.Request.Body).Decode(&body)
 	q := deta.NewQuery()
 	for k, v := range body {
 		q.Equals(k, v)
 	}
 	resp := base.FetchUntilEnd(q).Data["items"]
-	return c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, resp)
 }
 
-func Rename(c echo.Context) error {
-	if !MatchPassword(c.PathParam("password")) {
-		return c.String(http.StatusForbidden, "Unauthorized")
+func Rename(c *gin.Context) {
+	if !MatchPassword(c.Param("password")) {
+		c.String(http.StatusForbidden, "Unauthorized")
+		return
 	}
 	var body map[string]interface{}
-	_ = json.NewDecoder(c.Request().Body).Decode(&body)
+	_ = json.NewDecoder(c.Request.Body).Decode(&body)
 	u := deta.NewUpdater(body["hash"].(string))
 	u.Set("name", body["name"].(string))
 	resp := base.Update(u)
-	return c.JSON(resp.StatusCode, resp)
+	c.JSON(resp.StatusCode, resp)
 }
 
-func Consumption(c echo.Context) error {
+func Consumption(c *gin.Context) {
 	q := deta.NewQuery()
 	q.NotEquals("type", "folder")
 	q.NotEquals("shared", true)
@@ -283,47 +314,54 @@ func Consumption(c echo.Context) error {
 	for _, file := range files {
 		size += int(file["size"].(float64))
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"size": size})
+	c.JSON(http.StatusOK, map[string]interface{}{"size": size})
 }
 
-func Bookmark(c echo.Context) error {
-	hash := c.PathParam("hash")
-	password := c.PathParam("password")
+func Bookmark(c *gin.Context) {
+	hash := c.Param("hash")
+	password := c.Param("password")
 	if !MatchPassword(password) {
-		return c.String(http.StatusForbidden, "Unauthorized")
+		c.String(http.StatusForbidden, "Unauthorized")
+		return
 	}
-	switch c.Request().Method {
+	switch c.Request.Method {
 	case "POST":
 		updater := deta.NewUpdater(hash)
 		updater.Set("pinned", true)
 		resp := base.Update(updater)
-		return c.JSON(resp.StatusCode, resp.Data)
+		c.JSON(resp.StatusCode, resp.Data)
+		return
+
 	case "DELETE":
 		updater := deta.NewUpdater(hash)
 		updater.Delete("pinned")
 		resp := base.Update(updater)
-		return c.JSON(resp.StatusCode, resp.Data)
+		c.JSON(resp.StatusCode, resp.Data)
+		return
+
 	default:
-		return c.String(http.StatusMethodNotAllowed, "Method not allowed")
+		c.String(http.StatusMethodNotAllowed, "Method not allowed")
+		return
 	}
 }
 
-func Access(c echo.Context) error {
-	password := c.PathParam("password")
+func Access(c *gin.Context) {
+	password := c.Param("password")
 	if !MatchPassword(password) {
-		return c.String(http.StatusForbidden, "Unauthorized")
+		c.String(http.StatusForbidden, "Unauthorized")
+		return
 	}
 	var body map[string]interface{}
-	_ = json.NewDecoder(c.Request().Body).Decode(&body)
+	_ = json.NewDecoder(c.Request.Body).Decode(&body)
 	updater := deta.NewUpdater(body["hash"].(string))
 	updater.Set("access", body["access"].(string))
 	resp := base.Update(updater)
-	return c.JSON(resp.StatusCode, resp.Data)
+	c.JSON(resp.StatusCode, resp.Data)
 }
 
-func FolderItemCountBulk(c echo.Context) error {
+func FolderItemCountBulk(c *gin.Context) {
 	var folders []map[string]interface{}
-	_ = json.NewDecoder(c.Request().Body).Decode(&folders)
+	_ = json.NewDecoder(c.Request.Body).Decode(&folders)
 	parentMap := map[string]interface{}{}
 	for _, folder := range folders {
 		parentMap[FolderToAsParentPath(folder)] = map[string]interface{}{
@@ -354,18 +392,19 @@ func FolderItemCountBulk(c echo.Context) error {
 	for _, v := range parentMap {
 		counts = append(counts, v.(map[string]interface{}))
 	}
-	return c.JSON(resp.StatusCode, counts)
+	c.JSON(resp.StatusCode, counts)
 }
 
-func FileBulkOps(c echo.Context) error {
-	password := c.PathParam("password")
+func FileBulkOps(c *gin.Context) {
+	password := c.Param("password")
 	if !MatchPassword(password) {
-		return c.String(http.StatusForbidden, "Unauthorized")
+		c.String(http.StatusForbidden, "Unauthorized")
+		return
 	}
-	switch c.Request().Method {
+	switch c.Request.Method {
 	case "DELETE":
 		var body []map[string]interface{}
-		_ = json.NewDecoder(c.Request().Body).Decode(&body)
+		_ = json.NewDecoder(c.Request.Body).Decode(&body)
 		var hashes []string
 		var driveNames []string
 		for _, item := range body {
@@ -374,27 +413,32 @@ func FileBulkOps(c echo.Context) error {
 		}
 		_ = base.Delete(hashes...)
 		_ = drive.Delete(driveNames...)
-		return c.String(http.StatusOK, "OK")
+		c.String(http.StatusOK, "OK")
+		return
+
 	case "PATCH":
 		var body []map[string]interface{}
-		_ = json.NewDecoder(c.Request().Body).Decode(&body)
+		_ = json.NewDecoder(c.Request.Body).Decode(&body)
 		var files []deta.Record
 		for _, item := range body {
 			record := deta.Record{Key: item["hash"].(string), Value: item}
 			files = append(files, record)
 		}
 		_ = base.Put(files...)
-		return c.String(http.StatusOK, "OK")
+		c.String(http.StatusOK, "OK")
+		return
+
 	default:
-		return c.String(http.StatusMethodNotAllowed, "Method not allowed")
+		c.String(http.StatusMethodNotAllowed, "Method not allowed")
+		return
 	}
 }
 
-func ExtFileDownlaod(c echo.Context) error {
-	hash := c.PathParam("hash")
-	skip := c.PathParam("part")
-	owner := c.PathParam("owner")
-	recipient := c.PathParam("recipient")
+func ExtFileDownload(c *gin.Context) {
+	hash := c.Param("hash")
+	skip := c.Param("part")
+	owner := c.Param("owner")
+	recipient := c.Param("recipient")
 	oresp, _ := http.Get(fmt.Sprintf("%s/users/%s", collectionUrl, owner))
 	var ownerData map[string]interface{}
 	_ = json.NewDecoder(oresp.Body).Decode(&ownerData)
@@ -405,13 +449,15 @@ func ExtFileDownlaod(c echo.Context) error {
 		fmt.Sprintf("%s/api/file/%s/%s/%s", ownerInstanceUrl, recipient, hash, skip),
 		nil)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, "Internal Server Error")
+		c.String(http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 	req.Header.Set("X-Space-App-Key", ownerInstanceApiKey)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, "Internal Server Error")
+		c.String(http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -419,18 +465,22 @@ func ExtFileDownlaod(c echo.Context) error {
 			log.Println(err)
 		}
 	}(resp.Body)
-	return c.Stream(resp.StatusCode, "application/octet-stream", resp.Body)
+	c.Header("Content-Type", "application/octet-stream")
+	c.Stream(func(w io.Writer) bool {
+		_, _ = io.Copy(w, resp.Body)
+		return false
+	})
 }
 
-func Discovery(c echo.Context) error {
-	userId := c.PathParam("id")
-	password := c.PathParam("password")
+func Discovery(c *gin.Context) {
+	userId := c.Param("id")
+	password := c.Param("password")
 
-	switch c.Request().Method {
+	switch c.Request.Method {
 	case "PUT":
 		req, _ := http.NewRequest(
 			"PUT",
-			fmt.Sprintf("%s/users/%s/%s", collectionUrl, userId, password), c.Request().Body,
+			fmt.Sprintf("%s/users/%s/%s", collectionUrl, userId, password), c.Request.Body,
 		)
 		req.Header.Set("Content-Type", "application/json")
 		client := &http.Client{}
@@ -441,7 +491,8 @@ func Discovery(c echo.Context) error {
 				log.Println(err)
 			}
 		}(resp.Body)
-		return c.String(resp.StatusCode, "OK")
+		c.String(resp.StatusCode, "OK")
+		return
 
 	case "DELETE":
 		req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/users/%s/%s", collectionUrl, userId, password), nil)
@@ -453,15 +504,17 @@ func Discovery(c echo.Context) error {
 				log.Println(err)
 			}
 		}(resp.Body)
-		return c.String(resp.StatusCode, "OK")
+		c.String(resp.StatusCode, "OK")
+		return
 
 	default:
-		return c.String(http.StatusMethodNotAllowed, "Method not allowed")
+		c.String(http.StatusMethodNotAllowed, "Method not allowed")
+		return
 	}
 }
 
-func UserStatus(c echo.Context) error {
-	userId := c.PathParam("id")
+func UserStatus(c *gin.Context) {
+	userId := c.Param("id")
 	resp, _ := http.Get(fmt.Sprintf("%s/users/%s/status", collectionUrl, userId))
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -469,23 +522,24 @@ func UserStatus(c echo.Context) error {
 			log.Println(err)
 		}
 	}(resp.Body)
-	return c.Stream(resp.StatusCode, "application/json", resp.Body)
+	c.JSON(resp.StatusCode, resp.Body)
 }
 
-func PushFileMeta(c echo.Context) error {
-	targetId := c.PathParam("id")
+func PushFileMeta(c *gin.Context) {
+	targetId := c.Param("id")
 	resp, _ := http.Get(fmt.Sprintf("%s/users/%s", collectionUrl, targetId))
 	var owner map[string]interface{}
 	_ = json.NewDecoder(resp.Body).Decode(&owner)
 	instanceURL, ok := owner["url"]
 	if !ok {
-		return c.String(http.StatusNotFound, "Not Found")
+		c.String(http.StatusNotFound, "Not Found")
+		return
 	}
 	ownerInstanceApiKey := owner["api_key"].(string)
-	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/api/metadata", instanceURL.(string)), c.Request().Body)
+	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/api/metadata", instanceURL.(string)), c.Request.Body)
 	req.Header.Set("X-Space-App-Key", ownerInstanceApiKey)
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, _ = client.Do(req)
-	return c.JSON(resp.StatusCode, nil)
+	c.JSON(resp.StatusCode, nil)
 }

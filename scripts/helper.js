@@ -4,8 +4,7 @@ let queueContent = document.querySelector('.queue_content');
 let queueTaskList = document.querySelector('#queue-task-list');
 let previewContainer = document.querySelector('#preview');
 let previewNameElem = document.querySelector('#preview-name');
-let previewLoadLevl = document.querySelector('#preview-loaded');
-let previewEmbedElem = document.querySelector('#preview-embed');
+let previewLoadLevel = document.querySelector('#preview-loaded');
 
 
 // function sendNotification(body, tag = 'filebox') {
@@ -41,7 +40,7 @@ async function passwordToSHA256Hex(str) {
 }
 
 function getAvatarURL(userId, parse=false){
-    let username = "";
+    let username;
     if (parse) {
         username = userId.split("-")[1];
     } else {
@@ -974,7 +973,7 @@ async function showFilePreview(file) {
                     }
                     controller.enqueue(value);
                     progress += value.length;
-                    previewLoadLevl.innerHTML = `${Math.round((progress / file.size) * 100)}%`;
+                    previewLoadLevel.innerHTML = `${Math.round((progress / file.size) * 100)}%`;
                     return pump();
                 });
             }
@@ -1213,9 +1212,9 @@ function renderOriginalNav() {
         for (let i = 0; i < ev.target.files.length; i++) {
             let file = ev.target.files[i];
             let relativePath = ev.target.files[i].webkitRelativePath;
-            let parentFramnets = relativePath.split('/');
-            parentFramnets.pop();
-            let parent = parentFramnets.join('/');
+            let parentFragments = relativePath.split('/');
+            parentFragments.pop();
+            let parent = parentFragments.join('/');
             if (globalContextFolder) {
                 if (globalContextFolder.parent) {
                     parent = `${globalContextFolder.parent}/${globalContextFolder.name}/${parent}`;
@@ -1491,7 +1490,7 @@ function buildPendingFileList(files) {
                     pendingFile.remove();
                     fileList.appendChild(newFileElem(file));
                 } else {
-                    showSnack('Something went wron. Please try again', colorRed, 'error');
+                    showSnack('Something went wrong. Please try again', colorRed, 'error');
                 }
             })
         });

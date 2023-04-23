@@ -379,7 +379,7 @@ previewBackButton.addEventListener('click', () => {
     globalPreviewFile = null;
     previewModal.style.display = 'none';
     controller.abort();
-    previewLoadLevl.innerHTML = '0%';
+    previewLoadLevel.innerHTML = '0%';
     document.querySelector('embed').remove();
 });
 

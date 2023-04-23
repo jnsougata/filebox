@@ -1,31 +1,29 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-
-	"github.com/labstack/echo/v5"
-	"github.com/labstack/echo/v5/middleware"
 )
 
 func main() {
-	echo := echo.New()
-	echo.Use(
-		middleware.Gzip(),
-		middleware.LoggerWithConfig(middleware.LoggerConfig{
-			Format: "method=${method}, uri=${uri}, status=${status}\n",
-		}),
-	)
-	echo.File("/", "static/index.html")
-	echo.GET("/shared/:hash", SharedPage)
-	echo.File("/manifest.json", "manifest.json")
-	echo.File("/service-worker.js", "service-worker.js")
-	echo.Static("/assets", "assets")
-	echo.Static("/scripts", "scripts")
-	echo.Static("/styles", "styles")
-	echo.POST("/__space/v0/actions", Action)
+	r := gin.Default()
+	r.GET("/", func(c *gin.Context) {
+		c.File("static/index.html")
+	})
+	r.GET("/manifest.json", func(c *gin.Context) {
+		c.File("manifest.json")
+	})
+	r.GET("/service-worker.js", func(c *gin.Context) {
+		c.File("service-worker.js")
+	})
+	r.GET("/shared/:hash", SharedPage)
+	r.Static("/assets", "assets")
+	r.Static("/scripts", "scripts")
+	r.Static("/styles", "styles")
+	r.POST("/__space/v0/actions", Action)
 
-	api := echo.Group("/api")
+	api := r.Group("/api")
 	api.GET("/key/:password", ProjectKey)
 	api.Any("/metadata/:password", Metadata)
 	api.POST("/folder", ExtraFolderMeta)
@@ -39,26 +37,29 @@ func main() {
 	api.PATCH("/file/access/:password", Access)
 	api.POST("/items/count", FolderItemCountBulk)
 	api.Any("/bulk/:password", FileBulkOps)
-	api.GET("/external/:recipient/:owner/:hash/:part", ExtFileDownlaod)
+	api.GET("/external/:recipient/:owner/:hash/:part", ExtFileDownload)
 	api.Any("/discovery/:id/:password", Discovery)
 	api.GET("/discovery/:id/status", UserStatus)
 	api.POST("/push/:id/metadata", PushFileMeta)
 
-	if err := echo.Start(":8080"); err != http.ErrServerClosed {
+	if err := r.Run(":8080"); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 }
 
-func SharedPage(c echo.Context) error {
-	hash := c.PathParam("hash")
+func SharedPage(c *gin.Context) {
+	hash := c.Param("hash")
 	metadata := base.Get(hash).Data
 	_, ok := metadata["hash"].(string)
 	if !ok {
-		return c.String(http.StatusNotFound, "Not Found")
+		c.String(http.StatusNotFound, "Not Found")
+		return
 	}
 	access, _ := metadata["access"].(string)
 	if access == "private" {
-		return c.String(http.StatusForbidden, "Forbidden")
+		c.String(http.StatusForbidden, "Forbidden")
+		return
 	}
-	return c.File("static/shared.html")
+	c.File("static/shared.html")
+
 }

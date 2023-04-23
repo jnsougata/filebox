@@ -477,7 +477,6 @@ body {
 }
 .file_menu > .title > i {
     font-size: 14px;
-    color: #ccc;
     border-radius: 50%;
     cursor: pointer;
     color: #0561da;
@@ -551,8 +550,7 @@ body {
 .prompt {
     width: 100%;
     height: 50px;
-    padding: 10px;
-    padding-right: 20px;
+    padding: 10px 20px 10px 10px;
     display: flex;
     flex-shrink: 0;
     align-items: center;
@@ -985,7 +983,7 @@ body {
 @media screen and (max-width: 768px) {
     .multi_select_options > button {
         justify-content: space-evenly;
-        margin-right: none;
+        margin-right: 0;
     }
 }
 
@@ -1185,7 +1183,6 @@ body {
     height: 100vh;
     height: 100dvh;
     position: fixed;
-    z-index: 100;
     display: flex;
     padding: 20px;
     align-items: center;
@@ -1418,9 +1415,11 @@ body {
     transition: 0.2s;
     background-color: var(--color-blackish-hover);
 }
-
 .preview > .head > .part > button > span:hover {
-    background-color: var(--color-redish);
+    background-color: var(--color-blackish);
+}
+.preview > .head > .part > button > a:hover {
+    background-color: var(--color-blackish);
 }
 .preview > .content {
     width: 100%;
