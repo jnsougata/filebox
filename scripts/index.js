@@ -312,7 +312,7 @@ trashButton.addEventListener('click', () => {
 
 let discoveryButton = document.querySelector('#discovery');
 discoveryButton.addEventListener('click', () => {
-    if (globalDiscoveryStatus === -1) {
+    if (globalDiscoveryStatus === -1 || !globalDiscoveryStatus) {
         modalContent.innerHTML = '';
         modalContent.appendChild(buildDiscoveryModal());
         modal.style.display = 'flex';
