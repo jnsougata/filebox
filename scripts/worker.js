@@ -212,34 +212,39 @@ function createFolder() {
         showSnack(`~shared is a reserved folder name`, colorOrange, 'warning');
         return;
     }
-    if (name) {
-        let body = {
-            "name": name,
-            "type": "folder",
-            "hash": randId(),
-            "date": new Date().toISOString(),
-        }
-        if (globalContextFolder) {
-            if (globalContextFolder.parent) {
-                body.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
-            } else {
-                body.parent = globalContextFolder.name;
-            }
-        }
-        fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(body)})
-        .then((resp) => {
-            if (resp.status === 409) {
-                showSnack(`Folder with same name already exists`, colorRed, 'error');
-            } else if (resp.status <= 207) {
-                showSnack(`Created folder ${name}`, colorGreen, 'success');
-                if (body.parent) {
-                    handleFolderClick(globalContextFolder);
-                } else {
-                    browseButton.click();
-                }
-            }
-        })
+    if (name && name.includes("/")) {
+        showSnack(`Folder name cannot contain /`, colorOrange, 'warning');
+        return;
     }
+    if (name === "") {
+        showSnack(`Folder name cannot be empty`, colorOrange, 'warning');
+        return;
+    }
+    if (!name) {
+        return;
+    }
+    let body = {
+        "name": name,
+        "type": "folder",
+        "hash": randId(),
+        "date": new Date().toISOString(),
+    }
+    if (globalContextFolder) {
+        if (globalContextFolder.parent) {
+            body.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
+        } else {
+            body.parent = globalContextFolder.name;
+        }
+    }
+    fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(body)})
+    .then((resp) => {
+        if (resp.status === 409) {
+            showSnack(`Folder with same name already exists`, colorRed, 'error');
+        } else if (resp.status <= 207) {
+            showSnack(`Created folder ${name}`, colorGreen, 'success');
+            handleFolderClick(body);
+        }
+    })
 }
 
 function downloadShared(file) {

@@ -45,17 +45,17 @@ function filterNonDeletedFiles(files) {
 
 function getContextOptionElem() {
     let options = {
-        "recent" : recentButton,
-        "browse" : browseButton,
-        "pinned" : pinnedButton,
+        "recent": recentButton,
+        "browse": browseButton,
+        "pinned": pinnedButton,
         "trash": trashButton,
         "shared": sharedButton,
-        "pdfs" : pdfButton,
-        "images" : imgButton,
-        "videos" : videoButton,
-        "audios" : audioButton,
-        "docs" : docsButton,
-        "others" : otherButton,
+        "pdfs": pdfButton,
+        "images": imgButton,
+        "videos": videoButton,
+        "audios": audioButton,
+        "docs": docsButton,
+        "others": otherButton,
     }
     return options[globalContextOption];
 }
@@ -98,7 +98,7 @@ for (let i = 0; i < sidebarOptions.length; i++) {
 
 let recentButton = document.querySelector('#recent');
 recentButton.addEventListener('click', () => {
-    globalContextOption = "browse";
+    globalContextOption = "recent";
     globalContextFolder = null;
     fileOptionPanel.style.display = 'none';
     if (window.innerWidth < 768) {
