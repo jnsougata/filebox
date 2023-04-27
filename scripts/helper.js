@@ -1059,9 +1059,6 @@ function buildDynamicNavIcon() {
 }
 
 function renderSearchResults(query) {
-    if (query.length === 0) {
-        return;
-    }
     fetch(`/api/query`, {
         method: "POST",
         body: JSON.stringify({"name?contains": query}),
@@ -1118,23 +1115,35 @@ function renderOriginalNav() {
     navBar.style.paddingLeft = '10px';
     navBar.style.paddingRight = '10px';
     let icon = buildDynamicNavIcon();
+    let backButton = document.createElement('button');
+    let searched = false;
+    backButton.innerHTML = '<span class="material-symbols-rounded">clear_all</span>';
+    backButton.style.display = 'none';
+    backButton.addEventListener('click', () => {
+        if (searched) {
+            getContextOptionElem().click();
+        } else {
+            inputBar.value = '';
+        }
+    });
     let inputBar = document.createElement('input');
     inputBar.type = 'text';
     inputBar.placeholder = 'Search in Drive';
     inputBar.spellcheck = false;
     inputBar.autocomplete = 'on'; 
     let inputTimer = null;
-    inputBar.addEventListener('focus', () => {
-        if (inputBar.value.length > 0) {
-            renderSearchResults(inputBar.value);
-        }
+    inputBar.addEventListener('focus', (ev) => {
+        backButton.style.display = 'flex';
     });
     inputBar.addEventListener('input', (ev) => {
         if (inputTimer) {
             clearTimeout(inputTimer);
         }
         inputTimer = setTimeout(() => {
-            renderSearchResults(ev.target.value);
+            if (ev.target.value.length > 0) {
+                searched = true;
+                renderSearchResults(ev.target.value);
+            }
         }, 500);
     });
     let newFolderButton = document.createElement('button');
@@ -1256,6 +1265,7 @@ function renderOriginalNav() {
     navBar.innerHTML = '';
     navBar.appendChild(icon);
     navBar.appendChild(inputBar);
+    navBar.appendChild(backButton);
     navBar.appendChild(newFolderButton);
     navBar.appendChild(folderUploadButton);
     navBar.appendChild(newFileButton);
@@ -1264,7 +1274,9 @@ function renderOriginalNav() {
 }
 
 function renderAuxNav(elem){
-    navBar.style.padding = '0px';
+    navBar.style.width = '100%';
+    navBar.style.margin = '0';
+    navBar.style.padding = '0';
     let wrapper = document.createElement('div');
     wrapper.className = 'other';
     navBar.innerHTML = '';
