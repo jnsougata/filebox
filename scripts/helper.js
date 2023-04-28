@@ -857,7 +857,7 @@ function showSnack(text, color=colorGreen, type='success') {
     p.style.textAlign = 'left';
     p.innerHTML = text;
     let close = document.createElement('i');
-    close.className = 'fa-solid fa-stop';
+    close.className = 'fa-solid fa-minus';
     close.style.cursor = 'pointer';
     close.addEventListener('click', () => {
         snackbar.style.display = 'none';
@@ -873,7 +873,7 @@ function showSnack(text, color=colorGreen, type='success') {
     }
     snackTimer = setTimeout(() => {
         snackbar.style.display = 'none';
-    }, 2500);
+    }, 3000);
 }
 
 function renderFilesByMime(query) {
