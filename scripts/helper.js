@@ -848,17 +848,32 @@ function showSnack(text, color=colorGreen, type='success') {
     }
     let snackbar = document.querySelector('.snackbar');
     snackbar.style.display = 'flex';
-    snackbar.innerHTML = `
-    <div class="snack_content" style="background-color: ${color}">
-        <i class="${icons[type]}"></i>
-        <p>${text}</p>
-    </div>`;
+    let content = document.createElement('div');
+    content.className = 'snack_content';
+    content.style.backgroundColor = color;
+    let icon = document.createElement('i');
+    icon.className = icons[type];
+    let p = document.createElement('p');
+    p.style.textAlign = 'left';
+    p.innerHTML = text;
+    let close = document.createElement('i');
+    close.className = 'fa-solid fa-stop';
+    close.style.cursor = 'pointer';
+    close.addEventListener('click', () => {
+        snackbar.style.display = 'none';
+        cg.click();
+    });
+    snackbar.innerHTML = "";
+    content.appendChild(icon);
+    content.appendChild(p);
+    content.appendChild(close);
+    snackbar.appendChild(content);
     if (snackTimer) {
         clearTimeout(snackTimer);
     }
     snackTimer = setTimeout(() => {
         snackbar.style.display = 'none';
-    }, 3000);
+    }, 2500);
 }
 
 function renderFilesByMime(query) {

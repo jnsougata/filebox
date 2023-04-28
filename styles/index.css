@@ -612,7 +612,7 @@ body {
     color: white;
     font-size: 20px;
     transition: bottom 0.5s;
-    z-index: 1100 !important;
+    z-index: 10000 !important;
     background-color: transparent;
 }
 .snackbar > .snack_content {
@@ -621,7 +621,7 @@ body {
     display: flex;
     padding: 0 20px;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
     background-color: rgb(30, 112, 30);
     box-shadow: 0 0 10px 0 #000000;
     border-radius: 5px;
@@ -629,7 +629,6 @@ body {
 }
 .snackbar > .snack_content > p {
     font-size: 16px;
-    max-width: 480px;
     text-align: left;
     overflow: hidden;
     white-space: nowrap;

@@ -103,6 +103,7 @@ function onEmbedClick(file) {
 }
 
 function onMoveClick(file) {
+    cg.style.display = 'none';
     isFileMoving = true;
     browseButton.click();
     renderAuxNav(fileMover(file));
