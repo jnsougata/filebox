@@ -863,6 +863,11 @@ function showSnack(text, color=colorGreen, type='success') {
 
 function renderFilesByMime(query) {
     sidebarOptionSwitch();
+    if (previousOption) {
+        previousOption.style.borderLeft = '5px solid transparent';
+        previousOption.style.backgroundColor = 'transparent';
+        previousOption = null;
+    }
     query['deleted?ne'] = true;
     fetch("/api/query", {method: "POST", body: JSON.stringify(query)})
     .then(response => response.json())
