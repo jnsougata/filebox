@@ -1330,30 +1330,42 @@ function buildDiscoveryModal() {
             url = url.substring(0, url.length - 1);
         }
         passwordToSHA256Hex(globalUserPassword).then((hash) => {
-            fetch(`/api/discovery/${globalUserId}/${hash}`, {
-                method: "PUT",
-                body: JSON.stringify({
-                    "id": globalUserId, 
-                    "url": url, 
-                    "api_key": apiKey,
-                    "enabled": true,
-                }),
+            fetch(`/api/ping`, {
+                method: "GET",
+                headers: {"X-Space-App-Key": apiKey},
+                credentials: "omit"
             })
             .then((resp) => {
                 if (resp.status === 200) {
-                    showSnack('Discovery enabled', colorGreen, 'success');
-                    connectButton.style.color = colorGreen;
-                    discoveryButton.style.color = colorGreen;
-                    setTimeout(() => {
-                        modalContent.innerHTML = '';
-                        modal.style.display = 'none';
-                    }, 1000);
-                    return;
+                    fetch(`/api/discovery/${globalUserId}/${hash}`, {
+                        method: "PUT",
+                        body: JSON.stringify({
+                            "id": globalUserId, 
+                            "url": url, 
+                            "api_key": apiKey,
+                            "enabled": true,
+                        }),
+                    })
+                    .then((resp) => {
+                        if (resp.status === 200) {
+                            showSnack('Discovery enabled', colorGreen, 'success');
+                            connectButton.style.color = colorGreen;
+                            discoveryButton.style.color = colorGreen;
+                            setTimeout(() => {
+                                modalContent.innerHTML = '';
+                                modal.style.display = 'none';
+                            }, 1000);
+                            return;
+                        } else {
+                            showSnack('Error enabling discovery. Retry', colorOrange, 'warning');
+                            return;
+                        }
+                    });
                 } else {
-                    showSnack('Error enabling discovery. Retry', colorOrange, 'warning');
+                    showSnack('Invalid instance API key', colorRed, 'error');
                     return;
                 }
-            });
+            })
         });
     });
     let span = document.createElement('span');

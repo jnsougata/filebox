@@ -19,6 +19,27 @@ var drive = d.Drive("filebox")
 var base = d.Base("filebox_metadata")
 var collectionUrl = os.Getenv("GLOBAL_COLLECTION_URL")
 
+
+func Ping(c *gin.Context) {
+	c.String(http.StatusOK, "pong")
+}
+
+func SharedPage(c *gin.Context) {
+	hash := c.Param("hash")
+	metadata := base.Get(hash).Data
+	_, ok := metadata["hash"].(string)
+	if !ok {
+		c.String(http.StatusNotFound, "Not Found")
+		return
+	}
+	access, _ := metadata["access"].(string)
+	if access == "private" {
+		c.String(http.StatusForbidden, "Forbidden")
+		return
+	}
+	c.File("static/shared.html")
+}
+
 func Action(c *gin.Context) {
 	data := drive.Files("", 0, "").Data
 	names := data["names"].([]interface{})
@@ -61,7 +82,6 @@ func ProjectKey(c *gin.Context) {
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"key": os.Getenv("DETA_API_KEY"),
 	})
-	return
 }
 
 func Metadata(c *gin.Context) {
@@ -203,10 +223,7 @@ func EmbedFile(c *gin.Context) {
 	streamingResp := drive.Get(FileToDriveSavedName(resp.Data))
 	c.Stream(func(w io.Writer) bool {
 		_, err := io.Copy(w, streamingResp.Reader)
-		if err != nil {
-			return false
-		}
-		return true
+		return err == nil
 	})
 }
 
@@ -260,10 +277,7 @@ func DownloadFile(c *gin.Context) {
 	c.Header("Content-Type", "application/octet-stream")
 	c.Stream(func(w io.Writer) bool {
 		_, err := io.Copy(w, fResp.Body)
-		if err != nil {
-			return false
-		}
-		return true
+		return err == nil
 	})
 }
 

@@ -24,6 +24,7 @@ func main() {
 	r.POST("/__space/v0/actions", Action)
 
 	api := r.Group("/api")
+	api.GET("/ping", Ping)
 	api.GET("/key/:password", ProjectKey)
 	api.Any("/metadata/:password", Metadata)
 	api.POST("/folder", ExtraFolderMeta)
@@ -45,21 +46,4 @@ func main() {
 	if err := r.Run(":8080"); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
-}
-
-func SharedPage(c *gin.Context) {
-	hash := c.Param("hash")
-	metadata := base.Get(hash).Data
-	_, ok := metadata["hash"].(string)
-	if !ok {
-		c.String(http.StatusNotFound, "Not Found")
-		return
-	}
-	access, _ := metadata["access"].(string)
-	if access == "private" {
-		c.String(http.StatusForbidden, "Forbidden")
-		return
-	}
-	c.File("static/shared.html")
-
 }
