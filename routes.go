@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
@@ -11,14 +10,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/jnsougata/deta-go/deta"
 )
 
 var d = deta.New(nil)
 var drive = d.Drive("filebox")
 var base = d.Base("filebox_metadata")
-var collectionUrl = os.Getenv("GLOBAL_COLLECTION_URL")
-
 
 func Ping(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
@@ -448,25 +447,19 @@ func FileBulkOps(c *gin.Context) {
 	}
 }
 
-func ExtFileDownload(c *gin.Context) {
+func DownloadFileExtern(c *gin.Context) {
 	hash := c.Param("hash")
 	skip := c.Param("part")
 	owner := c.Param("owner")
 	recipient := c.Param("recipient")
-	oresp, _ := http.Get(fmt.Sprintf("%s/users/%s", collectionUrl, owner))
-	var ownerData map[string]interface{}
-	_ = json.NewDecoder(oresp.Body).Decode(&ownerData)
-	ownerInstanceUrl := ownerData["url"].(string)
-	ownerInstanceApiKey := ownerData["api_key"].(string)
 	req, err := http.NewRequest(
 		"GET",
-		fmt.Sprintf("%s/api/file/%s/%s/%s", ownerInstanceUrl, recipient, hash, skip),
+		fmt.Sprintf("https://filebox-%s.deta.app/api/download/%s/%s/%s", owner, recipient, hash, skip),
 		nil)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
-	req.Header.Set("X-Space-App-Key", ownerInstanceApiKey)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -489,8 +482,8 @@ func ExtFileDownload(c *gin.Context) {
 func PushFileMeta(c *gin.Context) {
 	targetId := c.Param("id")
 	resp, _ := http.Post(
-		fmt.Sprintf("https://filebox-%s.deta.app/api/accept", targetId), 
-		"application/json", 
+		fmt.Sprintf("https://filebox-%s.deta.app/api/accept", targetId),
+		"application/json",
 		c.Request.Body,
 	)
 	c.JSON(resp.StatusCode, nil)

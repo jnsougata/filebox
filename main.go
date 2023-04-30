@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -29,7 +30,6 @@ func main() {
 	api.Any("/metadata/:password", Metadata)
 	api.POST("/folder", ExtraFolderMeta)
 	api.GET("/embed/:hash", EmbedFile)
-	api.GET("/file/:recipient/:hash/:part", DownloadFile)
 	api.GET("/file/metadata/:hash", SharedMeta)
 	api.POST("/query", Query)
 	api.POST("/rename/:password", Rename)
@@ -38,7 +38,8 @@ func main() {
 	api.PATCH("/file/access/:password", Access)
 	api.POST("/items/count", FolderItemCountBulk)
 	api.Any("/bulk/:password", FileBulkOps)
-	api.GET("/external/:recipient/:owner/:hash/:part", ExtFileDownload)
+	api.GET("/download/:recipient/:hash/:part", DownloadFile)
+	api.GET("/external/:recipient/:owner/:hash/:part", DownloadFileExtern)
 	api.POST("/push/:id", PushFileMeta)
 	api.POST("/accept", AcceptFileMeta)
 
