@@ -273,11 +273,8 @@ func DownloadFile(c *gin.Context) {
 	}
 	client := &http.Client{}
 	fResp, _ := client.Do(req)
-	c.Header("Content-Type", "application/octet-stream")
-	c.Stream(func(w io.Writer) bool {
-		_, err := io.Copy(w, fResp.Body)
-		return err == nil
-	})
+	data, _ := io.ReadAll(fResp.Body)
+	c.Data(http.StatusOK, "application/octet-stream", data)
 }
 
 func SharedMeta(c *gin.Context) {

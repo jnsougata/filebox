@@ -1,11 +1,11 @@
 let fileInfo = null;
 let isTaskRunning = false;
+let footer = document.querySelector("footer");
+let fileSizeBar = document.querySelector("#size");
 let progressBar = document.querySelector(".progress");
+let percentage = document.querySelector("#percentage");
 let fileNameElem = document.querySelector("#filename");
 let downloadButton = document.querySelector("#download");
-let footer = document.querySelector("footer");
-let percentage = document.querySelector("#percentage");
-let fileSizeBar = document.querySelector("#size");
 
 
 window.addEventListener('DOMContentLoaded', async () => {
