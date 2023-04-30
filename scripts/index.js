@@ -8,7 +8,6 @@ let globalUserId = null;
 let globalConsumption = 0;
 let globalFolderQueue = [];
 let globalSecretKey = null;
-let globalProjectId = null;
 let globalTrashFiles = null;
 let globalContextFile = null;
 let isUserSubscribed = false;
@@ -310,30 +309,12 @@ trashButton.addEventListener('click', () => {
     }    
 });
 
-let discoveryButton = document.querySelector('#discovery');
-discoveryButton.addEventListener('click', () => {
-    if (globalDiscoveryStatus === -1 || !globalDiscoveryStatus) {
-        modalContent.innerHTML = '';
-        modalContent.appendChild(buildDiscoveryModal());
-        modal.style.display = 'flex';
-        return;
-    } else if (globalDiscoveryStatus === 1) {
-        let ok = confirm('Are you sure you want to leave discovery?');
-        if (ok) {
-            passwordToSHA256Hex(globalUserPassword).then((pin) => {
-                fetch(`/api/discovery/${globalUserId}/${pin}`, {method: 'DELETE'})
-                .then(() => {
-                    globalDiscoveryStatus = -1;
-                    showSnack('Left discovery successfully', colorGreen, 'success');
-                    discoveryButton.style.color = colorOrange;
-                })
-            });
-        }
-    }
-});
-
 let usernameField = document.querySelector('#username');
 usernameField.addEventListener('click', () => {
+    if (!globalUserId) {
+        showSnack('Can not extract user id from domain name', colorRed, 'error');
+        return;
+    }
     navigator.clipboard.writeText(globalUserId)
     .then(() => {
         showSnack('User Id copied to clipboard!', colorGreen, 'success');

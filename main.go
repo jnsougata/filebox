@@ -39,9 +39,8 @@ func main() {
 	api.POST("/items/count", FolderItemCountBulk)
 	api.Any("/bulk/:password", FileBulkOps)
 	api.GET("/external/:recipient/:owner/:hash/:part", ExtFileDownload)
-	api.Any("/discovery/:id/:password", Discovery)
-	api.GET("/discovery/:id/status", UserStatus)
-	api.POST("/push/:id/metadata", PushFileMeta)
+	api.POST("/push/:id", PushFileMeta)
+	api.POST("/accept", AcceptFileMeta)
 
 	if err := r.Run(":8080"); err != http.ErrServerClosed {
 		log.Fatal(err)

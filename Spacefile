@@ -41,3 +41,4 @@ micros:
       - "/scripts/*"
       - "/api/embed/*"
       - "/api/file/*"
+      - "/api/accept"

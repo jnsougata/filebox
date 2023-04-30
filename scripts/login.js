@@ -1,13 +1,10 @@
 function handleStartup(key) {
     globalSecretKey = key;
-    globalProjectId = globalSecretKey.split('_')[0];
     globalUserIdParts = /-(.*?)\./.exec(window.location.hostname);
     if (globalUserIdParts) {
         globalUserId = globalUserIdParts[1];
-    } else {
-        globalUserId = 'unknown';
     }
-    document.querySelector('#username').innerHTML = globalUserId
+    document.querySelector('#username').innerHTML = globalUserId ? globalUserId : 'Anonymous';
     fetch("/api/consumption")
     .then(response => response.json())
     .then(data => {
@@ -15,18 +12,6 @@ function handleStartup(key) {
     })
     modal.style.display = 'none';
     recentButton.click();
-    fetch(`/api/discovery/${globalUserId}/status`)
-    .then((resp) => resp.json())
-    .then((data) => {
-        globalDiscoveryStatus = data.status;
-        if (data.status === -1) {
-            discoveryButton.style.color = colorOrange;
-        } else if (data.status === 0) {
-            discoveryButton.style.color = colorRed;
-        } else if (data.status === 1) {
-            discoveryButton.style.color = colorGreen;
-        }
-    })
 }
 
 function buildLoginModal() {

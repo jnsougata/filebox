@@ -172,7 +172,6 @@ function handleTrashFileMenuClick(file) {
             } else {
                 delete file.deleted;
             }
-            file.project_id = globalProjectId;
             fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
             .then(() => {
                 showSnack(`Restored ${file.name}`, colorGreen, 'success');
@@ -189,7 +188,6 @@ function handleTrashFileMenuClick(file) {
     deleteButton.className = "file_menu_option";
     deleteButton.innerHTML = `<p>Delete Permanently</p><span class="material-symbols-rounded">delete_forever</span>`;
     deleteButton.addEventListener("click", () => {
-        file.project_id = globalProjectId;
         fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
         .then(() => {
             showSnack(`Permanently deleted ${file.name}`, colorRed, 'info');
@@ -301,15 +299,7 @@ function handleFileMenuClick(file) {
                 showSnack("Can't send a file that you don't own", colorOrange, 'info');
                 return;
             }
-            fetch(`/api/discovery/${globalUserId}/status`)
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.status === 1) {
-                    renderFileSenderModal(file);
-                } else {
-                    showSnack("Please enable discovery to send files", colorOrange, 'info');
-                }
-            })  
+            renderFileSenderModal(file);
         });
         fileOptionPanel.appendChild(send);
     }
@@ -418,7 +408,6 @@ function handleFileMenuClick(file) {
         trashButton.innerHTML = `<p>Trash</p><span class="material-symbols-rounded">delete_forever</span>`;
     }
     trashButton.addEventListener("click", () => {
-        file.project_id = globalProjectId;
         if (file.type === 'folder') {
             fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
             .then((resp) => {
@@ -508,7 +497,6 @@ function newFileElem(file, isTrash = false) {
     pickerElem.value = file.color || "#ccc";
     pickerElem.addEventListener("change", () => {
         file.color = pickerElem.value;
-        file.project_id = globalProjectId;
         fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             fileIcon.style.color = file.color;
@@ -1032,7 +1020,6 @@ function fileMover(file) {
                 file.parent = globalContextFolder.name;
             }
         }
-        file.project_id = globalProjectId;
         fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             if (globalContextFolder) {
@@ -1304,83 +1291,11 @@ function renderAuxNav(elem){
     navBar.appendChild(wrapper);
 }
 
-function buildDiscoveryModal() {
-    let discovery = document.createElement('div');
-    discovery.className = 'connection';
-    let p = document.createElement('p');
-    p.innerHTML = 'Enable Discovery?'
-    let apiKeyInput = document.createElement('input');
-    apiKeyInput.type = 'password';
-    apiKeyInput.placeholder = 'API key of your instance';
-    let connectButton = document.createElement('button');
-    connectButton.innerHTML = '<span class="material-symbols-rounded">wifi_tethering</span>';
-    connectButton.addEventListener('click', () => {
-        let url = window.location.href;
-        let apiKey = apiKeyInput.value;
-        if (apiKey.length === 0) {
-            showSnack("API key can't be empty", colorOrange, 'warning');
-            return;
-        }
-        let checkbox = document.querySelector('#agree');
-        if (!checkbox.checked) {
-            showSnack('You must agree to the terms', colorOrange, 'warning');
-            return;
-        }
-        if (url[url.length - 1] === '/') {
-            url = url.substring(0, url.length - 1);
-        }
-        passwordToSHA256Hex(globalUserPassword).then((hash) => {
-            fetch(`/api/ping`, {
-                method: "GET",
-                headers: {"X-Space-App-Key": apiKey},
-                credentials: "omit"
-            })
-            .then((resp) => {
-                if (resp.status === 200) {
-                    fetch(`/api/discovery/${globalUserId}/${hash}`, {
-                        method: "PUT",
-                        body: JSON.stringify({
-                            "id": globalUserId, 
-                            "url": url, 
-                            "api_key": apiKey,
-                            "enabled": true,
-                        }),
-                    })
-                    .then((resp) => {
-                        if (resp.status === 200) {
-                            showSnack('Discovery enabled', colorGreen, 'success');
-                            connectButton.style.color = colorGreen;
-                            discoveryButton.style.color = colorGreen;
-                            setTimeout(() => {
-                                modalContent.innerHTML = '';
-                                modal.style.display = 'none';
-                            }, 1000);
-                            return;
-                        } else {
-                            showSnack('Error enabling discovery. Retry', colorOrange, 'warning');
-                            return;
-                        }
-                    });
-                } else {
-                    showSnack('Invalid instance API key', colorRed, 'error');
-                    return;
-                }
-            })
-        });
-    });
-    let span = document.createElement('span');
-    span.style.marginTop = '20px';
-    span.style.fontSize = '14px';
-    span.style.color = '#ccc';
-    span.innerHTML = `<input type="checkbox" id="agree"> By enabling discovery, you are agreeing to share your instance\'s URL and API key with other instances.`;
-    discovery.appendChild(p);
-    discovery.appendChild(apiKeyInput);
-    discovery.appendChild(span);
-    discovery.appendChild(connectButton);
-    return discovery;
-}
-
 function renderFileSenderModal(file) {
+    if (!globalUserId) {
+        showSnack('File sending is not available for this instance', colorOrange, 'info');
+        return;
+    }
     fileOptionPanel.style.display = 'none';
     let fileSender = document.querySelector('.file_sender');
     fileSender.innerHTML = '';
@@ -1390,33 +1305,6 @@ function renderFileSenderModal(file) {
     userIdField.placeholder = 'Type user instance id';
     userIdField.type = 'text';
     userIdField.spellcheck = false;
-    let timeout = null;
-    userIdField.addEventListener('input', (ev) => {
-        if (timeout) {
-            clearTimeout(timeout);
-        }
-        timeout = setTimeout(() => {
-            if (ev.target.value.length === 0) {
-                userIdField.style.color = colorOrange;
-                sendButton.disabled = true;
-                sendButton.style.opacity = 0.5;
-                return;
-            }
-            fetch(`/api/discovery/${ev.target.value}/status`)
-            .then((resp) => resp.json())
-            .then((data) => {
-                if (data.status === 1) {
-                    userIdField.style.color = colorGreen;
-                    sendButton.disabled = false;
-                    sendButton.style.opacity = 1;
-                } else {
-                    userIdField.style.color = colorOrange;
-                    sendButton.disabled = true;
-                    sendButton.style.opacity = 0.5;
-                }
-            })
-        }, 1000);
-    });
     let buttons = document.createElement('div');
     let cancelButton = document.createElement('button');
     cancelButton.innerHTML = 'Cancel';
@@ -1425,8 +1313,6 @@ function renderFileSenderModal(file) {
     });
     let sendButton = document.createElement('button');
     sendButton.innerHTML = 'Send';
-    sendButton.style.opacity = 0.5;
-    sendButton.disabled = true;
     sendButton.style.backgroundColor = colorGreen;
     sendButton.addEventListener('click', () => {
         if (userIdField.value === globalUserId) {
@@ -1440,7 +1326,7 @@ function renderFileSenderModal(file) {
         fileClone.pending = true;
         fileClone.shared = true;
         fileClone.parent = "~shared";
-        fetch(`/api/push/${userIdField.value}/metadata`, {method: "POST", body: JSON.stringify(fileClone)})
+        fetch(`/api/push/${userIdField.value}`, {method: "POST", body: JSON.stringify(fileClone)})
         .then((resp) => {
             if (resp.status !== 207) {
                 fileSender.style.display = 'none';
@@ -1454,7 +1340,6 @@ function renderFileSenderModal(file) {
             } else {
                 file.recipients = [userIdField.value];
             }
-            file.project_id = globalProjectId;
             fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
             .then((resp) => {
                 if (resp.status === 207) {
@@ -1488,7 +1373,6 @@ function buildPendingFileList(files) {
     let sharedFiles = document.createElement('div');
     sharedFiles.className = 'shared_files';
     files.forEach((file) => {
-        file.project_id = globalProjectId;
         let pendingFile = document.createElement('div');
         pendingFile.className = 'pending_file';
         let icon = document.createElement('div');
@@ -1525,7 +1409,6 @@ function buildPendingFileList(files) {
         accept.innerHTML = 'check';
         accept.addEventListener('click', () => {
             delete file.pending;
-            file.project_id = globalProjectId;
             fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(file)})
             .then((res) => {
                 if (res.status === 207) {

@@ -486,74 +486,20 @@ func ExtFileDownload(c *gin.Context) {
 	})
 }
 
-func Discovery(c *gin.Context) {
-	userId := c.Param("id")
-	password := c.Param("password")
-
-	switch c.Request.Method {
-	case "PUT":
-		req, _ := http.NewRequest(
-			"PUT",
-			fmt.Sprintf("%s/users/%s/%s", collectionUrl, userId, password), c.Request.Body,
-		)
-		req.Header.Set("Content-Type", "application/json")
-		client := &http.Client{}
-		resp, _ := client.Do(req)
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-				log.Println(err)
-			}
-		}(resp.Body)
-		c.String(resp.StatusCode, "OK")
-		return
-
-	case "DELETE":
-		req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/users/%s/%s", collectionUrl, userId, password), nil)
-		client := &http.Client{}
-		resp, _ := client.Do(req)
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-				log.Println(err)
-			}
-		}(resp.Body)
-		c.String(resp.StatusCode, "OK")
-		return
-
-	default:
-		c.String(http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-}
-
-func UserStatus(c *gin.Context) {
-	userId := c.Param("id")
-	resp, _ := http.Get(fmt.Sprintf("%s/users/%s/status", collectionUrl, userId))
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}(resp.Body)
-	c.JSON(resp.StatusCode, resp.Body)
-}
-
 func PushFileMeta(c *gin.Context) {
 	targetId := c.Param("id")
-	resp, _ := http.Get(fmt.Sprintf("%s/users/%s", collectionUrl, targetId))
-	var owner map[string]interface{}
-	_ = json.NewDecoder(resp.Body).Decode(&owner)
-	instanceURL, ok := owner["url"]
-	if !ok {
-		c.String(http.StatusNotFound, "Not Found")
-		return
-	}
-	ownerInstanceApiKey := owner["api_key"].(string)
-	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/api/metadata", instanceURL.(string)), c.Request.Body)
-	req.Header.Set("X-Space-App-Key", ownerInstanceApiKey)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, _ = client.Do(req)
+	resp, _ := http.Post(
+		fmt.Sprintf("https://filebox-%s.deta.app/api/accept", targetId), 
+		"application/json", 
+		c.Request.Body,
+	)
+	c.JSON(resp.StatusCode, nil)
+}
+
+func AcceptFileMeta(c *gin.Context) {
+	var file map[string]interface{}
+	_ = json.NewDecoder(c.Request.Body).Decode(&file)
+	record := deta.Record{Key: file["hash"].(string), Value: file}
+	resp := base.Put(record)
 	c.JSON(resp.StatusCode, nil)
 }
