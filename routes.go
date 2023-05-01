@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -218,12 +217,9 @@ func EmbedFile(c *gin.Context) {
 	fileName := resp.Data["name"].(string)
 	mime := resp.Data["mime"].(string)
 	c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%s", fileName))
-	c.Header("Content-Type", mime)
 	streamingResp := drive.Get(FileToDriveSavedName(resp.Data))
-	c.Stream(func(w io.Writer) bool {
-		_, err := io.Copy(w, streamingResp.Reader)
-		return err == nil
-	})
+	data, _ := io.ReadAll(streamingResp.Reader)
+	c.Data(http.StatusOK, mime, data)
 }
 
 func DownloadFile(c *gin.Context) {
@@ -463,17 +459,8 @@ func DownloadFileExtern(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}(resp.Body)
-	c.Header("Content-Type", "application/octet-stream")
-	c.Stream(func(w io.Writer) bool {
-		_, _ = io.Copy(w, resp.Body)
-		return false
-	})
+	data, _ := io.ReadAll(resp.Body)
+	c.Data(http.StatusOK, "application/octet-stream", data)
 }
 
 func PushFileMeta(c *gin.Context) {
