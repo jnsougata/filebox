@@ -1377,7 +1377,7 @@ function buildPendingFileList(files) {
         pendingFile.className = 'pending_file';
         let icon = document.createElement('div');
         icon.className = 'icon';
-        setIconByMimeType(file.mime, icon);
+        setIconByMime(file.mime, icon);
         let fileInfo = document.createElement('div');
         fileInfo.className = 'file_info';
         let filename = document.createElement('p');
