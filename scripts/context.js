@@ -60,7 +60,7 @@ function onRenameClick(file) {
             showSnack("File extension cannot be changed", colorOrange, 'warning');
             return;
         }
-        fetch(`/api/rename/${globalUserPassword}`, {
+        fetch(`/api/rename`, {
             method: "POST",
             body: JSON.stringify({hash: file.hash, name: ev.target.innerText})
         })
@@ -112,7 +112,7 @@ function onMoveClick(file) {
 function onTrashClick(file) {
     file.project_id = globalProjectId;
     if (file.type === 'folder') {
-        fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
+        fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
         .then((resp) => {
             if (resp.status === 409) {
                 showSnack(`Folder is not empty`, colorOrange, 'warning');
@@ -123,7 +123,7 @@ function onTrashClick(file) {
         })
     } else {
         file.deleted = true;
-        fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             showSnack(`Moved to trash ${file.name}`, colorRed, 'warning');
             document.getElementById(`file-${file.hash}`).remove();
@@ -139,7 +139,7 @@ function onColorClick(file) {
     pickerElem.addEventListener("change", () => {
         file.color = pickerElem.value;
         file.project_id = globalProjectId;
-        fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             let folder = document.getElementById(`file-${file.hash}`);
             let folderIcon = folder.children[0];
@@ -162,7 +162,7 @@ function onRestoreClick(file) {
             delete file.deleted;
         }
         file.project_id = globalProjectId;
-        fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             showSnack(`Restored ${file.name}`, colorGreen, 'success');
             document.getElementById(`file-${file.hash}`).remove();
@@ -172,7 +172,7 @@ function onRestoreClick(file) {
 }
 
 function onDeletePermanentlyClick(file) {
-    fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
+    fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
     .then(() => {
         showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
         document.getElementById(`file-${file.hash}`).remove();
@@ -185,7 +185,7 @@ function onDeletePermanentlyClick(file) {
 
 function onPinUnpinClick(file) {
     if (file.pinned) {
-        fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "DELETE"})
+        fetch(`/api/bookmark/${file.hash}`, {method: "DELETE"})
         .then(() => {
             showSnack(`Unpinned successfully!`, colorOrange, 'info');
             let card = document.getElementById(`card-${file.hash}`);
@@ -195,7 +195,7 @@ function onPinUnpinClick(file) {
             delete file.pinned;
         })
     } else {
-        fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "POST"})
+        fetch(`/api/bookmark/${file.hash}`, {method: "POST"})
         .then(() => {
             showSnack(`Pinned successfully!`, colorGreen, 'success');
             let pinnedSection = document.querySelector('.pinned_files');

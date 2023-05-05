@@ -1,4 +1,5 @@
 ---
+app_name: "Filebox"
 title: "Filebox"
 tagline: "Fastest File Storage (Supports Large File)"
 git: "https://github.com/jnsougata/filebox"

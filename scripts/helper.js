@@ -140,6 +140,22 @@ function setIconByMime(mime, elem) {
     }
 }
 
+function handleStartup(key) {
+    globalSecretKey = key;
+    globalUserIdParts = /-(.*?)\./.exec(window.location.hostname);
+    if (globalUserIdParts) {
+        globalUserId = globalUserIdParts[1];
+    }
+    document.querySelector('#username').innerHTML = globalUserId ? globalUserId : 'Anonymous';
+    fetch("/api/consumption")
+    .then(response => response.json())
+    .then(data => {
+        updateSpaceUsage(data.size);
+    })
+    modal.style.display = 'none';
+    recentButton.click();
+}
+
 function handleTrashFileMenuClick(file) {
     fileOptionPanel.innerHTML = "";
     fileOptionPanel.id = `panel-${file.hash}`;
@@ -172,7 +188,7 @@ function handleTrashFileMenuClick(file) {
             } else {
                 delete file.deleted;
             }
-            fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+            fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
             .then(() => {
                 showSnack(`Restored ${file.name}`, colorGreen, 'success');
                 document.getElementById(`file-${file.hash}`).remove();
@@ -188,7 +204,7 @@ function handleTrashFileMenuClick(file) {
     deleteButton.className = "file_menu_option";
     deleteButton.innerHTML = `<p>Delete Permanently</p><span class="material-symbols-rounded">delete_forever</span>`;
     deleteButton.addEventListener("click", () => {
-        fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
+        fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
         .then(() => {
             showSnack(`Permanently deleted ${file.name}`, colorRed, 'info');
             document.getElementById(`file-${file.hash}`).remove();
@@ -226,7 +242,7 @@ function handleFileMenuClick(file) {
     }
     bookmark.addEventListener("click", () => {
         if (file.pinned) {
-            fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "DELETE"})
+            fetch(`/api/bookmark/${file.hash}`, {method: "DELETE"})
             .then(() => {
                 showSnack(`Unpinned successfully`, colorOrange, 'info');
                 let card = document.getElementById(`card-${file.hash}`);
@@ -237,7 +253,7 @@ function handleFileMenuClick(file) {
                 delete file.pinned;
             })
         } else {
-            fetch(`/api/bookmark/${file.hash}/${globalUserPassword}`, {method: "POST"})
+            fetch(`/api/bookmark/${file.hash}`, {method: "POST"})
             .then(() => {
                 showSnack(`Pinned successfully`, colorGreen, 'success');
                 let pins = document.querySelector('.pinned_files');
@@ -274,7 +290,7 @@ function handleFileMenuClick(file) {
             embed.style.opacity = 0.3;
             showSnack("File access changed to private", colorOrange, 'info');
         }
-        fetch(`/api/file/access/${globalUserPassword}`, {
+        fetch(`/api/file/access`, {
             method: "PATCH", 
             body: JSON.stringify({hash: file.hash, access: file.access})
         })
@@ -326,7 +342,7 @@ function handleFileMenuClick(file) {
                 showSnack("File extension cannot be changed", colorOrange, 'warning');
                 return;
             }
-            fetch(`/api/rename/${globalUserPassword}`, {
+            fetch(`/api/rename`, {
                 method: "POST", 
                 body: JSON.stringify({hash: file.hash, name: fileNameElem.innerText})
             })
@@ -409,7 +425,7 @@ function handleFileMenuClick(file) {
     }
     trashButton.addEventListener("click", () => {
         if (file.type === 'folder') {
-            fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
+            fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
             .then((resp) => {
                 if (resp.status === 409) {
                     showSnack(`Folder is not empty`, colorOrange, 'warning');
@@ -424,7 +440,7 @@ function handleFileMenuClick(file) {
             })
         } else {
             file.deleted = true;
-            fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+            fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
             .then(() => {
                 showSnack(`Moved to trash ${file.name}`, colorRed, 'warning');
                 document.getElementById(`file-${file.hash}`).remove();
@@ -497,7 +513,7 @@ function newFileElem(file, isTrash = false) {
     pickerElem.value = file.color || "#ccc";
     pickerElem.addEventListener("change", () => {
         file.color = pickerElem.value;
-        fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             fileIcon.style.color = file.color;
             showSnack(`Folder color changed successfully`, colorGreen, 'success');
@@ -547,7 +563,7 @@ function newFileElem(file, isTrash = false) {
                             }
                         });
                     }
-                    fetch(`/api/bulk/${globalUserPassword}`, {
+                    fetch(`/api/bulk`, {
                         method: "PATCH", 
                         body: JSON.stringify(globalMultiSelectBucket)}
                     )
@@ -576,7 +592,7 @@ function newFileElem(file, isTrash = false) {
                 globalMultiSelectBucket.forEach((file) => {
                     file.access = 'private';
                 });
-                fetch(`/api/bulk/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+                fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(file)})
                 .then(() => {
                     showSnack(`Made selected files private`, colorOrange, 'info');
                 })
@@ -587,7 +603,7 @@ function newFileElem(file, isTrash = false) {
                 globalMultiSelectBucket.forEach((file) => {
                     file.access = 'public';
                 });
-                fetch(`/api/bulk/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+                fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(file)})
                 .then(() => {
                     showSnack(`Made selected files public`, colorGreen, 'info');
                 })
@@ -600,7 +616,7 @@ function newFileElem(file, isTrash = false) {
                 if (!confirmation) {
                     return;
                 }
-                fetch(`/api/bulk/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(globalMultiSelectBucket)})
+                fetch(`/api/bulk`, {method: "DELETE", body: JSON.stringify(globalMultiSelectBucket)})
                 .then(() => {
                     globalMultiSelectBucket.forEach((file) => {
                         let fileElem = document.getElementById(`file-${file.hash}`);
@@ -792,7 +808,13 @@ function prependQueueElem(file, isUpload = true) {
     let li = document.createElement('li');
     let icon = document.createElement('div');
     icon.className = 'icon';
-    setIconByMime(file.mime, icon);
+    if (isUpload === null) {
+        icon.innerHTML = '<span class="material-symbols-rounded">hourglass_empty</span>';
+    } else if (isUpload) {
+        icon.innerHTML = '<span class="material-symbols-rounded">arrow_upward</span>';
+    } else {
+        icon.innerHTML = '<span class="material-symbols-rounded">arrow_downward</span>';
+    }
     let info = document.createElement('div');
     info.className = 'info';
     let name = document.createElement('p');
@@ -802,7 +824,9 @@ function prependQueueElem(file, isUpload = true) {
     let bar = document.createElement('div');
     bar.className = 'bar';
     bar.style.width = '0%';
-    if (isUpload) {
+    if (isUpload === null) {
+        bar.style.backgroundColor = colorOrange;
+    } else if (isUpload) {
         bar.style.backgroundColor = colorBlue;
     } else {
         bar.style.backgroundColor = colorGreen;
@@ -893,10 +917,14 @@ function renderFilesByMime(query) {
 }
 
 async function loadSharedFile(file, controller) {
+    let progressBar = document.getElementById(`bar-${file.hash}`);
+    let percentageElem = document.getElementById(`percentage-${file.hash}`);
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
         let resp = await fetch(`/api/external/${globalUserId}/${file.owner}/${file.hash}/0`, {signal: controller.signal});
+        percentageElem.innerHTML = '100%';
+        progressBar.style.width = '100%';
         return await resp.blob();
     } else {
         let skips = 0;
@@ -918,7 +946,8 @@ async function loadSharedFile(file, controller) {
                 .then((blob) => {
                     progress += blob.size;
                     let percentage = Math.floor((progress / size) * 100);
-                    loadingLevel.innerHTML = `${percentage}%`;
+                    progressBar.style.width = `${percentage}%`;
+                    percentageElem.innerHTML = `${percentage}%`;
                     return blob;
                 })
             );
@@ -933,70 +962,63 @@ async function loadSharedFile(file, controller) {
 // will implement streaming later
 // this is just a basic implementation
 async function showFilePreview(file) {
-    let a = previewDownloadButton.firstElementChild;
-    a.href = '';
-    a.style.opacity = '0.5';
-    a.style.pointerEvents = 'none';
+    showSnack(`Loading preview for ${file.name}`, colorBlue, 'info');
+    prependQueueElem(file, null);
     controller = new AbortController();
-    globalPreviewFile = file;
-    previewModal.style.display = 'flex';
-    previewNameElem.innerHTML = file.name;
-    let embed = document.createElement('embed');
-    embed.type = file.mime;
     let src;
+    queueModal.style.display = 'block';
     if (file.shared) {
-        loadSharedFile(file, controller).then((blob) => {
-            src = URL.createObjectURL(blob);
-        });
-    }
-    let extRegex = /(?:\.([^.]+))?$/;
-    let extension = extRegex.exec(file.name);
-    if (extension && extension[1]) {
-        extension = extension[1];
+        let blob = await loadSharedFile(file, controller);
+        src = URL.createObjectURL(new Blob([blob], {type: file.mime}));
     } else {
-        extension = '';
-    }
-    let filename;
-    if (extension === '') {
-        filename = file.hash;
-    } else {
-        filename = `${file.hash}.${extension}`
-    }
-    let projectId = globalSecretKey.split("_")[0];
-    let url = `https://drive.deta.sh/v1/${projectId}/filebox/files/download?name=${filename}`;
-    const response = await fetch(url, { 
-        headers: {"X-Api-Key": globalSecretKey},
-        signal: controller.signal
-    });
-    let progress = 0;
-    const reader = response.body.getReader();
-    const stream = new ReadableStream({
-        start(controller) {
-            return pump();
-            function pump() {
-                return reader.read().then(({ done, value }) => {
-                    if (done) {
-                        controller.close();
-                        return;
-                    }
-                    controller.enqueue(value);
-                    progress += value.length;
-                    previewLoadLevel.innerHTML = `${Math.round((progress / file.size) * 100)}%`;
-                    return pump();
-                });
-            }
+        let progressBar = document.getElementById(`bar-${file.hash}`);
+        let percentageElem = document.getElementById(`percentage-${file.hash}`);
+        let extRegex = /(?:\.([^.]+))?$/;
+        let extension = extRegex.exec(file.name);
+        if (extension && extension[1]) {
+            extension = extension[1];
+        } else {
+            extension = '';
         }
-    });
-    const br = new Response(stream);
-    const blob = await br.blob();
-    src = URL.createObjectURL(new Blob([blob], {type: file.mime}));
-    embed.src = src;
-    a.href = src;
-    a.download = file.name;
-    a.style.opacity = '1';
-    a.style.pointerEvents = 'auto';
-    previewContainer.innerHTML = '';
-    previewContainer.appendChild(embed);
+        let filename;
+        if (extension === '') {
+            filename = file.hash;
+        } else {
+            filename = `${file.hash}.${extension}`
+        }
+        let projectId = globalSecretKey.split("_")[0];
+        let url = `https://drive.deta.sh/v1/${projectId}/filebox/files/download?name=${filename}`;
+        const response = await fetch(url, { 
+            headers: {"X-Api-Key": globalSecretKey},
+            signal: controller.signal
+        });
+        let progress = 0;
+        const reader = response.body.getReader();
+        const stream = new ReadableStream({
+            start(controller) {
+                return pump();
+                function pump() {
+                    return reader.read().then(({ done, value }) => {
+                        if (done) {
+                            controller.close();
+                            return;
+                        }
+                        controller.enqueue(value);
+                        progress += value.length;
+                        let percentage = Math.floor((progress / file.size) * 100);
+                        progressBar.style.width = `${percentage}%`;
+                        percentageElem.innerHTML = `${percentage}%`;
+                        return pump();
+                    });
+                }
+            }
+        });
+        const br = new Response(stream);
+        const blob = await br.blob();
+        src = URL.createObjectURL(new Blob([blob], {type: file.mime}));
+    }
+    let newTab = window.open(src, '_blank');
+    newTab.focus();
 }
 
 function fileMover(file) {
@@ -1020,7 +1042,7 @@ function fileMover(file) {
                 file.parent = globalContextFolder.name;
             }
         }
-        fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+        fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             if (globalContextFolder) {
                 renderOriginalNav();
@@ -1223,7 +1245,7 @@ function renderOriginalNav() {
             if (folderPath) {
                 body.parent = folderPath;
             }
-            fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(body)})
+            fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(body)})
         });
         for (let i = 0; i < ev.target.files.length; i++) {
             let file = ev.target.files[i];
@@ -1340,7 +1362,7 @@ function renderFileSenderModal(file) {
             } else {
                 file.recipients = [userIdField.value];
             }
-            fetch(`/api/metadata/${globalUserPassword}`, {method: "PATCH", body: JSON.stringify(file)})
+            fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
             .then((resp) => {
                 if (resp.status === 207) {
                     showSnack(`File shared with ${userIdField.value}`, colorGreen, 'success');
@@ -1394,7 +1416,7 @@ function buildPendingFileList(files) {
         reject.innerHTML = 'close';
         reject.style.color = colorRed;
         reject.addEventListener('click', () => {
-            fetch(`/api/metadata/${globalUserPassword}`, {method: "DELETE", body: JSON.stringify(file)})
+            fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
             .then((res) => {
                 if (res.status === 200) {
                     pendingFile.remove();
@@ -1409,7 +1431,7 @@ function buildPendingFileList(files) {
         accept.innerHTML = 'check';
         accept.addEventListener('click', () => {
             delete file.pending;
-            fetch(`/api/metadata/${globalUserPassword}`, {method: "POST", body: JSON.stringify(file)})
+            fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(file)})
             .then((res) => {
                 if (res.status === 207) {
                     showSnack('File accepted', colorGreen, 'success')

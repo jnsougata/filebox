@@ -63,31 +63,12 @@ func Action(c *gin.Context) {
 }
 
 func ProjectKey(c *gin.Context) {
-	password := c.Param("password")
-	userPin := os.Getenv("USER_PASSWORD")
-	if userPin == "" {
-		c.JSON(http.StatusForbidden, map[string]string{
-			"error": "no password set",
-		})
-		return
-	}
-	if !MatchPassword(password) {
-		c.JSON(http.StatusForbidden, map[string]string{
-			"error": "incorrect password",
-		})
-		return
-	}
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"key": os.Getenv("DETA_API_KEY"),
 	})
 }
 
 func Metadata(c *gin.Context) {
-	password := c.Param("password")
-	if !MatchPassword(password) {
-		c.String(http.StatusUnauthorized, "Unauthorized")
-		return
-	}
 	switch c.Request.Method {
 	case "GET":
 		q := deta.NewQuery()
@@ -136,11 +117,6 @@ func Metadata(c *gin.Context) {
 	case "PATCH":
 		var data map[string]interface{}
 		_ = json.NewDecoder(c.Request.Body).Decode(&data)
-		projId, ok := data["project_id"]
-		if !ok || !MatchProjectId(projId.(string)) {
-			c.String(http.StatusForbidden, "Unauthorized")
-			return
-		}
 		key := data["hash"].(string)
 		data["key"] = key
 		resp := base.Put(deta.Record{Key: key, Value: data})
@@ -151,10 +127,6 @@ func Metadata(c *gin.Context) {
 		metadata, _ := io.ReadAll(c.Request.Body)
 		var file map[string]interface{}
 		_ = json.Unmarshal(metadata, &file)
-		projId, ok := file["project_id"]
-		if !ok || !MatchProjectId(projId.(string)) {
-			c.String(http.StatusForbidden, "Unauthorized")
-		}
 		_, isFolder := file["type"]
 		if isFolder {
 			var childrenPath string
@@ -298,10 +270,6 @@ func Query(c *gin.Context) {
 }
 
 func Rename(c *gin.Context) {
-	if !MatchPassword(c.Param("password")) {
-		c.String(http.StatusForbidden, "Unauthorized")
-		return
-	}
 	var body map[string]interface{}
 	_ = json.NewDecoder(c.Request.Body).Decode(&body)
 	u := deta.NewUpdater(body["hash"].(string))
@@ -325,11 +293,6 @@ func Consumption(c *gin.Context) {
 
 func Bookmark(c *gin.Context) {
 	hash := c.Param("hash")
-	password := c.Param("password")
-	if !MatchPassword(password) {
-		c.String(http.StatusForbidden, "Unauthorized")
-		return
-	}
 	switch c.Request.Method {
 	case "POST":
 		updater := deta.NewUpdater(hash)
@@ -352,11 +315,6 @@ func Bookmark(c *gin.Context) {
 }
 
 func Access(c *gin.Context) {
-	password := c.Param("password")
-	if !MatchPassword(password) {
-		c.String(http.StatusForbidden, "Unauthorized")
-		return
-	}
 	var body map[string]interface{}
 	_ = json.NewDecoder(c.Request.Body).Decode(&body)
 	updater := deta.NewUpdater(body["hash"].(string))
@@ -402,11 +360,6 @@ func FolderItemCountBulk(c *gin.Context) {
 }
 
 func FileBulkOps(c *gin.Context) {
-	password := c.Param("password")
-	if !MatchPassword(password) {
-		c.String(http.StatusForbidden, "Unauthorized")
-		return
-	}
 	switch c.Request.Method {
 	case "DELETE":
 		var body []map[string]interface{}

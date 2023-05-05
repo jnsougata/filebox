@@ -1,16 +1,10 @@
 v: 0
-app_name: "Filebox"
 icon: ./assets/app_icon.png
 micros:
   - name: backend
     src: .
     engine: custom
     primary: true
-    presets:
-      api_keys: true
-      env:
-        - name: "USER_PASSWORD"
-          description: "strong (min 6 characters) password"
     commands:
       - go get
       - go build .

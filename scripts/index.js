@@ -12,7 +12,6 @@ let globalTrashFiles = null;
 let globalContextFile = null;
 let isUserSubscribed = false;
 let globalPreviewFile = null;
-let globalUserPassword = null;
 let globalContextFolder = null;
 let globalContextOption = null;
 let globalDiscoveryStatus = null;
@@ -104,7 +103,7 @@ recentButton.addEventListener('click', () => {
         sidebarState(false);
     }
     renderOriginalNav();
-    fetch(`/api/metadata/${globalUserPassword}`)
+    fetch(`/api/metadata`)
     .then(response => response.json())
     .then(data => {
         if (data) {
@@ -127,7 +126,7 @@ browseButton.addEventListener('click', () => {
         renderOriginalNav();
     }
     globalFolderQueue = [];
-    fetch(`/api/metadata/${globalUserPassword}`)
+    fetch(`/api/metadata`)
     .then(response => response.json())
     .then(data => {
         let files = [];
@@ -187,7 +186,7 @@ sharedButton.addEventListener('click', () => {
                     ul.appendChild(newFileElem(file));
                 });
                 fileList.appendChild(ul);
-            }
+            } 
             mainSection.appendChild(fileList);
         } else {
             showSnack("You don't have any shared file.", colorOrange, 'info');
@@ -353,34 +352,12 @@ blurLayer.addEventListener('click', () => {
     }
 });
 
-let previewModal = document.querySelector('.preview');
-let previewBackButton = document.querySelector('#preview-close');
-let previewDownloadButton = document.querySelector('#preview-download');
-previewBackButton.addEventListener('click', () => {
-    globalPreviewFile = null;
-    previewModal.style.display = 'none';
-    controller.abort();
-    previewLoadLevel.innerHTML = '0%';
-    document.querySelector('embed').remove();
-});
-
 window.addEventListener('DOMContentLoaded', () => {
     renderOriginalNav();
-    let storedPassword = localStorage.getItem('password');
-    if (!storedPassword) {
-        document.body.prepend(buildLoginModal());
-        return;
-    }
-    fetch(`/api/key/${storedPassword}`)
-    .then((response) => {
-        if (response.status !== 200) {
-            document.body.prepend(buildLoginModal());
-        } else {
-            globalUserPassword = storedPassword;
-            response.json().then((data) => {
-                handleStartup(data.key);
-            });
-        }
+    fetch(`/api/key`)
+    .then((response) => response.json())
+    .then((data) => {
+        handleStartup(data.key);
     })
 });
 

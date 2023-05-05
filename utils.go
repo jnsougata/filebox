@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"strings"
@@ -10,13 +8,6 @@ import (
 
 func MatchProjectId(id string) bool {
 	return strings.HasPrefix(os.Getenv("DETA_API_KEY"), id)
-}
-
-func MatchPassword(password string) bool {
-	p := os.Getenv("USER_PASSWORD")
-	hash := sha256.Sum256([]byte(p))
-	hexPassword := hex.EncodeToString(hash[:])
-	return password == hexPassword
 }
 
 func FileToDriveSavedName(file map[string]interface{}) string {
