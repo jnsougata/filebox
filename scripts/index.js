@@ -110,6 +110,11 @@ recentButton.addEventListener('click', () => {
             data = sortFileByTimestamp(data)
             mainSection.innerHTML = '';
             mainSection.appendChild(buildRecentContent(data.slice(0, 10)));
+        } else {
+            let greeted = localStorage.getItem('isGreeted')
+            if (!greeted) {
+                renderGreetings();
+            }
         }
     })
 });

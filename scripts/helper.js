@@ -1451,3 +1451,73 @@ function buildPendingFileList(files) {
     });
     return sharedFiles;
 }
+
+function renderGreetings() {
+    let greetings = document.createElement('div');
+    greetings.className = 'greetings';
+    let skip = document.createElement('div');
+    skip.className = 'skip';
+    skip.innerHTML = '<p>skip</p>';
+    skip.addEventListener('click', () => {
+        greetings.remove();
+    });
+    let innerOne = document.createElement('div');
+    innerOne.className = 'inner';
+    innerOne.innerHTML = '<img src="../assets/app_icon.png" alt="icon">';
+    let innerTwo = document.createElement('div');
+    innerTwo.className = 'inner';
+    let h1 = document.createElement('h1');
+    h1.innerHTML = 'Welcome to Filebox';
+    let p = document.createElement('p');
+    p.innerHTML = `Let's upload your first file`;
+    let dropSection = document.createElement('div');
+    let dropSectionSpan = document.createElement('span');
+    dropSectionSpan.innerHTML = 'Drop your file here or click to select';
+    dropSection.className = 'drop';
+    dropSection.appendChild(dropSectionSpan);
+    let pseudoInput = document.createElement('input');
+    pseudoInput.type = 'file';
+    pseudoInput.style.display = 'none';
+    pseudoInput.addEventListener('change', () => {
+        dropSectionSpan.innerHTML = pseudoInput.files[0].name;
+        uploadButton.disabled = false;
+        uploadButton.style.opacity = '1';
+    });
+    dropSection.appendChild(pseudoInput);
+    dropSection.addEventListener('click', () => {
+        pseudoInput.click();
+    });
+    dropSection.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropSection.style.border = '2px dashed #cccccc8f';
+    });
+    dropSection.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropSection.style.border = '2px dashed var(--color-blackish-hover)';
+    });
+    dropSection.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropSection.style.border = '2px dashed var(--color-blackish-hover)';
+        pseudoInput.files = e.dataTransfer.files;
+        dropSectionSpan.innerHTML = pseudoInput.files[0].name;
+        uploadButton.disabled = false;
+        uploadButton.style.opacity = '1';
+    });
+    let uploadButton = document.createElement('button');
+    uploadButton.innerHTML = 'Upload';
+    uploadButton.disabled = true;
+    uploadButton.style.opacity = '0.5';
+    uploadButton.addEventListener('click', () => {
+        upload(pseudoInput.files[0])
+        localStorage.setItem('isGreeted', true);
+        skip.click();
+    });
+    innerTwo.appendChild(h1);
+    innerTwo.appendChild(p);
+    innerTwo.appendChild(dropSection);
+    innerTwo.appendChild(uploadButton);
+    greetings.appendChild(skip);
+    greetings.appendChild(innerOne);
+    greetings.appendChild(innerTwo);
+    document.body.prepend(greetings);
+}
