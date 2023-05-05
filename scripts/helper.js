@@ -1459,6 +1459,7 @@ function renderGreetings() {
     skip.className = 'skip';
     skip.innerHTML = '<p>skip</p>';
     skip.addEventListener('click', () => {
+        localStorage.setItem('isGreeted', true);
         greetings.remove();
     });
     let innerOne = document.createElement('div');
