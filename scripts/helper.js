@@ -808,12 +808,9 @@ function prependQueueElem(file, isUpload = true) {
     let li = document.createElement('li');
     let icon = document.createElement('div');
     icon.className = 'icon';
+    setIconByMime(file.mime, icon)
     if (isUpload === null) {
-        icon.innerHTML = '<span class="material-symbols-rounded">hourglass_empty</span>';
-    } else if (isUpload) {
-        icon.innerHTML = '<span class="material-symbols-rounded">arrow_upward</span>';
-    } else {
-        icon.innerHTML = '<span class="material-symbols-rounded">arrow_downward</span>';
+        icon.innerHTML = '<span class="material-symbols-rounded">open_in_new</span>';
     }
     let info = document.createElement('div');
     info.className = 'info';
