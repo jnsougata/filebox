@@ -45,11 +45,18 @@ body {
     display: none;
     width: 100%;
     height: 100%;
-    background-color: #ffffff0a;
+    background-color: rgba(110,118,129,0.4);
     position: absolute;
     z-index: 99;
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+}
+
+@keyframes sildein_ltr {
+    0% {
+        left: -150px;
+    }
+    100% {
+        left: 0;
+    }
 }
 
 .sidebar {
@@ -65,6 +72,7 @@ body {
     z-index: 100;
     overflow-y: auto;
     box-shadow: 0 0 1px 0 rgba(204, 204, 204, 0.521);
+    animation: sildein_ltr 0.5s;;
 }
 .sidebar > .logo {
     width: 100%;
@@ -417,12 +425,12 @@ body {
     }
 }
 
-@keyframes sildein {
+@keyframes sildein_rtl {
     0% {
-        bottom: -150px;
+        right: -150px;
     }
     100% {
-        bottom: 0;
+        right: 0;
     }
 }
 
@@ -431,14 +439,14 @@ body {
     bottom: 0;
     position: fixed;
     width: 500px;
-    height: max-content;
+    height: 100vh;
+    height: 100dvh;
     display: none;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    border-radius:  20px 20px 0 0;
     z-index: 10000 !important;
-    animation: sildein 0.5s;
+    animation: sildein_rtl 0.5s;
     background-color: #1a1c20;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.425);
 }
@@ -461,11 +469,9 @@ body {
     height: 60px;
     display: flex;
     align-items: center;
-    padding-left: 20px;
-    padding-right: 10px;
-    border-radius:  20px 20px 0 0;
+    padding: 0 20px;
     justify-content: space-between;
-    background-color: #1d1f24;
+    background-color: #ffffff0c;
 }
 .file_menu > .title > p {
     width: 400px;
@@ -475,12 +481,11 @@ body {
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-.file_menu > .title > i {
-    font-size: 14px;
-    border-radius: 50%;
+.file_menu > .title > span {
+    font-size: 25px;
     cursor: pointer;
-    color: #0561da;
-    padding: 10px;
+    padding: 5px;
+    color: #ccc;
 }
 .file_menu > .file_menu_option {
     width: 100%;
@@ -513,13 +518,28 @@ body {
     background-color: #ffffff0c;
 }
 
-
 @media screen and (max-width: 768px) {
     .file_menu {
-        width: 100%;
+        width: 300px;
+    }
+    .file_menu > .title {
+        height: 50px;
+        padding: 0 10px;
     }
     .file_menu > .title > p {
         width: 300px;
+        font-size: 15px;
+    }
+    .file_menu > .file_menu_option {
+        height: 40px;
+        padding: 0 12px;
+    }
+    .file_menu > .file_menu_option > p {
+        font-size: 14px;
+    }
+    .file_menu > .file_menu_option > span {
+        font-size: 12px;
+        padding: 8px;
     }
 }
 
@@ -611,7 +631,7 @@ body {
     color: white;
     font-size: 20px;
     transition: bottom 0.5s;
-    z-index: 10000 !important;
+    z-index: 10001 !important;
     background-color: transparent;
 }
 .snackbar > .snack_content {
@@ -660,26 +680,23 @@ body {
     right: 0;
     bottom: 0;
     position: fixed;
-    margin-right: 10px;
-    width: 700px;
-    height: 285px;
-    z-index: 1000;
+    width: 500px;
+    height: 100vh;
+    height: 100dvh;
     display: none;
-    align-items: flex-start;
     flex-direction: column;
-    justify-content: center;
-    padding: 10px;
-    border-radius: 15px 15px 0 0;
-    overflow: hidden;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    background-color: rgba(0, 0, 0, 0.103);
+    justify-content: flex-start;
+    align-items: center;
     z-index: 10000 !important;
+    animation: sildein_rtl 0.5s;
+    background-color: #1a1c20;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.425);
+    padding-top: 10px;
 }
 .queue > .queue_close {
     top: 0;
     right: 0;
-    position: absolute;
+    position: fixed;
     width: 25px;
     height: 25px;
     margin-top: 15px;
@@ -688,10 +705,8 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 50%;
     color: #ccc;
     font-size: 15px;
-    background-color: var(--color-blackish-light);
 }
 .queue > .queue_content {
     width: 100%;
@@ -705,7 +720,7 @@ body {
     font-size: 15px;
     color: white;
     margin-bottom: 10px;
-    padding: 5px 15px;
+    padding: 7px 15px;
     border-radius: 25px;
 }
 .queue > .queue_content > ul {
@@ -776,21 +791,15 @@ body {
 }
 @media screen and (max-width: 768px) {
     .queue {
-        width: 100vw;
-        height: 250px;
-        padding: 5px;
-        border-radius: 20px;
-        margin: 0;
+        width: 300px;
     }
     .queue > .queue_close {
         width: 20px;
         height: 20px;
     }
     .queue > .queue_content > p {
-        margin-top: 5px;
         font-size: 13px;
         padding: 5px 10px;
-        border-radius: 20px;
     }
     .queue > .queue_content > ul {
         width: 100%;

@@ -146,9 +146,7 @@ function handleStartup(key) {
 function handleTrashFileMenuClick(file) {
     fileOptionPanel.innerHTML = "";
     fileOptionPanel.id = `panel-${file.hash}`;
-    if (window.innerWidth < 768) {
-        blurLayer.style.display = 'block';
-    }
+    blurLayer.style.display = 'block';
     let title = document.createElement("div");
     title.className = "title";
     let fileNameElem = document.createElement("p");
@@ -213,56 +211,33 @@ function handleTrashFileMenuClick(file) {
 function handleFileMenuClick(file) {
     fileOptionPanel.innerHTML = "";
     fileOptionPanel.id = `panel-${file.hash}`;
-    if (window.innerWidth < 768) {
-        blurLayer.style.display = 'block';
-    }
+    blurLayer.style.display = 'block';
+
+    // Title
     let title = document.createElement("div");
     title.className = "title";
     let fileNameElem = document.createElement("p");
     fileNameElem.innerHTML = file.name;
     title.appendChild(fileNameElem);
-    let bookmark = document.createElement("i");
-    if (file.pinned) {
-        bookmark.className = `fa-solid fa-bookmark`;
-    } else {
-        bookmark.className = `fa-regular fa-bookmark`;
-    }
-    bookmark.addEventListener("click", () => {
-        if (file.pinned) {
-            fetch(`/api/bookmark/${file.hash}`, {method: "DELETE"})
-            .then(() => {
-                showSnack(`Unpinned successfully`, colorOrange, 'info');
-                let card = document.getElementById(`card-${file.hash}`);
-                if (card) {
-                    card.remove();
-                }
-                bookmark.className = `fa-regular fa-bookmark`;
-                delete file.pinned;
-            })
-        } else {
-            fetch(`/api/bookmark/${file.hash}`, {method: "POST"})
-            .then(() => {
-                showSnack(`Pinned successfully`, colorGreen, 'success');
-                let pins = document.querySelector('.pinned_files');
-                if (pins) {
-                    pins.appendChild(newFileElem(file));
-                }
-                bookmark.className = `fa-solid fa-bookmark`;
-                file.pinned = true;
-            })
-        }
+    let close = document.createElement("span");
+    close.className = `material-symbols-rounded`;
+    close.innerHTML = `chevron_right`;
+    close.addEventListener("click", () => {
+        fileOptionPanel.style.display = 'none';
+        blurLayer.style.display = 'none';
     });
-    title.appendChild(bookmark);
-    let visibility = document.createElement("i");
-    if (file.access === "private") {
-        visibility.className = `fa-solid fa-eye-slash`;
-    } else {
-        visibility.className = `fa-solid fa-eye`;
-    }
-    visibility.addEventListener("click", () => {
+    title.appendChild(close);
+    fileOptionPanel.appendChild(title);
+
+    // Access
+    let visibilityOption = document.createElement("div");
+    visibilityOption.className = "file_menu_option";
+    let visibility = file.access === 'private' ? 'visibility_off' : 'visibility';
+    visibilityOption.innerHTML = `<p>Access</p><span class="material-symbols-rounded">${visibility}</span>`;
+    visibilityOption.addEventListener("click", () => {
         if (file.access === 'private') {
-            visibility.className = `fa-solid fa-eye`;
             file.access = 'public';
+            visibilityOption.innerHTML = `<p>Access</p><span class="material-symbols-rounded">visibility</span>`;
             share.style.opacity = 1;
             if (file.size > 1024 * 1024 * 4) {
                 embed.style.opacity = 0.3;
@@ -271,8 +246,8 @@ function handleFileMenuClick(file) {
             }
             showSnack("File access changed to public", colorGreen, 'info');
         } else {
-            visibility.className = `fa-solid fa-eye-slash`;
             file.access = 'private';
+            visibilityOption.innerHTML = `<p>Access</p><span class="material-symbols-rounded">visibility_off</span>`;
             share.style.opacity = 0.3;
             embed.style.opacity = 0.3;
             showSnack("File access changed to private", colorOrange, 'info');
@@ -282,17 +257,43 @@ function handleFileMenuClick(file) {
             body: JSON.stringify({hash: file.hash, access: file.access})
         })
     });
-    if (file.type !== "folder") {
-        title.appendChild(visibility);
+    if (file.type !== 'folder') {
+        fileOptionPanel.appendChild(visibilityOption);
     }
-    let close = document.createElement("i");
-    close.className = `fa-solid fa-chevron-down`;
-    close.addEventListener("click", () => {
-        fileOptionPanel.style.display = 'none';
-        blurLayer.style.display = 'none';
+
+    // Bookmark
+    let bookmarkMode = file.pnned ? 'remove' : 'add';
+    let bookmarkOption = document.createElement("div");
+    bookmarkOption.className = "file_menu_option";
+    bookmarkOption.innerHTML = `<p>Bookmark</p><span class="material-symbols-rounded">${bookmarkMode}</span>`;
+    bookmarkOption.addEventListener("click", () => {
+        if (file.pinned) {
+            fetch(`/api/bookmark/${file.hash}`, {method: "DELETE"})
+            .then(() => {
+                showSnack(`Unpinned successfully`, colorOrange, 'info');
+                let card = document.getElementById(`card-${file.hash}`);
+                if (card) {
+                    card.remove();
+                }
+                delete file.pinned;
+                bookmarkOption.innerHTML = `<p>Bookmark</p><span class="material-symbols-rounded">add</span>`;
+            })
+        } else {
+            fetch(`/api/bookmark/${file.hash}`, {method: "POST"})
+            .then(() => {
+                showSnack(`Pinned successfully`, colorGreen, 'success');
+                let pins = document.querySelector('.pinned_files');
+                if (pins) {
+                    pins.appendChild(newFileElem(file));
+                }
+                file.pinned = true;
+                bookmarkOption.innerHTML = `<p>Bookmark</p><span class="material-symbols-rounded">remove</span>`;
+            })
+        }
     });
-    title.appendChild(close);
-    fileOptionPanel.appendChild(title);
+    fileOptionPanel.appendChild(bookmarkOption);
+
+    // Share
     let send = document.createElement("div");
     send.className = "file_menu_option";
     send.innerHTML = `<p>Send</p><span class="material-symbols-rounded">send</span>`;
@@ -306,6 +307,8 @@ function handleFileMenuClick(file) {
         });
         fileOptionPanel.appendChild(send);
     }
+
+    // Rename
     let rename = document.createElement("div");
     rename.className = "file_menu_option";
     rename.innerHTML = `<p>Rename</p><span class="material-symbols-rounded">edit</span>`;
@@ -342,6 +345,8 @@ function handleFileMenuClick(file) {
             })
         });
     });
+
+    // Download
     let downloadButton = document.createElement("div");
     downloadButton.className = "file_menu_option";
     downloadButton.innerHTML = `<p>Download</p><span class="material-symbols-rounded">download</span>`;
@@ -353,6 +358,8 @@ function handleFileMenuClick(file) {
         }
         download(file);
     });
+
+    // Share
     let share = document.createElement("div");
     share.className = "file_menu_option";
     share.innerHTML = `<p>Share Link</p><span class="material-symbols-rounded">link</span>`;
@@ -366,6 +373,8 @@ function handleFileMenuClick(file) {
             })
         }
     });
+
+    // Embed
     let embed = document.createElement("div");
     embed.className = "file_menu_option";
     embed.innerHTML = `<p>Embed</p><span class="material-symbols-rounded">code</span>`;
@@ -381,6 +390,8 @@ function handleFileMenuClick(file) {
             })
         }
     });
+
+    // Move
     let move = document.createElement("div");
     move.className = "file_menu_option";
     move.innerHTML = `<p>Move</p><span class="material-symbols-rounded">arrow_forward</span>`;
@@ -403,6 +414,8 @@ function handleFileMenuClick(file) {
         fileOptionPanel.appendChild(embed);
         fileOptionPanel.appendChild(move);
     }
+
+    // Trash
     let trashButton = document.createElement("div");
     trashButton.className = "file_menu_option";
     if (file.type === 'folder') {
@@ -797,7 +810,7 @@ function prependQueueElem(file, isUpload = true) {
     icon.className = 'icon';
     setIconByMime(file.mime, icon)
     if (isUpload === null) {
-        icon.innerHTML = '<span class="material-symbols-rounded">open_in_new</span>';
+        icon.innerHTML = '<span class="material-symbols-rounded">open_in_browser</span>';
     }
     let info = document.createElement('div');
     info.className = 'info';
@@ -809,7 +822,7 @@ function prependQueueElem(file, isUpload = true) {
     bar.className = 'bar';
     bar.style.width = '0%';
     if (isUpload === null) {
-        bar.style.backgroundColor = colorOrange;
+        bar.style.backgroundColor = `#8cb4fc`;
     } else if (isUpload) {
         bar.style.backgroundColor = colorBlue;
     } else {
@@ -950,7 +963,7 @@ async function showFilePreview(file) {
     prependQueueElem(file, null);
     controller = new AbortController();
     let src;
-    queueModal.style.display = 'block';
+    queueButton.click();
     if (file.shared) {
         let blob = await loadSharedFile(file, controller);
         src = URL.createObjectURL(new Blob([blob], {type: file.mime}));

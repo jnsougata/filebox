@@ -220,24 +220,19 @@ pinnedButton.addEventListener('click', () => {
     })
 });
 
-let queueModalState = false;
 let queueModal = document.querySelector('.queue');
 let queueModalCloseButton = document.querySelector('.queue_close');
 queueModalCloseButton.addEventListener('click', () => {
-    queueModalState = false;
+    blurLayer.style.display = 'none';
     queueModal.style.display = 'none';
 });
 let queueButton = document.querySelector('#queue');
 queueButton.addEventListener('click', () => {
+    blurLayer.style.display = 'block';
     if (window.innerWidth < 768) {
         sidebarState(false);
     }
-    if (queueModalState) {
-        queueModalState = false;
-        queueModal.style.display = 'none';
-        return;
-    }
-    queueModalState = true;
+    blurLayer.style.display = 'block';
     queueModal.style.display = 'block';
 });
 
@@ -352,8 +347,16 @@ modalCloseButton.addEventListener('click', () => {
 });
 
 blurLayer.addEventListener('click', () => {
-    if (sidebar.style.display === 'flex') {
+    if (sidebar.style.display === 'flex' && window.innerWidth < 768) {
         sidebarState(false);
+    }
+    if (fileOptionPanel.style.display === 'flex') {
+        fileOptionPanel.style.display = 'none';
+        blurLayer.style.display = 'none';
+    }
+    if (queueModal.style.display === 'block') {
+        blurLayer.style.display = 'none';
+        queueModal.style.display = 'none';
     }
 });
 
@@ -390,7 +393,6 @@ window.addEventListener('load', () => {
 });
 
 window.addEventListener('resize', () => {
-    blurLayer.style.display = 'none';
     let navIcon = document.querySelector('#dyn-nav-icon');
     if (navIcon) {
         navIcon.parentNode.replaceChild(buildDynamicNavIcon(), navIcon);
