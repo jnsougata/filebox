@@ -265,7 +265,7 @@ function handleFileMenuClick(file) {
     let bookmarkMode = file.pinned ? 'remove' : 'add';
     let bookmarkOption = document.createElement("div");
     bookmarkOption.className = "file_menu_option";
-    bookmarkOption.innerHTML = `<p>Bookmark</p><span class="material-symbols-rounded">${bookmarkMode}</span>`;
+    bookmarkOption.innerHTML = `<p>Pin</p><span class="material-symbols-rounded">${bookmarkMode}</span>`;
     bookmarkOption.addEventListener("click", () => {
         if (file.pinned) {
             fetch(`/api/bookmark/${file.hash}`, {method: "DELETE"})
