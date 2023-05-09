@@ -202,6 +202,9 @@ sharedButton.addEventListener('click', () => {
 let pinnedButton = document.querySelector('#pinned');
 pinnedButton.addEventListener('click', () => {
     globalContextOption = "pinned";
+    if (window.innerWidth < 768) {
+        sidebarState(false);
+    }
     fetch("/api/query", {method: 'POST', body: JSON.stringify({"pinned": true, "deleted?ne": true}),
     })
     .then(response => response.json())
@@ -216,6 +219,9 @@ pinnedButton.addEventListener('click', () => {
             data = folders.concat(files);
             mainSection.innerHTML = '';
             mainSection.appendChild(buildPinnedContent(data));
+
+        } else {
+            showSnack("You don't have any pinned file.", colorOrange, 'info');
         }
     })
 });
