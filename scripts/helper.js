@@ -532,7 +532,7 @@ function newFileElem(file, isTrash = false) {
             let multiSelectOptions = document.createElement('div');
             multiSelectOptions.className = 'multi_select_options';
             let moveButton = document.createElement('button');
-            moveButton.innerHTML = 'Move';
+            moveButton.innerHTML = '<span class="material-symbols-rounded">arrow_forward</span>';
             moveButton.addEventListener("click", () => {
                 isFileMoving = true;
                 browseButton.click();
@@ -587,7 +587,7 @@ function newFileElem(file, isTrash = false) {
                 globalMultiSelectBucketUpdated = true;
             });
             let privateButton = document.createElement('button');
-            privateButton.innerHTML = 'Private';
+            privateButton.innerHTML = '<span class="material-symbols-rounded">visibility_off</span>';
             privateButton.addEventListener("click", () => {
                 globalMultiSelectBucket.forEach((file) => {
                     file.access = 'private';
@@ -598,7 +598,7 @@ function newFileElem(file, isTrash = false) {
                 })
             });
             let publicButton = document.createElement('button');
-            publicButton.innerHTML = 'Public';
+            publicButton.innerHTML = '<span class="material-symbols-rounded">visibility</span>';
             publicButton.addEventListener("click", () => {
                 globalMultiSelectBucket.forEach((file) => {
                     file.access = 'public';
@@ -609,8 +609,8 @@ function newFileElem(file, isTrash = false) {
                 })
             });
             let deleteButton = document.createElement('button');
-            deleteButton.innerHTML = 'Delete';
-            deleteButton.style.backgroundColor = colorRed;
+            deleteButton.innerHTML = '<span class="material-symbols-rounded">delete_forever</span>';
+            deleteButton.style.backgroundColor = "#f23a3a";
             deleteButton.addEventListener("click", () => {
                 let confirmation = confirm('Are you sure you want to delete these files permanently?');
                 if (!confirmation) {
