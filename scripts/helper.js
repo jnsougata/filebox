@@ -2,9 +2,6 @@ let controller;
 let fileOptionPanel = document.querySelector('.file_menu');
 let queueContent = document.querySelector('.queue_content');
 let queueTaskList = document.querySelector('#queue-task-list');
-let previewContainer = document.querySelector('#preview');
-let previewNameElem = document.querySelector('#preview-name');
-let previewLoadLevel = document.querySelector('#preview-loaded');
 
 
 // function sendNotification(body, tag = 'filebox') {
@@ -37,16 +34,6 @@ function sortFileByTimestamp(data) {
 async function passwordToSHA256Hex(str) {
     let digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
     return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function getAvatarURL(userId, parse=false){
-    let username;
-    if (parse) {
-        username = userId.split("-")[1];
-    } else {
-        username = userId;
-    }
-    return `https://api.dicebear.com/5.x/initials/svg?chars=1&fontWeight=900&backgroundType=gradientLinear&seed=${username}`; 
 }
 
 async function checkFileParentExists(file) {
@@ -1014,8 +1001,7 @@ async function showFilePreview(file) {
         const blob = await br.blob();
         src = URL.createObjectURL(new Blob([blob], {type: file.mime}));
     }
-    let newTab = window.open(src, '_blank');
-    newTab.focus();
+    window.open(src);
 }
 
 function fileMover(file) {
