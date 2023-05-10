@@ -150,6 +150,18 @@ function upload(file, metadata=null) {
     reader.readAsArrayBuffer(file);
 }
 
+function fetchFileFromDrive(file) {
+    let header = {"X-Api-Key": globalSecretKey}
+    let projectId = globalSecretKey.split("_")[0];
+    const ROOT = 'https://drive.deta.sh/v1';
+    let extension = file.name.split('.').pop();
+    let qualifiedName = file.hash + "." + extension;
+    return fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
+        method: 'GET',
+        headers: header
+    })
+}
+
 function download(file) {
     showSnack(`Downloading ${file.name}`, colorGreen, 'info');
     prependQueueElem(file, false);

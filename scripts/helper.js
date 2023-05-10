@@ -531,6 +531,79 @@ function newFileElem(file, isTrash = false) {
         if (!document.querySelector('.multi_select_options')) {
             let multiSelectOptions = document.createElement('div');
             multiSelectOptions.className = 'multi_select_options';
+            let zipButton = document.createElement('button');
+            zipButton.innerHTML = '<span class="material-symbols-rounded">archive</span>';
+            zipButton.addEventListener("click", () => {
+                let zip = new JSZip();
+                // zip.file("Hello.txt", "Hello World\n");
+                // zip.generateAsync({type:"blob"})
+                // .then((content) => {
+                //     let a = document.createElement('a');
+                //     a.href = window.URL.createObjectURL(content);
+                //     a.download = 'test.zip';
+                //     a.click();
+                // });
+                let totalSize = 0;
+                globalMultiSelectBucket.forEach((file) => {
+                    totalSize += parseInt(file.size);
+                });
+                let randomZipId = randId();
+                let zipData = {
+                    name: `filebox-${randomZipId}.zip`,
+                    mime: 'application/zip',
+                    size: totalSize,
+                    hash: randomZipId,
+                }
+                prependQueueElem(zipData);
+                queueButton.click();
+                let progress = 0;
+                let bar = document.getElementById(`bar-${randomZipId}`);
+                let percentageElem = document.getElementById(`percentage-${randomZipId}`);
+                let promises = [];
+                globalMultiSelectBucket.forEach((file) => {
+                    promises.push(
+                        fetchFileFromDrive(file)
+                        .then((resp) => {
+                            const reader = resp.body.getReader();
+                            return new ReadableStream({
+                                start(controller) {
+                                    return pump();
+                                    function pump() {
+                                        return reader.read().then(({ done, value }) => {
+                                            if (done) {
+                                                controller.close();
+                                                return;
+                                            }
+                                            controller.enqueue(value);
+                                            progress += value.length;
+                                            let percentage = Math.round((progress / totalSize) * 100);
+                                            bar.style.width = `${percentage}%`;
+                                            percentageElem.innerHTML = `${percentage}%`;
+                                            return pump();
+                                        });
+                                    }
+                                }
+                            })
+                        })
+                        .then((stream) => new Response(stream))
+                        .then((response) => response.blob())
+                        .then((blob) => {
+                            zip.file(file.name, new Blob([blob], {type: file.mime}));
+                        })
+                    );
+                });
+                Promise.all(promises)
+                .then(() => {
+                    zip.generateAsync({type:"blob"})
+                    .then((content) => {
+                        let a = document.createElement('a');
+                        a.href = window.URL.createObjectURL(content);
+                        a.download = zipData.name;
+                        a.click();
+                    });
+                })
+                
+            });
             let moveButton = document.createElement('button');
             moveButton.innerHTML = '<span class="material-symbols-rounded">arrow_forward</span>';
             moveButton.addEventListener("click", () => {
@@ -626,6 +699,7 @@ function newFileElem(file, isTrash = false) {
                     renderOriginalNav();
                 })
             });
+            multiSelectOptions.appendChild(zipButton);
             multiSelectOptions.appendChild(moveButton);
             multiSelectOptions.appendChild(privateButton);
             multiSelectOptions.appendChild(publicButton);
