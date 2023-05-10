@@ -31,11 +31,6 @@ function sortFileByTimestamp(data) {
     return data;
 }
 
-async function passwordToSHA256Hex(str) {
-    let digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 async function checkFileParentExists(file) {
     let body = {"type": "folder"}
     if (!file.parent) {
@@ -125,6 +120,86 @@ function setIconByMime(mime, elem) {
     } else {
         elem.innerHTML = `<span class="material-symbols-rounded">draft</span>`;
     }
+}
+
+function downloadFolderAsZip(folder) {
+    let childrenPath = folder.parent ? `${folder.parent}/${folder.name}` : folder.name;
+    fetch(`/api/query`, {
+        method: "POST", 
+        body: JSON.stringify({
+            "parent": childrenPath,
+            "type?ne": "folder",
+            "deleted?ne": true,
+            "shared?ne": true,
+        })}
+    )
+    .then((resp) => resp.json())
+    .then((data) => {
+        if (!data) {
+            showSnack("Folder is empty", colorOrange, "info");
+            return;
+        }
+        let zip = new JSZip();
+        let totalSize = 0;
+        data.forEach((file) => {
+            totalSize += parseInt(file.size);
+        });
+        let zipData = {
+            name: `${folder.name}-${folder.hash}.zip`,
+            mime: 'application/zip',
+            size: totalSize,
+            hash: folder.hash,
+        }
+        prependQueueElem(zipData);
+        blurLayer.click();
+        queueButton.click();
+        let progress = 0;
+        let bar = document.getElementById(`bar-${folder.hash}`);
+        let percentageElem = document.getElementById(`percentage-${folder.hash}`);
+        let promises = [];
+        data.forEach((file) => {
+            promises.push(
+                fetchFileFromDrive(file)
+                .then((resp) => {
+                    const reader = resp.body.getReader();
+                    return new ReadableStream({
+                        start(controller) {
+                            return pump();
+                            function pump() {
+                                return reader.read().then(({ done, value }) => {
+                                    if (done) {
+                                        controller.close();
+                                        return;
+                                    }
+                                    controller.enqueue(value);
+                                    progress += value.length;
+                                    let percentage = Math.round((progress / totalSize) * 100);
+                                    bar.style.width = `${percentage}%`;
+                                    percentageElem.innerHTML = `${percentage}%`;
+                                    return pump();
+                                });
+                            }
+                        }
+                    })
+                })
+                .then((stream) => new Response(stream))
+                .then((response) => response.blob())
+                .then((blob) => {
+                    zip.file(file.name, new Blob([blob], {type: file.mime}));
+                })
+            );
+        });
+        Promise.all(promises)
+        .then(() => {
+            zip.generateAsync({type:"blob"})
+            .then((content) => {
+                let a = document.createElement('a');
+                a.href = window.URL.createObjectURL(content);
+                a.download = zipData.name;
+                a.click();
+            });
+        })
+    })
 }
 
 function handleStartup(key) {
@@ -415,6 +490,17 @@ function handleFileMenuClick(file) {
         fileOptionPanel.appendChild(move);
     }
 
+    // Download as zip
+    let downloadZip = document.createElement("div");
+    downloadZip.className = "file_menu_option";
+    downloadZip.innerHTML = `<p>Download as Zip</p><span class="material-symbols-rounded">archive</span>`;
+    downloadZip.addEventListener("click", () => {
+        downloadFolderAsZip(file);
+    });
+    if (file.type === 'folder') {
+        fileOptionPanel.appendChild(downloadZip);
+    }
+
     // Trash
     let trashButton = document.createElement("div");
     trashButton.className = "file_menu_option";
@@ -535,14 +621,6 @@ function newFileElem(file, isTrash = false) {
             zipButton.innerHTML = '<span class="material-symbols-rounded">archive</span>';
             zipButton.addEventListener("click", () => {
                 let zip = new JSZip();
-                // zip.file("Hello.txt", "Hello World\n");
-                // zip.generateAsync({type:"blob"})
-                // .then((content) => {
-                //     let a = document.createElement('a');
-                //     a.href = window.URL.createObjectURL(content);
-                //     a.download = 'test.zip';
-                //     a.click();
-                // });
                 let totalSize = 0;
                 globalMultiSelectBucket.forEach((file) => {
                     totalSize += parseInt(file.size);
@@ -602,7 +680,6 @@ function newFileElem(file, isTrash = false) {
                         a.click();
                     });
                 })
-                
             });
             let moveButton = document.createElement('button');
             moveButton.innerHTML = '<span class="material-symbols-rounded">arrow_forward</span>';

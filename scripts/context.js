@@ -253,6 +253,12 @@ const fileContextOptions = [
         folderOnly: true
     },
     {
+        label: 'Download as Zip', 
+        icon: 'archive',
+        callback: downloadFolderAsZip,
+        folderOnly: true
+    },
+    {
         label: 'Trash',
         icon: 'delete', 
         callback: onTrashClick,
