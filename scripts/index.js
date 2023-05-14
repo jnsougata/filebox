@@ -358,12 +358,12 @@ blurLayer.addEventListener('click', () => {
     }
     if (fileOptionPanel.style.display === 'flex') {
         fileOptionPanel.style.display = 'none';
-        blurLayer.style.display = 'none';
+        
     }
     if (queueModal.style.display === 'block') {
-        blurLayer.style.display = 'none';
         queueModal.style.display = 'none';
     }
+    blurLayer.style.display = 'none';
 });
 
 window.addEventListener('DOMContentLoaded', () => {
