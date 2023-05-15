@@ -1230,6 +1230,7 @@ function buildDynamicNavIcon() {
         icon.style.color = "var(--color-blueish)";
         icon.style.padding = '0px';
         icon.style.paddingRight = '10px';
+        icon.style.paddingLeft = '10px';
     }
     return icon;
 }
