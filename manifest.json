@@ -2,7 +2,7 @@
   "id": "com.filebox.app",
   "name": "Filebox",
   "short_name": "Filebox",
-  "description": "A free cloud storage app for your files",
+  "description": "Upload & organize files in your Personal Space Drive",
   "start_url": "/",
   "scope": ".",
   "icons": [
@@ -10,6 +10,12 @@
       "src": "/assets/icon.png",
       "sizes": "512x512",
       "type": "image/png"
+    }, 
+    {
+      "src": "/assets/app_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "theme_color": "#0561da",
