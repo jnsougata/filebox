@@ -35,6 +35,7 @@ cg.addEventListener('click', () => {
 });
 
 function onSendClick(file) {
+    cg.click();
     renderFileSenderModal(file);
 }
 
@@ -75,10 +76,12 @@ function onRenameClick(file) {
 }
 
 function onDownloadClick(file) {
+    cg.click();
     download(file)
 }
 
 function onShareLinkClick(file) {
+    cg.click();
     if (file.access === "private") {
         showSnack(`Make file public to share via link`, colorOrange, 'warning');
     } else {
@@ -90,6 +93,7 @@ function onShareLinkClick(file) {
 }
 
 function onEmbedClick(file) {
+    cg.click();
     if (file.access === "private") {
         showSnack(`Make file public to embed`, colorOrange, 'warning');
     } else if (file.size > 1024 * 1024 * 4) {
@@ -103,14 +107,14 @@ function onEmbedClick(file) {
 }
 
 function onMoveClick(file) {
-    cg.style.display = 'none';
+    cg.click();
     isFileMoving = true;
     browseButton.click();
     renderAuxNav(fileMover(file));
 }
 
 function onTrashClick(file) {
-    file.project_id = globalProjectId;
+    cg.click();
     if (file.type === 'folder') {
         fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
         .then((resp) => {
@@ -161,7 +165,6 @@ function onRestoreClick(file) {
         } else {
             delete file.deleted;
         }
-        file.project_id = globalProjectId;
         fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             showSnack(`Restored ${file.name}`, colorGreen, 'success');

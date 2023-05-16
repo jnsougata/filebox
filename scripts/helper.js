@@ -227,8 +227,9 @@ function handleTrashFileMenuClick(file) {
     let fileNameElem = document.createElement("p");
     fileNameElem.innerHTML = file.name;
     title.appendChild(fileNameElem);
-    let close = document.createElement("i");
-    close.className = `fa-solid fa-chevron-down`;
+    let close = document.createElement("span");
+    close.className = `material-symbols-rounded`;
+    close.innerHTML = `chevron_right`;
     close.addEventListener("click", () => {
         fileOptionPanel.style.display = 'none';
         blurLayer.style.display = 'none';
@@ -254,9 +255,6 @@ function handleTrashFileMenuClick(file) {
                 document.getElementById(`file-${file.hash}`).remove();
                 close.click();
                 globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
-                if (globalTrashFiles.length === 0) {
-                    renderOriginalNav();
-                }
             })
         })
     });
