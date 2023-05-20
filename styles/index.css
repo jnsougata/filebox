@@ -128,42 +128,52 @@ body {
 }
 .usage {
     width: 100%;
-    height: 40px;
+    height: max-content;
     padding-left: 20px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     font-size: 14px;
     color: #ccc;
     flex-shrink: 0;
+    padding-top: 10px;
 }
-.usage > .icon {
+.usage > .stat {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    pointer-events: none;
+    background-color: var(--color-blackish-light);
+    border-radius: 20px 0 0 20px;
+}
+.usage > .stat > .icon {
     width: 40px;
     height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.usage > .icon > i {
-    font-size: 16px;
+.usage > .stat > .icon > span {
+    font-size: 20px;
     color: #ccc;
     z-index: 2;
 }
-.usage > p {
-    margin-left: 10px;
+.usage > .stat > p {
     font-size: 14px;
     color: #ccc;
 }
 .usage > ul {
     width: 100%;
-    margin-left: 20px;
     color: #ccc;
+    list-style: none;
+    padding-left: 5px;
 }
 .usage > ul > li {
     font-size: 15px;
-    margin-left: 14px;
     cursor: pointer;
-    margin-right: 30px;
+    margin-right: 20px;
 }
 .usage > ul > li > .wrapper {
     width: 100%;
