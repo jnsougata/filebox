@@ -84,13 +84,14 @@ function handleSizeUnit(size) {
 }
 
 function formatDateString(date) {
-    let d = new Date(date);
-    return d.getDate()
-        + "/" + (d.getMonth() + 1)
-        + "/" + d.getFullYear()
-        + " " + d.getHours()
-        + ":" + d.getMinutes()
-        + ":" + d.getSeconds();
+    date = new Date(date);
+    return `
+        ${date.toLocaleString('default', { month: 'short' })} 
+        ${date.getDate()}, 
+        ${date.getFullYear()} 
+        ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}
+    `;
+
 }
 
 function updateSpaceUsage(incr) {
@@ -214,7 +215,6 @@ function handleStartup(key) {
     .then(data => {
         updateSpaceUsage(data.size);
     })
-    modal.style.display = 'none';
     recentButton.click();
 }
 
@@ -625,7 +625,7 @@ function newFileElem(file, isTrash = false) {
                 });
                 let randomZipId = randId();
                 let zipData = {
-                    name: `filebox-${randomZipId}.zip`,
+                    name: `filebox-download-${randomZipId}.zip`,
                     mime: 'application/zip',
                     size: totalSize,
                     hash: randomZipId,
@@ -774,6 +774,10 @@ function newFileElem(file, isTrash = false) {
                     renderOriginalNav();
                 })
             });
+            let selectCount = document.createElement('p');
+            selectCount.style.marginRight = 'auto';
+            selectCount.id = 'selection-count';
+            multiSelectOptions.appendChild(selectCount);
             multiSelectOptions.appendChild(zipButton);
             multiSelectOptions.appendChild(moveButton);
             multiSelectOptions.appendChild(privateButton);
@@ -804,6 +808,7 @@ function newFileElem(file, isTrash = false) {
                 li.style.backgroundColor = "transparent";
                 setIconByMime(file.mime, fileIcon)
             }
+            document.getElementById('selection-count').innerHTML = `${globalMultiSelectBucket.length} selected`;
             if (globalMultiSelectBucket.length === 0) {
                 renderOriginalNav();
             }
@@ -864,9 +869,7 @@ function buildPinnedContent(data) {
     let ul = document.createElement('ul');
     ul.className = 'pinned_files';
     data.forEach((file) => {
-        let elem = newFileElem(file);
-        elem.id = `file-${file.hash}`;
-        ul.appendChild(elem);
+        ul.appendChild(newFileElem(file));
     });
     let fileList = document.createElement('div');
     fileList.className = 'file_list';

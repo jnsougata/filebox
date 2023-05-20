@@ -341,18 +341,6 @@ mainSection.addEventListener("drop", (e) => {
     }
 });
 
-function handleModalClose() {
-    modal.style.display = 'none';
-    modalContent.innerHTML = '';
-}
-
-let modal = document.querySelector('.modal');
-let modalContent = document.querySelector('.modal_content');
-let modalCloseButton = document.querySelector('.modal_close');
-modalCloseButton.addEventListener('click', () => {
-    handleModalClose();
-});
-
 blurLayer.addEventListener('click', () => {
     if (sidebar.style.display === 'flex' && window.innerWidth < 768) {
         sidebarState(false);
