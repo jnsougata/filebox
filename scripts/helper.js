@@ -865,7 +865,7 @@ function buildPinnedContent(data) {
     ul.className = 'pinned_files';
     data.forEach((file) => {
         let elem = newFileElem(file);
-        elem.id = `card-${file.hash}`;
+        elem.id = `file-${file.hash}`;
         ul.appendChild(elem);
     });
     let fileList = document.createElement('div');

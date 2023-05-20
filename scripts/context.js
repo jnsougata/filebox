@@ -179,6 +179,7 @@ function onDeletePermanentlyClick(file) {
     .then(() => {
         showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
         document.getElementById(`file-${file.hash}`).remove();
+        cg.click();
         if (!file.shared) {
             updateSpaceUsage(-file.size);
         }
@@ -187,11 +188,12 @@ function onDeletePermanentlyClick(file) {
 }
 
 function onPinUnpinClick(file) {
+    cg.click();
     if (file.pinned) {
         fetch(`/api/bookmark/${file.hash}`, {method: "DELETE"})
         .then(() => {
-            showSnack(`Unpinned successfully!`, colorOrange, 'info');
-            let card = document.getElementById(`card-${file.hash}`);
+            showSnack(`File unpinned successfully`, colorOrange, 'info');
+            let card = document.getElementById(`file-${file.hash}`);
             if (card) {
                 card.remove();
             }
@@ -200,7 +202,7 @@ function onPinUnpinClick(file) {
     } else {
         fetch(`/api/bookmark/${file.hash}`, {method: "POST"})
         .then(() => {
-            showSnack(`Pinned successfully!`, colorGreen, 'success');
+            showSnack(`File pinned successfully`, colorGreen, 'success');
             let pinnedSection = document.querySelector('.pinned_files');
             if (pinnedSection) {
                 pinnedSection.appendChild(newFileElem(file));

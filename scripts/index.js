@@ -194,7 +194,7 @@ sharedButton.addEventListener('click', () => {
             } 
             mainSection.appendChild(fileList);
         } else {
-            showSnack("You don't have any shared file.", colorOrange, 'info');
+            mainSection.innerHTML= `<p>You don't have any shared file</p>`;
         }
     })
 });
@@ -221,7 +221,8 @@ pinnedButton.addEventListener('click', () => {
             mainSection.appendChild(buildPinnedContent(data));
 
         } else {
-            showSnack("You don't have any pinned file.", colorOrange, 'info');
+            mainSection.innerHTML = '';
+            mainSection.innerHTML = `<p>You don't have any pinned file or folder</p>`;
         }
     })
 });
@@ -288,7 +289,7 @@ trashButton.addEventListener('click', () => {
     .then(data => {
         mainSection.innerHTML = '';
         if (!data) {
-            showSnack("There's nothing in the trash", colorOrange, 'info');
+            mainSection.innerHTML = `<p>You don't have any deleted file</p>`;
             return;
         }
         let fileList = document.createElement('div');
