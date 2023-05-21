@@ -727,9 +727,9 @@ function newFileElem(file, isTrash = false) {
                 fetch(`/api/bulk`, {method: "DELETE", body: JSON.stringify(globalMultiSelectBucket)})
                 .then(() => {
                     globalMultiSelectBucket.forEach((file) => {
-                        let fileElem = document.getElementById(`file-${file.hash}`);
-                        fileElem.remove();
+                        document.getElementById(`file-${file.hash}`).remove();
                     });
+                    globalMultiSelectBucket = [];
                     showSnack(`Deleted selected files`, colorRed, 'info');
                     renderOriginalNav();
                 })
@@ -903,10 +903,21 @@ function buildPrompt(files) {
     selectAll.className = 'material-symbols-rounded';
     selectAll.innerHTML = 'select_all';
     selectAll.addEventListener('click', () => {
+        files.forEach((file) => {
+            let elem = document.getElementById(`file-${file.hash}`);
+            if (!elem) {
+                let index = files.findIndex((f) => f.hash === file.hash);
+                files.splice(index, 1);
+            }
+        });
         let files25 = files.slice(0, 25);
         files25.forEach((file) => {
             let elem = document.getElementById(`file-${file.hash}`);
-            elem.firstElementChild.click();
+            if (elem) {
+                elem.firstElementChild.click();
+            } else {
+
+            }
         });
     });
     prompt.appendChild(backButton);
@@ -1378,14 +1389,8 @@ function renderOriginalNav() {
                     parent = `${globalContextFolder.name}/${parent}`;
                 }
             }
-            let metadata = {
-                "name": file.name,
-                "hash": randId(),
-                "date": new Date().toISOString(),
-                "size": file.size,
-                "parent": parent,
-                "mime": file.type,
-            }
+            let metadata = buildFileMetadata(file);
+            metadata.parent = parent;
             prependQueueElem(metadata, true)
             upload(file, metadata, (percentage) => {
                 progressHandlerById(metadata.hash, percentage);
