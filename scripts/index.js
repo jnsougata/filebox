@@ -294,7 +294,12 @@ mainSection.addEventListener("drop", (e) => {
     e.preventDefault();
     if (e.dataTransfer.items) {
         [...e.dataTransfer.items].forEach((item) => {
-            upload(item.getAsFile());
+            let file = item.getAsFile();
+            let metadata = buildFileMetadata(file);
+            prependQueueElem(metadata, true);
+            upload(file, metadata, (percentage) => {
+                progressHandlerById(metadata.hash, percentage);
+            });
         })
     }
 });
@@ -365,16 +370,17 @@ window.addEventListener('resize', () => {
 
 window.addEventListener("paste", (e) => {
     let items = e.clipboardData.items;
-    let newTaskStarted = false;
     if (items.length) {
         [...items].forEach((item) => {
             if (item.kind === "file") {
-                upload(item.getAsFile());
-                newTaskStarted = true;
+                let file = item.getAsFile();
+                let metadata = buildFileMetadata(file);
+                prependQueueElem(metadata, true);
+                upload(file, metadata, (percentage) => {
+                    progressHandlerById(metadata.hash, percentage);
+                });
             }
         })
     }
-    if (newTaskStarted) {
-        queueButton.click();
-    }
+    queueButton.click();
 });

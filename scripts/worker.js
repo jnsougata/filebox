@@ -13,7 +13,6 @@ function buildFileMetadata(file) {
         "mime": file.type,
         "access": "private",
         "date": new Date().toISOString(),
-        "access": "private",
     }
     if (globalContextFolder) {
         if (globalContextFolder.parent) {

@@ -515,6 +515,32 @@ function handleFileMenuClick(file) {
         }
     });
     fileOptionPanel.appendChild(trashButton);
+
+    if (file.recipients && file.recipients.length > 0) {
+        let p = document.createElement("p");
+        p.innerText = "Block Access";
+        p.style.fontSize = "14px";
+        p.style.color = "white";
+        p.style.width = "100%";
+        p.style.padding = "10px 20px";
+        p.style.backgroundColor = "rgba(242, 58, 58, 0.5)";
+        fileOptionPanel.appendChild(p);
+        file.recipients.forEach((recipient) => {
+            let recipientElem = document.createElement("div");
+            recipientElem.className = "file_menu_option";
+            recipientElem.innerHTML = `<p>${recipient} </p><span class="material-symbols-rounded">block</span>`;
+            recipientElem.addEventListener("click", () => {
+                file.recipients = file.recipients.filter((r) => r !== recipient);
+                fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
+                .then(() => {
+                    showSnack(`Blocked access for ${recipient}`, colorOrange, 'warning');
+                    recipientElem.remove();
+                })
+            });
+            fileOptionPanel.appendChild(recipientElem);
+        });
+    }
+
     fileOptionPanel.style.display = 'flex';
 }
 
@@ -1638,7 +1664,12 @@ function renderGreetings() {
     uploadButton.disabled = true;
     uploadButton.style.opacity = '0.5';
     uploadButton.addEventListener('click', () => {
-        upload(pseudoInput.files[0])
+        let file = pseudoInput.files[0];
+        let metadata = buildFileMetadata(file);
+        prependQueueElem(metadata, true);
+        upload(file, metadata, (percentage) => {
+            progressHandlerById(metadata.hash, percentage);
+        });
         localStorage.setItem('isGreeted', true);
         skip.click();
     });
