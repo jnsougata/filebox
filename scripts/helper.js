@@ -153,37 +153,15 @@ function downloadFolderAsZip(folder) {
         prependQueueElem(zipData);
         blurLayer.click();
         queueButton.click();
-        let progress = 0;
-        let bar = document.getElementById(`bar-${folder.hash}`);
-        let percentageElem = document.getElementById(`percentage-${folder.hash}`);
         let promises = [];
+        let completed = 0;
         data.forEach((file) => {
             promises.push(
-                fetchFileFromDrive(file)
-                .then((resp) => {
-                    const reader = resp.body.getReader();
-                    return new ReadableStream({
-                        start(controller) {
-                            return pump();
-                            function pump() {
-                                return reader.read().then(({ done, value }) => {
-                                    if (done) {
-                                        controller.close();
-                                        return;
-                                    }
-                                    controller.enqueue(value);
-                                    progress += value.length;
-                                    let percentage = Math.round((progress / totalSize) * 100);
-                                    bar.style.width = `${percentage}%`;
-                                    percentageElem.innerHTML = `${percentage}%`;
-                                    return pump();
-                                });
-                            }
-                        }
-                    })
+                fetchFileFromDrive(file, (cmp) => {
+                    completed += cmp;
+                    let percentage = Math.round(completed / data.length * 100);
+                    progressHandlerById(zipData.hash, percentage);
                 })
-                .then((stream) => new Response(stream))
-                .then((response) => response.blob())
                 .then((blob) => {
                     zip.file(file.name, new Blob([blob], {type: file.mime}));
                 })
@@ -424,11 +402,16 @@ function handleFileMenuClick(file) {
     downloadButton.innerHTML = `<p>Download</p><span class="material-symbols-rounded">download</span>`;
     downloadButton.addEventListener("click", () => {
         close.click();
+        prependQueueElem(file, false);
         if (file.shared === true) {
-            downloadShared(file);
+            downloadShared(file, (percentage) => {
+                progressHandlerById(file.hash, percentage);
+            });
             return;
         }
-        download(file);
+        download(file, (percentage) => {
+            progressHandlerById(file.hash, percentage);
+        });
     });
 
     // Share
@@ -631,37 +614,15 @@ function newFileElem(file, isTrash = false) {
                 }
                 prependQueueElem(zipData);
                 queueButton.click();
-                let progress = 0;
-                let bar = document.getElementById(`bar-${randomZipId}`);
-                let percentageElem = document.getElementById(`percentage-${randomZipId}`);
                 let promises = [];
+                let completed = 0;
                 globalMultiSelectBucket.forEach((file) => {
                     promises.push(
-                        fetchFileFromDrive(file)
-                        .then((resp) => {
-                            const reader = resp.body.getReader();
-                            return new ReadableStream({
-                                start(controller) {
-                                    return pump();
-                                    function pump() {
-                                        return reader.read().then(({ done, value }) => {
-                                            if (done) {
-                                                controller.close();
-                                                return;
-                                            }
-                                            controller.enqueue(value);
-                                            progress += value.length;
-                                            let percentage = Math.round((progress / totalSize) * 100);
-                                            bar.style.width = `${percentage}%`;
-                                            percentageElem.innerHTML = `${percentage}%`;
-                                            return pump();
-                                        });
-                                    }
-                                }
-                            })
+                        fetchFileFromDrive(file, (cmp) => {
+                            completed += cmp;
+                            let percentage = Math.round((completed / totalSize) * 100);
+                            progressHandlerById(zipData.hash, percentage);
                         })
-                        .then((stream) => new Response(stream))
-                        .then((response) => response.blob())
                         .then((blob) => {
                             zip.file(file.name, new Blob([blob], {type: file.mime}));
                         })
@@ -1425,7 +1386,10 @@ function renderOriginalNav() {
                 "parent": parent,
                 "mime": file.type,
             }
-            upload(file, metadata);
+            prependQueueElem(metadata, true)
+            upload(file, metadata, (percentage) => {
+                progressHandlerById(metadata.hash, percentage);
+            });
         }
     });
     let folderUploadButton = document.createElement('button');
@@ -1445,7 +1409,12 @@ function renderOriginalNav() {
     newHiddenFileInput.addEventListener('change', (ev) => {
         queueButton.click();
         for (let i = 0; i < ev.target.files.length; i++) {
-            upload(ev.target.files[i]);
+            let file = ev.target.files[i];
+            let metadata = buildFileMetadata(file);
+            prependQueueElem(metadata, true);
+            upload(file, metadata, (percentage) => {
+                progressHandlerById(metadata.hash, percentage);
+            });
         }
     });
     navBar.innerHTML = '';

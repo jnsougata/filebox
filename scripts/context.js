@@ -77,7 +77,10 @@ function onRenameClick(file) {
 
 function onDownloadClick(file) {
     cg.click();
-    download(file)
+    prependQueueElem(file, false);
+    download(file, (progress) => {
+        progressHandlerById(file.hash, progress);
+    })
 }
 
 function onShareLinkClick(file) {

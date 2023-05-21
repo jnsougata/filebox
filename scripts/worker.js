@@ -4,44 +4,47 @@ function randId() {
     ).join('');
 }
 
+function buildFileMetadata(file) {
+    let hash = randId();
+    let meta = {
+        "hash": hash,
+        "name": file.name,
+        "size": file.size,
+        "mime": file.type,
+        "access": "private",
+        "date": new Date().toISOString(),
+    }
+    if (globalContextFolder) {
+        if (globalContextFolder.parent) {
+            meta.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
+        } else {
+            meta.parent = globalContextFolder.name;
+        }
+    }
+    return meta;
+}
+
+function progressHandlerById(hash, percentage) {
+    document.getElementById(`bar-${hash}`).style.width = `${percentage}%`;
+    document.getElementById(`percentage-${hash}`).innerHTML = `${percentage}%`;
+}
+
 function closeQueue() {
     if (runningTaskCount === 0) {
         queueModalCloseButton.click();
     }
 }
 
-function upload(file, metadata=null) {
-    let hash;
+function upload(file, metadata, progressHandler) {
+    let hash = metadata.hash;
     let header = {"X-Api-Key": globalSecretKey, "Content-Type": file.type}
     let projectId = globalSecretKey.split("_")[0];
     const ROOT = 'https://drive.deta.sh/v1';
     let reader = new FileReader();
     reader.onload = (ev) => {
-        let body;
-        hash = randId();
-        if (!metadata) {
-            body = {
-                "hash": hash,
-                "name": file.name,
-                "size": file.size,
-                "mime": file.type,
-                "access": "private",
-                "date": new Date().toISOString(),
-            }
-            if (globalContextFolder) {
-                if (globalContextFolder.parent) {
-                    body.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
-                } else {
-                    body.parent = globalContextFolder.name;
-                }
-            }
-        } else {
-            hash = metadata.hash;
-            body = metadata;
-        }
+        progressHandler(0);
         showSnack(`Uploading ${file.name}`, colorBlue, 'info');
         let content = ev.target.result;
-        prependQueueElem(body, true)
         runningTaskCount ++;
         let nameFragments = file.name.split('.');
         let saveAs = "";
@@ -50,8 +53,6 @@ function upload(file, metadata=null) {
         } else {
             saveAs = `${hash}`;
         }
-        let bar = document.getElementById(`bar-${hash}`);
-        let percentageElem = document.getElementById(`percentage-${hash}`);
         if (file.size < 10 * 1024 * 1024) {
             fetch(`${ROOT}/${projectId}/filebox/files?name=${saveAs}`, {
                 method: 'POST',
@@ -59,10 +60,9 @@ function upload(file, metadata=null) {
                 headers: header
             })
             .then(() => {
-                fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(body)})
+                fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(metadata)})
                 .then(() => {
-                    bar.style.width = "100%";
-                    percentageElem.innerHTML = "✓";
+                    progressHandler(100);
                     showSnack(`Uploaded ${file.name}`, colorBlue, 'success');
                     updateSpaceUsage(file.size);
                     runningTaskCount --;
@@ -103,9 +103,7 @@ function upload(file, metadata=null) {
                                 allOk = false;
                             }
                             progressIndex ++;
-                            let percentage = Math.round((progressIndex / finalIndex) * 100);
-                            bar.style.width = `${percentage}%`;
-                            percentageElem.innerHTML = `${percentage}%`;
+                            progressHandler(Math.round((progressIndex / finalIndex) * 100))
                         })
                     )
                 })
@@ -118,7 +116,7 @@ function upload(file, metadata=null) {
                         })
                         .then(response => response.json())
                         .then(() => {
-                            fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(body)})
+                            fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(metadata)})
                             .then(() => {
                                 bar.style.width = "100%";
                                 percentageElem.innerHTML = "✓";
@@ -150,7 +148,8 @@ function upload(file, metadata=null) {
     reader.readAsArrayBuffer(file);
 }
 
-function fetchFileFromDrive(file) {
+async function fetchFileFromDrive(file, progressHandler) {
+    progressHandler(0);
     let header = {"X-Api-Key": globalSecretKey}
     let projectId = globalSecretKey.split("_")[0];
     const ROOT = 'https://drive.deta.sh/v1';
@@ -160,11 +159,32 @@ function fetchFileFromDrive(file) {
         method: 'GET',
         headers: header
     })
+    .then((response) => {
+        const reader = response.body.getReader();
+        return new ReadableStream({
+            start(controller) {
+                return pump();
+                function pump() {
+                    return reader.read().then(({ done, value }) => {
+                        if (done) {
+                            controller.close();
+                            return;
+                        }
+                        controller.enqueue(value);
+                        progressHandler(value.length);
+                        return pump();
+                    });
+                }
+            }
+        })
+    })
+    .then((stream) => new Response(stream))
+    .then((response) => response.blob())
 }
 
-function download(file) {
+function download(file, progressHandler) {
     showSnack(`Downloading ${file.name}`, colorGreen, 'info');
-    prependQueueElem(file, false);
+    progressHandler(0);
     runningTaskCount ++;
     queueButton.click();
     let header = {"X-Api-Key": globalSecretKey}
@@ -172,8 +192,6 @@ function download(file) {
     const ROOT = 'https://drive.deta.sh/v1';
     let extension = file.name.split('.').pop();
     let qualifiedName = file.hash + "." + extension;
-    let bar = document.getElementById(`bar-${file.hash}`);
-    let percentageElem = document.getElementById(`percentage-${file.hash}`);
     fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
         method: 'GET',
         headers: header
@@ -192,9 +210,7 @@ function download(file) {
                         }
                         controller.enqueue(value);
                         progress += value.length;
-                        let percentage = Math.round((progress / file.size) * 100);
-                        bar.style.width = `${percentage}%`;
-                        percentageElem.innerHTML = `${percentage}%`;
+                        progressHandler(Math.round((progress / file.size) * 100));
                         return pump();
                     });
                 }
@@ -208,8 +224,6 @@ function download(file) {
         let a = document.createElement('a');
         a.href = url;
         a.download = file.name;
-        bar.style.width = "100%";
-        percentageElem.innerHTML = "100%";
         showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
         runningTaskCount --;
         closeQueue();
@@ -259,13 +273,12 @@ function createFolder() {
     })
 }
 
-function downloadShared(file) {
+function downloadShared(file, progressHandler) {
     showSnack(`Downloading ${file.name}`, colorGreen, 'info');
+    progressHandler(0);
     prependQueueElem(file, false);
     runningTaskCount++;
     queueButton.click();
-    let bar = document.getElementById(`bar-${file.hash}`);
-    let percentageElem = document.getElementById(`percentage-${file.hash}`);
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
@@ -275,8 +288,7 @@ function downloadShared(file) {
             let a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = file.name;
-            bar.style.width = "100%";
-            percentageElem.innerHTML = "100%";
+            progressHandler(100);
             showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
             runningTaskCount --;
             closeQueue();
@@ -300,9 +312,7 @@ function downloadShared(file) {
                 })
                 .then((blob) => {
                     progress += blob.size;
-                    let percentage = Math.round((progress / file.size) * 100);
-                    bar.style.width = `${percentage}%`;
-                    percentageElem.innerHTML = `${percentage}%`;
+                    progressHandler(Math.round((progress / file.size) * 100));
                     return blob;
                 }) 
             );
@@ -312,8 +322,6 @@ function downloadShared(file) {
             let a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob(blobs, {type: file.mime}));
             a.download = file.name;
-            bar.style.width = "100%";
-            percentageElem.innerHTML = "100%";
             showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
             runningTaskCount --;
             closeQueue();
