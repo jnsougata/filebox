@@ -1,6 +1,5 @@
 let controller;
 let fileOptionPanel = document.querySelector('.file_menu');
-let queueContent = document.querySelector('.queue_content');
 let queueTaskList = document.querySelector('#queue-task-list');
 
 
@@ -1037,7 +1036,7 @@ function showSnack(text, color=colorGreen, type='success') {
     }, 3000);
 }
 
-function renderFilesByMime(query) {
+function renderFilesByQuery(query) {
     sidebarOptionSwitch();
     if (previousOption) {
         previousOption.style.borderLeft = '5px solid transparent';
@@ -1239,7 +1238,7 @@ function buildDynamicNavIcon() {
 function renderSearchResults(query) {
     fetch(`/api/query`, {
         method: "POST",
-        body: JSON.stringify({"name?contains": query}),
+        body: JSON.stringify(query),
     })
     .then(response => response.json())
     .then(data => {
@@ -1248,11 +1247,14 @@ function renderSearchResults(query) {
         }
         let resultsPage = document.createElement('div');
         resultsPage.className = 'my_files';
+        let key = Object.keys(query)[0];
+        let attr = key.replace("?contains","");
+        let value = query[key];
         if (!data) {
             mainSection.innerHTML = '';
             let p = document.createElement('p');
             let symbol = `<i class="fa-solid fa-circle-exclamation"></i> `;
-            p.innerHTML = `${symbol} No results found for *${query}*`;
+            p.innerHTML = `${symbol} No results found for ${attr}: *${value}*`;
             p.style.backgroundColor = "#e44d27";
             resultsPage.appendChild(p);
             mainSection.appendChild(resultsPage);
@@ -1269,7 +1271,7 @@ function renderSearchResults(query) {
         });
         data = absoluteResults.concat(data);
         let p = document.createElement('p');
-        p.innerHTML = `Search results for *${query}*`;
+        p.innerHTML = `Search results for ${attr}: *${value}*`;
         p.style.backgroundColor = "#317840";
         resultsPage.appendChild(p);
         let fileList = document.createElement('div');
@@ -1298,6 +1300,7 @@ function renderOriginalNav() {
     backButton.innerHTML = '<span class="material-symbols-rounded">clear_all</span>';
     backButton.style.display = 'none';
     backButton.addEventListener('click', () => {
+        backButton.style.display = 'none';
         if (searched) {
             getContextOptionElem().click();
         } else {
@@ -1310,9 +1313,6 @@ function renderOriginalNav() {
     inputBar.spellcheck = false;
     inputBar.autocomplete = 'on'; 
     let inputTimer = null;
-    inputBar.addEventListener('focus', (ev) => {
-        backButton.style.display = 'flex';
-    });
     inputBar.addEventListener('input', (ev) => {
         if (inputTimer) {
             clearTimeout(inputTimer);
@@ -1320,7 +1320,15 @@ function renderOriginalNav() {
         inputTimer = setTimeout(() => {
             if (ev.target.value.length > 0) {
                 searched = true;
-                renderSearchResults(ev.target.value);
+                backButton.style.display = 'flex';
+                let matches = /:(.*?) (.*)/.exec(ev.target.value);
+                if (matches) {
+                    let attr = matches[1];
+                    let contains = matches[2];
+                    renderSearchResults({[`${attr}?contains`]: `${contains}`});
+                } else {
+                    renderSearchResults({"name?contains": `${ev.target.value}`});
+                }
             }
         }, 500);
     });

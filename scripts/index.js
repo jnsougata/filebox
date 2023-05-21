@@ -48,12 +48,6 @@ function getContextOptionElem() {
         "pinned": pinnedButton,
         "trash": trashButton,
         "shared": sharedButton,
-        "pdfs": pdfButton,
-        "images": imgButton,
-        "videos": videoButton,
-        "audios": audioButton,
-        "docs": docsButton,
-        "others": otherButton,
     }
     return options[globalContextOption];
 }
@@ -243,42 +237,6 @@ queueButton.addEventListener('click', () => {
     queueModal.style.display = 'block';
 });
 
-let pdfButton = document.querySelector('#pdfs');
-pdfButton.addEventListener('click', () => {
-    globalContextOption = "pdfs";
-    renderFilesByMime({"mime": "application/pdf"});
-});
-
-let docsButton = document.querySelector('#docs');
-docsButton.addEventListener('click', () => {
-    globalContextOption = "docs";
-    renderFilesByMime({"mime?contains": "text"});
-});
-
-let imgButton = document.querySelector('#images');
-imgButton.addEventListener('click', () => {
-    globalContextOption = "images";
-    renderFilesByMime({"mime?contains": "image"});
-});
-
-let audioButton = document.querySelector('#audios');
-audioButton.addEventListener('click', () => {
-    globalContextOption = "audios";
-    renderFilesByMime({"mime?contains": "audio"});
-});
-
-let videoButton = document.querySelector('#videos');
-videoButton.addEventListener('click', () => {
-    globalContextOption = "videos";
-    renderFilesByMime({"mime?contains": "video"});
-});
-
-let otherButton = document.querySelector('#others');
-otherButton.addEventListener('click', () => {
-    globalContextOption = "others";
-    renderFilesByMime({"mime?contains": "application", "mime?not_contains": "pdf"});
-});
-
 let trashButton = document.querySelector('#trash');
 trashButton.addEventListener('click', () => {
     renderOriginalNav();
@@ -397,6 +355,11 @@ window.addEventListener('resize', () => {
     } else {
         sidebar.style.display = 'none';
         cm.style.display = 'none';
+    }
+    if (fileOptionPanel.style.display === 'flex' || queueModal.style.display === 'block') {
+        blurLayer.style.display = 'block';
+    } else {
+        blurLayer.style.display = 'none';
     }
 });
 
