@@ -912,12 +912,7 @@ function buildPrompt(files) {
         });
         let files25 = files.slice(0, 25);
         files25.forEach((file) => {
-            let elem = document.getElementById(`file-${file.hash}`);
-            if (elem) {
-                elem.firstElementChild.click();
-            } else {
-
-            }
+            document.getElementById(`file-${file.hash}`).firstElementChild.click();
         });
     });
     prompt.appendChild(backButton);
