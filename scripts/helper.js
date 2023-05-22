@@ -726,7 +726,7 @@ function newFileElem(file, isTrash = false) {
                 globalMultiSelectBucket.forEach((file) => {
                     file.access = 'private';
                 });
-                fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(file)})
+                fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
                 .then(() => {
                     showSnack(`Made selected files private`, colorOrange, 'info');
                 })
