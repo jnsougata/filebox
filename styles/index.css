@@ -605,13 +605,21 @@ body {
         max-width: 320px;
     }
 }
-    
+
+@keyframes sildein_ttb {
+    0% {
+        top: -100px;
+    }
+    100% {
+        top: 0;
+    }
+}
+
 .snackbar {
     top: 0;
     left: 0;
     width: 100%;
     height: 75px;
-    padding: 10px;
     position: fixed;
     display: none;
     align-items: center;
@@ -621,18 +629,20 @@ body {
     transition: bottom 0.5s;
     z-index: 10001 !important;
     background-color: transparent;
+    animation: sildein_ttb 0.5s;
 }
 .snackbar > .snack_content {
-    width: 550px;
-    height: 55px;
+    height: 40px;
+    max-width: 700px;
+    min-width: 300px;
+    width: max-content;
     display: flex;
-    padding: 0 20px;
+    padding: 0 10px;
     align-items: center;
     justify-content: space-between;
+    border-radius: 25px;
     background-color: rgb(30, 112, 30);
-    box-shadow: 0 0 10px 0 #000000;
-    border-radius: 5px;
-    flex-grow: 0;
+    box-shadow: 0 0 10px 0 #0000006e;
 }
 .snackbar > .snack_content > p {
     font-size: 16px;
@@ -642,25 +652,26 @@ body {
     text-overflow: ellipsis;
 }
 .snackbar > .snack_content > i {
-    width: 25px;
-    height: 25px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 15px;
+    font-size: 18px;
     color: white;
-    padding: 5px;
+    padding: 3px;
     border-radius: 50%;
     background-color: #ffffff3f;
-    margin-right: 10px;
 }
 @media screen and (max-width: 768px) {
     .snackbar > .snack_content {
-        width: 400px;
+        max-width: 350px;
+        min-width: 200px;
     }
     .snackbar > .snack_content > p {
         font-size: 14px;
-        max-width: 300px;
+        max-width: 200px;
+    }
+    .snackbar > .snack_content > i {
+        font-size: 18px;
     }
 }
     

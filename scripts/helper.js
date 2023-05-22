@@ -294,13 +294,13 @@ function handleFileMenuClick(file) {
             } else {
                 embed.style.opacity = 1;
             }
-            showSnack("File access changed to public", colorGreen, 'info');
+            showSnack("Access changed to public", colorGreen, 'info');
         } else {
             file.access = 'private';
             visibilityOption.innerHTML = `<p>Access</p><span class="material-symbols-rounded">visibility_off</span>`;
             share.style.opacity = 0.3;
             embed.style.opacity = 0.3;
-            showSnack("File access changed to private", colorOrange, 'info');
+            showSnack("Access changed to private", colorOrange, 'info');
         }
         fetch(`/api/file/access`, {
             method: "PATCH", 
@@ -424,7 +424,7 @@ function handleFileMenuClick(file) {
         } else {
             window.navigator.clipboard.writeText(`${window.location.origin}/shared/${file.hash}`)
             .then(() => {
-                showSnack(`Copied sharing link to clipboard`, colorGreen, 'success');
+                showSnack(`Copied to clipboard`, colorGreen, 'success');
             })
         }
     });
@@ -441,7 +441,7 @@ function handleFileMenuClick(file) {
         } else {
             window.navigator.clipboard.writeText(`${window.location.origin}/api/embed/${file.hash}`)
             .then(() => {
-                showSnack(`Copied embed link to clipboard`, colorGreen, 'success');
+                showSnack(`Copied to clipboard`, colorGreen, 'success');
             })
         }
     });
@@ -746,8 +746,8 @@ function newFileElem(file, isTrash = false) {
             deleteButton.innerHTML = '<span class="material-symbols-rounded">delete_forever</span>';
             deleteButton.style.backgroundColor = "#f23a3a";
             deleteButton.addEventListener("click", () => {
-                let confirmation = confirm('Are you sure you want to delete these files permanently?');
-                if (!confirmation) {
+                let ok = confirm(`Do you really want to delete ${globalMultiSelectBucket.length} file(s)?`);
+                if (!ok) {
                     return;
                 }
                 fetch(`/api/bulk`, {method: "DELETE", body: JSON.stringify(globalMultiSelectBucket)})
@@ -994,10 +994,10 @@ function updateToCompleted(hash) {
 let snackTimer = null;
 function showSnack(text, color=colorGreen, type='success') {
     let icons = {
-        success: 'fa-solid fa-check-circle',
-        error: 'fa-solid fa-xmark',
-        warning: 'fa-solid fa-exclamation-triangle',
-        info: 'fa-solid fa-info-circle'
+        success: 'done',
+        error: 'cancel',
+        warning: 'priority_high',
+        info: 'bolt'
     }
     let snackbar = document.querySelector('.snackbar');
     snackbar.style.display = 'flex';
@@ -1005,13 +1005,17 @@ function showSnack(text, color=colorGreen, type='success') {
     content.className = 'snack_content';
     content.style.backgroundColor = color;
     let icon = document.createElement('i');
-    icon.className = icons[type];
+    icon.className = "material-symbols-rounded";
+    icon.style.marginRight = '10px';
+    icon.innerHTML = icons[type];
     let p = document.createElement('p');
-    p.style.textAlign = 'left';
     p.innerHTML = text;
     let close = document.createElement('i');
-    close.className = 'fa-solid fa-minus';
+    close.className = 'material-symbols-rounded';
+    close.style.marginLeft = '10px';
+    close.innerHTML = 'close';
     close.style.cursor = 'pointer';
+    close.style.backgroundColor = 'transparent';
     close.addEventListener('click', () => {
         snackbar.style.display = 'none';
         cg.click();
