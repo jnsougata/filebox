@@ -997,7 +997,7 @@ function showSnack(text, color=colorGreen, type='success') {
         success: 'done',
         error: 'cancel',
         warning: 'priority_high',
-        info: 'bolt'
+        info: 'question_mark'
     }
     let snackbar = document.querySelector('.snackbar');
     snackbar.style.display = 'flex';
@@ -1162,7 +1162,7 @@ async function showFilePreview(file) {
         const blob = await br.blob();
         src = URL.createObjectURL(new Blob([blob], {type: file.mime}));
     }
-    window.open(src);
+    window.location.href = src;
 }
 
 function fileMover(file) {
