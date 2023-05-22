@@ -159,7 +159,7 @@ function downloadFolderAsZip(folder) {
             promises.push(
                 fetchFileFromDrive(file, (cmp) => {
                     completed += cmp;
-                    let percentage = Math.round(completed / data.length * 100);
+                    let percentage = Math.round(completed / totalSize * 100);
                     progressHandlerById(zipData.hash, percentage);
                 })
                 .then((blob) => {
@@ -737,7 +737,7 @@ function newFileElem(file, isTrash = false) {
                 globalMultiSelectBucket.forEach((file) => {
                     file.access = 'public';
                 });
-                fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(file)})
+                fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
                 .then(() => {
                     showSnack(`Made selected files public`, colorGreen, 'info');
                 })
