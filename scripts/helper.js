@@ -1476,6 +1476,7 @@ function renderFileSenderModal(file) {
         return;
     }
     fileOptionPanel.style.display = 'none';
+    blurLayer.style.display = 'block';
     fileSender.innerHTML = '';
     let filename = document.createElement('p');
     filename.innerHTML = file.name;
@@ -1502,7 +1503,6 @@ function renderFileSenderModal(file) {
         delete fileClone.recipients;
         delete fileClone.pinned;
         fileClone.owner = globalUserId;
-        fileClone.pending = true;
         fileClone.shared = true;
         fileClone.parent = "~shared";
         fetch(`/api/push/${userIdField.value}`, {method: "POST", body: JSON.stringify(fileClone)})

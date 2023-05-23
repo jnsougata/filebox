@@ -171,24 +171,15 @@ sharedButton.addEventListener('click', () => {
     })
     .then(data => {
         if (data) {
-            let pendingFiles = data.filter((file) => file.pending);
-            let acceptedFiles = data.filter((file) => !file.pending);
-            if (pendingFiles.length > 0) {
-                fileList.appendChild(buildTitleP('Pending Files'));
-                fileList.appendChild(buildPendingFileList(pendingFiles));
-            }
-            if (acceptedFiles.length > 0) {
-                let ul = document.createElement('ul');
-                ul.className = 'all_files';
-                fileList.appendChild(buildTitleP('Files Received '));
-                data.forEach((file) => {
-                    ul.appendChild(newFileElem(file));
-                });
-                fileList.appendChild(ul);
-            } 
+            let ul = document.createElement('ul');
+            ul.className = 'all_files';
+            data.forEach((file) => {
+                ul.appendChild(newFileElem(file));
+            });
+            fileList.appendChild(ul);
             mainSection.appendChild(fileList);
         } else {
-            mainSection.innerHTML= `<p>You don't have any shared file</p>`;
+            mainSection.innerHTML= `<p>You haven't received any file</p>`;
         }
     })
 });
@@ -247,7 +238,7 @@ trashButton.addEventListener('click', () => {
     .then(data => {
         mainSection.innerHTML = '';
         if (!data) {
-            mainSection.innerHTML = `<p>You don't have any deleted file</p>`;
+            mainSection.innerHTML = `<p>There is no trash file</p>`;
             return;
         }
         let fileList = document.createElement('div');
@@ -384,5 +375,4 @@ window.addEventListener("paste", (e) => {
             }
         })
     }
-    queueButton.click();
 });

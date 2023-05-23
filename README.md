@@ -33,3 +33,9 @@ A personal cloud storage service for free (upto 10GB)
 ## Desktop Preview
 ![image](https://user-images.githubusercontent.com/53375272/231085403-bf305e7d-b6b3-4d3a-9e1a-39426211bd92.png)
 
+
+## TODO Improvements
+- [ ] Use global right sidebar 
+- [ ] Modal based search panel
+- [ ] Code refactor and cleanup
+- [ ] CSS cleanup

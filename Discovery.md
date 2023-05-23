@@ -25,8 +25,10 @@ Upload & organize files in your Personal Space Drive
 - Install as **PWA**
 - UX improvements
 - Custom context menu for file operations
-- **Upload and store folders** (limited browser support)
+- **Upload and store folders** ( ⚠ limited browser support )
 - **Zipped folder or multiple file download** support
+  - ⚠ Excludes nested folders 
+  - ⚠ Excludes files from other users 
   
 ### Future 
 Filebox will no longer actively receive updates from original developer after v2.3. The project is open source and anyone can contribute to it. Looking for new maintainers with adequate knowledge in Svelte for framework migration and Golang for backend development.
