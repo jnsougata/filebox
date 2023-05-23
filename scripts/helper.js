@@ -231,8 +231,8 @@ function handleTrashFileMenuClick(file) {
             .then(() => {
                 showSnack(`Restored ${file.name}`, colorGreen, 'success');
                 document.getElementById(`file-${file.hash}`).remove();
+                delete globalTrashFiles[file.hash]
                 close.click();
-                globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
             })
         })
     });
@@ -248,7 +248,6 @@ function handleTrashFileMenuClick(file) {
                 updateSpaceUsage(-file.size);
             }
             close.click();
-            globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
             if (globalTrashFiles.length === 0) {
                 renderOriginalNav();
             }

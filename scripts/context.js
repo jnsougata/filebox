@@ -159,6 +159,7 @@ function onColorClick(file) {
 }
 
 function onRestoreClick(file) {
+    cg.click();
     checkFileParentExists(file)
     .then((exists) => {
         if (!exists && file.parent !== undefined) {
@@ -170,23 +171,23 @@ function onRestoreClick(file) {
         }
         fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
-            showSnack(`Restored ${file.name}`, colorGreen, 'success');
             document.getElementById(`file-${file.hash}`).remove();
-            globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
+            showSnack(`Restored ${file.name}`, colorGreen, 'success');
+            delete globalTrashFiles[file.hash];
         })
     })
 }
 
 function onDeletePermanentlyClick(file) {
+    cg.click();
     fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
     .then(() => {
         showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
         document.getElementById(`file-${file.hash}`).remove();
-        cg.click();
         if (!file.shared) {
             updateSpaceUsage(-file.size);
         }
-        globalTrashFiles = globalTrashFiles.filter((f) => f.hash !== file.hash);
+        delete globalTrashFiles[file.hash];
     })
 }
 

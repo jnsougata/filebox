@@ -245,7 +245,11 @@ trashButton.addEventListener('click', () => {
         fileList.className = 'file_list';
         let ul = document.createElement('ul');
         ul.className = 'all_files';
-        globalTrashFiles = data;
+        dataMap = {};
+        data.forEach((file) => {
+            dataMap[file.hash] = file;
+        });
+        globalTrashFiles = dataMap;
         data.forEach((file) => {
             ul.appendChild(newFileElem(file, true));
         });

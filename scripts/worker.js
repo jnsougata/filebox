@@ -66,15 +66,11 @@ function upload(file, metadata, progressHandler) {
                     showSnack(`Uploaded ${file.name}`, colorBlue, 'success');
                     updateSpaceUsage(file.size);
                     runningTaskCount --;
-                    if (metadata) {
-                        return;
-                    }
                     if (globalContextFolder) {
                         handleFolderClick(globalContextFolder)
                     } else {
                         getContextOptionElem().click();
                     }
-                    closeQueue();
                 })
             })
         } else {
@@ -118,11 +114,10 @@ function upload(file, metadata, progressHandler) {
                         .then(() => {
                             fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(metadata)})
                             .then(() => {
-                                bar.style.width = "100%";
-                                percentageElem.innerHTML = "✓";
                                 updateSpaceUsage(file.size);
-                                showSnack(`Uploaded ${file.name} successfully!`, colorBlue, 'success');
+                                showSnack(`Uploaded ${file.name} successfully`, colorBlue, 'success');
                                 if (globalContextFolder) {
+                                    console.log(globalContextFolder)
                                     handleFolderClick(globalContextFolder)
                                 } else {
                                     getContextOptionElem().click();
@@ -131,9 +126,6 @@ function upload(file, metadata, progressHandler) {
                         })
                     } else {
                         showSnack(`Failed to upload ${file.name}`, colorRed, 'error');
-                        bar.style.width = "100%";
-                        percentageElem.innerHTML = "✕";
-                        bar.style.backgroundColor = colorRed;
                         fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
                             method: 'DELETE', 
                             headers: header
