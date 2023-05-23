@@ -888,25 +888,24 @@ body {
 }
 
 .file_sender {
-    top: 0;
     right: 0;
-    width: 500px;
-    height: 200px;
+    bottom: 0;
     position: fixed;
-    background-color: var(--color-blackish);
-    z-index: 100;
-    margin-top: 70px;
-    margin-right: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px 0 #00000081;
+    width: 500px;
+    height: 100vh;
+    height: 100dvh;
     display: none;
-    align-items: center;
-    justify-content: center;
     flex-direction: column;
-    padding: 20px;
+    justify-content: flex-start;
+    align-items: center;
+    z-index: 10000 !important;
+    animation: sildein_rtl 0.5s;
+    background-color: #1a1c20;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.425);
+    padding: 45px;
 }
 .file_sender > input[type="text"] {
-    width: calc(100% - 20px);
+    width: 100%;
     margin-top: 10px;
     margin-bottom: 20px;
     outline: none;
@@ -918,10 +917,8 @@ body {
     background-color: var(--color-blackish-light);
 }
 .file_sender > div > button {
-    width: 100px;
-    height: 40px;
     border: none;
-    padding: 0 10px;
+    padding: 7px 20px;
     font-size: 16px;
     color: white;
     cursor: pointer;
@@ -935,7 +932,6 @@ body {
 .file_sender > p {
     width: 100%;
     max-width: 450px;
-    padding: 0 10px;
     color: #ccc;
     font-size: 16px;
     flex-shrink: 0;
@@ -946,9 +942,18 @@ body {
 }
 @media screen and (max-width: 768px) {
     .file_sender {
-        width: 100%;
-        margin: 0;
-        border-radius: 0;
+        padding: 20px;
+        width: 300px;
+    }
+    .file_sender > input[type="text"] {
+        font-size: 13px;
+    }
+    .file_sender > div > button {
+        font-size: 13px;
+    }
+    .file_sender > p {
+        font-size: 13px;
+        max-width: 250px;
     }
 }
 

@@ -229,7 +229,7 @@ queueModalCloseButton.addEventListener('click', () => {
 });
 let queueButton = document.querySelector('#queue');
 queueButton.addEventListener('click', () => {
-    blurLayer.style.display = 'block';
+    blurLayer.click();
     if (window.innerWidth < 768) {
         sidebarState(false);
     }
@@ -308,13 +308,9 @@ blurLayer.addEventListener('click', () => {
     if (sidebar.style.display === 'flex' && window.innerWidth < 768) {
         sidebarState(false);
     }
-    if (fileOptionPanel.style.display === 'flex') {
-        fileOptionPanel.style.display = 'none';
-        
-    }
-    if (queueModal.style.display === 'block') {
-        queueModal.style.display = 'none';
-    }
+    fileOptionPanel.style.display = 'none';
+    queueModal.style.display = 'none';
+    fileSender.style.display = 'none';
     blurLayer.style.display = 'none';
 });
 
@@ -361,7 +357,13 @@ window.addEventListener('resize', () => {
         sidebar.style.display = 'none';
         cm.style.display = 'none';
     }
-    if (fileOptionPanel.style.display === 'flex' || queueModal.style.display === 'block') {
+    if (
+        fileOptionPanel.style.display === 'flex' 
+        || 
+        queueModal.style.display === 'block'
+        || 
+        fileSender.style.display === 'flex'
+    ) {
         blurLayer.style.display = 'block';
     } else {
         blurLayer.style.display = 'none';

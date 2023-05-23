@@ -1,4 +1,5 @@
 let controller;
+let fileSender = document.querySelector('.file_sender');
 let fileOptionPanel = document.querySelector('.file_menu');
 let queueTaskList = document.querySelector('#queue-task-list');
 
@@ -1475,7 +1476,6 @@ function renderFileSenderModal(file) {
         return;
     }
     fileOptionPanel.style.display = 'none';
-    let fileSender = document.querySelector('.file_sender');
     fileSender.innerHTML = '';
     let filename = document.createElement('p');
     filename.innerHTML = file.name;
@@ -1488,6 +1488,7 @@ function renderFileSenderModal(file) {
     cancelButton.innerHTML = 'Cancel';
     cancelButton.addEventListener('click', () => {
         fileSender.style.display = 'none';
+        blurLayer.style.display = 'none';
     });
     let sendButton = document.createElement('button');
     sendButton.innerHTML = 'Send';
