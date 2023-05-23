@@ -117,7 +117,6 @@ function upload(file, metadata, progressHandler) {
                                 updateSpaceUsage(file.size);
                                 showSnack(`Uploaded ${file.name} successfully`, colorBlue, 'success');
                                 if (globalContextFolder) {
-                                    console.log(globalContextFolder)
                                     handleFolderClick(globalContextFolder)
                                 } else {
                                     getContextOptionElem().click();
