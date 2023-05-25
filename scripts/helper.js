@@ -914,25 +914,46 @@ function buildPrompt(files) {
             getContextOptionElem().click();
         }
     });
+    files.forEach((file) => {
+        let elem = document.getElementById(`file-${file.hash}`);
+        if (!elem) {
+            let index = files.findIndex((f) => f.hash === file.hash);
+            files.splice(index, 1);
+        }
+    });
+    let files25 = files.slice(0, 25);
     let selectAll = document.createElement('i');
     selectAll.className = 'material-symbols-rounded';
     selectAll.innerHTML = 'select_all';
     selectAll.addEventListener('click', () => {
-        files.forEach((file) => {
-            let elem = document.getElementById(`file-${file.hash}`);
-            if (!elem) {
-                let index = files.findIndex((f) => f.hash === file.hash);
-                files.splice(index, 1);
+        files25.forEach((file) => {
+            let icon = document.getElementById(`file-${file.hash}`).firstElementChild;
+            if (icon.firstElementChild.innerHTML == 'done') {
+                return;
+            }
+            icon.click();
+        });
+        selectAll.style.display = 'none';
+        deselectAll.style.display = 'block';
+    });
+    let deselectAll = document.createElement('i');
+    deselectAll.className = 'material-symbols-rounded';
+    deselectAll.innerHTML = 'deselect';
+    deselectAll.style.display = 'none';
+    deselectAll.addEventListener('click', () => {
+        files25.forEach((file) => {
+            let icon = document.getElementById(`file-${file.hash}`).firstElementChild;
+            if (icon.firstElementChild.innerHTML == 'done') {
+                icon.click();
             }
         });
-        let files25 = files.slice(0, 25);
-        files25.forEach((file) => {
-            document.getElementById(`file-${file.hash}`).firstElementChild.click();
-        });
+        deselectAll.style.display = 'none';
+        selectAll.style.display = 'block';
     });
     prompt.appendChild(backButton);
     div.appendChild(fragment);
     div.appendChild(selectAll);
+    div.appendChild(deselectAll);
     prompt.appendChild(div);
     return prompt;
 }
