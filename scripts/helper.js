@@ -571,9 +571,12 @@ function handleFolderClick(folder) {
         if (!data) {
             return;
         }
-        let folders = data.filter((file) => file.type === 'folder');
-        let files = data.filter((file) => file.type !== 'folder');
-        mainSection.appendChild(buildPrompt(files));
+        let folders = [];
+        let files = [];
+        data.forEach((file) => {
+            file.type === 'folder' ? folders.push(file) : files.push(file);
+        });
+        mainSection.appendChild(buildPrompt());
         let list = document.createElement('ul');
         mainSection.appendChild(list);
         folders.concat(files).forEach((file) => {
@@ -888,7 +891,7 @@ function updatePromptFragment(text = 'home') {
     document.querySelector('.fragment').innerHTML = fragment;
 }
 
-function buildPrompt(files) {
+function buildPrompt() {
     let prompt = document.createElement('div');
     prompt.className = 'prompt';
     let fragment = document.createElement('p');
@@ -907,45 +910,48 @@ function buildPrompt(files) {
         }
         if (globalFolderQueue.length > 1) {
             globalFolderQueue.pop();
-            handleFolderClick(globalFolderQueue[globalFolderQueue.length - 1]);
+            let prev = globalFolderQueue[globalFolderQueue.length - 1];
+            handleFolderClick(prev);
         } else {
             globalContextFolder = null;
             globalFolderQueue.pop();
             getContextOptionElem().click();
         }
     });
-    files.forEach((file) => {
-        let elem = document.getElementById(`file-${file.hash}`);
-        if (!elem) {
-            let index = files.findIndex((f) => f.hash === file.hash);
-            files.splice(index, 1);
-        }
-    });
-    let files25 = files.slice(0, 25);
     let selectAll = document.createElement('i');
     selectAll.className = 'material-symbols-rounded';
     selectAll.innerHTML = 'select_all';
     selectAll.addEventListener('click', () => {
-        files25.forEach((file) => {
-            let icon = document.getElementById(`file-${file.hash}`).firstElementChild;
-            if (icon.firstElementChild.innerHTML == 'done') {
+        let targets = [];
+        let clickedTargets = [];
+        let list = mainSection.children[1].children;
+        Array.from(list).forEach((li) => {
+            let icon = li.firstElementChild.firstElementChild;
+            if (icon.innerHTML === 'folder') {
                 return;
             }
+            icon.innerHTML === 'done' ? clickedTargets.push(icon) : targets.push(icon);
+        });
+        targets.slice(0, 25-clickedTargets.length).forEach((icon) => {
             icon.click();
         });
-        selectAll.style.display = 'none';
-        deselectAll.style.display = 'block';
+        if (targets.length > 0) {
+            selectAll.style.display = 'none';
+            deselectAll.style.display = 'block';
+        }
     });
     let deselectAll = document.createElement('i');
     deselectAll.className = 'material-symbols-rounded';
     deselectAll.innerHTML = 'deselect';
     deselectAll.style.display = 'none';
     deselectAll.addEventListener('click', () => {
-        files25.forEach((file) => {
-            let icon = document.getElementById(`file-${file.hash}`).firstElementChild;
-            if (icon.firstElementChild.innerHTML == 'done') {
-                icon.click();
+        let list = mainSection.children[1].children;
+        Array.from(list).forEach((li) => {
+            let icon = li.firstElementChild.firstElementChild;
+            if (icon.innerHTML === 'folder') {
+                return;
             }
+            icon.innerHTML === 'done' ? icon.click() : null;
         });
         deselectAll.style.display = 'none';
         selectAll.style.display = 'block';

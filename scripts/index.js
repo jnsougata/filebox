@@ -117,7 +117,7 @@ browseButton.addEventListener('click', () => {
         data.forEach((file) => {
             file.type === 'folder' ? folders.push(file) : files.push(file);
         });
-        mainSection.appendChild(buildPrompt(files));
+        mainSection.appendChild(buildPrompt());
         let list = document.createElement('ul');
         mainSection.appendChild(list);
         folders.concat(files).forEach((file) => {
