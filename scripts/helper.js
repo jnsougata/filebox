@@ -752,7 +752,6 @@ function newFileElem(file, trashed = false) {
                     });
                     globalMultiSelectBucket = [];
                     showSnack(`Deleted selected files`, colorRed, 'info');
-                    renderOriginalNav();
                 })
             });
             let selectCount = document.createElement('p');
