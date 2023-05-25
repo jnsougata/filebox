@@ -299,17 +299,17 @@ body {
     }
 }
 
-.content > main {
+main {
     width: 100%;
     height: 100%;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
     overflow-y: auto;
     overflow-x: hidden;
 }
-
-.content > main > p {
+main > p {
     font-size: 12px;
     color: white;
     margin-top: 20px;
@@ -317,18 +317,7 @@ body {
     border-radius: 15px;
     background-color: orangered;
 }
-
-.file_list {
-    width: 100%;
-    height: max-content;
-    display: flex;
-    overflow-x: hidden;
-    overflow-y: auto;
-    align-items: center;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-.file_list > ul {
+main > ul {
     width: 100%;
     height: 100%;
     display: flex;
@@ -337,7 +326,7 @@ body {
     align-items: flex-start;
     overflow-y: auto;
 }
-.file_list > ul > li {
+main > ul > li {
     width: 100%;
     height: 60px;
     display: flex;
@@ -348,10 +337,10 @@ body {
     justify-content: space-between;
     border-bottom: 1px solid #ffffff0c;
 }
-.file_list > ul > li:last-child {
+main > ul > li:last-child {
     border-bottom: none;
 }
-.file_list > ul > li > .file_icon {
+main > ul > li > .file_icon {
     width: 60px;
     height: 50px;
     border-radius: 5px;
@@ -361,17 +350,14 @@ body {
     font-size: 25px;
     color: #ccc;
 }
-.file_list > ul > li > span {
-    font-size: 15px;
+main > ul > li > span {
     color: #ccc;
-    margin-left: 10px;
     padding: 5px;
-    background-color: #ffffff0c;
     border-radius: 50%;
     cursor: pointer;
-    font-weight: 800;
+    background-color: #ffffff0c;
 }
-.file_list > ul > li > .info {
+main > ul > li > .info {
     width: 100%;
     height: 60px;
     display: flex;
@@ -380,7 +366,7 @@ body {
     align-items: flex-start;
     padding-left: 5px;
 }
-.file_list > ul > li > .info > p {
+main > ul > li > .info > p {
     max-width: 650px;
     font-size: 15px;
     color: #ccc;
@@ -391,25 +377,20 @@ body {
     
 }
 @media screen and (max-width: 768px) {
-    .file_list > ul > li {
+    main > ul > li {
         height: 50px;
-        padding-left: 0;
         padding-right: 10px;
     }
-    .file_list > ul > li > i {
-        font-size: 20px;
-        margin-left: 15px;
+    main > ul > li > span {
+        font-size: 10px;
+        margin-left: 5px;
     }
-    .file_list > ul > li > .info {
+    main > ul > li > .info {
         height: 50px;
     }
-    .file_list > ul > li > .info > p {
+    main > ul > li > .info > p {
         width: 230px;
         font-size: 12px;
-    }
-    .file_list > ul > li > span {
-        font-size: 15px;
-        margin-left: 5px;
     }
 }
 
@@ -529,30 +510,6 @@ body {
         font-size: 12px;
         padding: 8px;
     }
-}
-
-.my_files {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: flex-start;
-    background-color: #1a1c20;
-}
-.my_files > p {
-    width: max-content;
-    flex-shrink: 0;
-    padding: 3px 13px;
-    margin: 10px 0;
-    border-radius: 20px;
-    font-size: 14px;
-    text-align: center;
-    color: white;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    background-color: #e44d27;
 }
 
 .prompt {

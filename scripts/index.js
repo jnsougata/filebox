@@ -52,25 +52,11 @@ function getContextOptionElem() {
     return options[globalContextOption];
 }
 
-function sidebarState(enabled = true) {
-    if (!enabled) {
+function closeSidebar() {
+    if (window.innerWidth < 768) {
         blurLayer.style.display = 'none';
         sidebar.style.display = 'none';
-    } else {
-        sidebar.style.display = 'flex';
-        if (window.innerWidth < 768) {
-            blurLayer.style.display = 'block';
-        }
     }
-}
-
-function sidebarOptionSwitch() {
-    if (window.innerWidth < 768) {
-        sidebarState(false);
-    }
-    renderOriginalNav();
-    globalContextFolder = null;
-    fileOptionPanel.style.display = 'none';
 }
 
 let sidebarOptions = document.querySelectorAll('.sidebar_option');
@@ -91,19 +77,19 @@ for (let i = 0; i < sidebarOptions.length; i++) {
 let recentButton = document.querySelector('#recent');
 recentButton.addEventListener('click', () => {
     globalContextOption = "recent";
-    globalContextFolder = null;
-    fileOptionPanel.style.display = 'none';
-    if (window.innerWidth < 768) {
-        sidebarState(false);
-    }
+    closeSidebar();
     renderOriginalNav();
     fetch(`/api/metadata`)
     .then(response => response.json())
     .then(data => {
+        mainSection.innerHTML = '';
         if (data) {
-            data = sortFileByTimestamp(data)
-            mainSection.innerHTML = '';
-            mainSection.appendChild(buildRecentContent(data.slice(0, 10)));
+            data = sortFileByTimestamp(data).slice(0, 10)
+            let list = document.createElement('ul');
+            mainSection.appendChild(list);
+            data.forEach((file) => {
+                list.appendChild(newFileElem(file));
+            });
         } else {
             let greeted = localStorage.getItem('isGreeted')
             if (!greeted) {
@@ -117,48 +103,63 @@ let browseButton = document.querySelector('#browse');
 browseButton.addEventListener('click', () => {
     globalContextOption = "browse";
     globalContextFolder = null;
-    fileOptionPanel.style.display = 'none';
-    if (window.innerWidth < 768) {
-        sidebarState(false);
-    }
+    closeSidebar();
     if (!isFileMoving) {
         renderOriginalNav();
     }
     globalFolderQueue = [];
-    fetch(`/api/metadata`)
+    fetch(`/api/root`)
     .then(response => response.json())
     .then(data => {
+        mainSection.innerHTML = '';
         let files = [];
         let folders = [];
         data.forEach((file) => {
-            if (!file.parent){
-                if (file.type === 'folder') {
-                    folders.push(file);
-                } else {
-                    files.push(file);
-                }
-            }
+            file.type === 'folder' ? folders.push(file) : files.push(file);
         });
-        let fileView = document.createElement('div');
-        fileView.className = 'my_files';
-        fileView.appendChild(buildPrompt(files));
-        fileView.appendChild(buildFileBrowser(folders.concat(files)));
-        mainSection.innerHTML = '';
-        mainSection.appendChild(fileView);
+        mainSection.appendChild(buildPrompt(files));
+        let list = document.createElement('ul');
+        mainSection.appendChild(list);
+        folders.concat(files).forEach((file) => {
+            list.appendChild(newFileElem(file));
+        });
         updateFolderStats(folders);
         updatePromptFragment();
+    })
+});
+
+let pinnedButton = document.querySelector('#pinned');
+pinnedButton.addEventListener('click', () => {
+    globalContextOption = "pinned";
+    closeSidebar();
+    renderOriginalNav();
+    fetch("/api/query", {method: 'POST', body: JSON.stringify({"pinned": true, "deleted?ne": true}),
+    })
+    .then(response => response.json())
+    .then(data => {
+        mainSection.innerHTML = '';
+        if (!data) {
+            mainSection.innerHTML = `<p>You don't have any pinned file or folder</p>`;
+            return;
+        }
+        let files = [];
+        let folders = [];
+        data.forEach((file) => {
+            file.type === 'folder' ? folders.push(file) : files.push(file);
+        });
+        let list = document.createElement('ul');
+        mainSection.appendChild(list);
+        folders.concat(files).forEach((file) => {
+            list.appendChild(newFileElem(file));
+        });
     })
 });
 
 let sharedButton = document.querySelector('#shared');
 sharedButton.addEventListener('click', () => {
     globalContextOption = "shared";
-    if (window.innerWidth < 768) {
-        sidebarState(false);
-    }
-    if (!isFileMoving) {
-        renderOriginalNav();
-    }
+    closeSidebar();
+    renderOriginalNav();
     mainSection.innerHTML = '';
     let fileList = document.createElement('div');
     fileList.className = 'file_list';
@@ -167,72 +168,25 @@ sharedButton.addEventListener('click', () => {
         if (resp.status === 200) {
             return resp.json();
         }
-        return [];
+        return null;
     })
     .then(data => {
-        if (data) {
-            let ul = document.createElement('ul');
-            ul.className = 'all_files';
-            data.forEach((file) => {
-                ul.appendChild(newFileElem(file));
-            });
-            fileList.appendChild(ul);
-            mainSection.appendChild(fileList);
-        } else {
-            mainSection.innerHTML= `<p>You haven't received any file</p>`;
+        if (!data) {
+            mainSection.innerHTML = `<p>You haven't received any file</p>`;
+            return;
         }
+        let list = document.createElement('ul');
+        mainSection.appendChild(list);
+        data.forEach((file) => {
+            list.appendChild(newFileElem(file));
+        });
     })
-});
-
-let pinnedButton = document.querySelector('#pinned');
-pinnedButton.addEventListener('click', () => {
-    globalContextOption = "pinned";
-    if (window.innerWidth < 768) {
-        sidebarState(false);
-    }
-    fetch("/api/query", {method: 'POST', body: JSON.stringify({"pinned": true, "deleted?ne": true}),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data) {
-            let folders = data.filter((file) => {
-                return file.type === 'folder';
-            });
-            let files = data.filter((file) => {
-                return file.type !== 'folder';
-            });
-            data = folders.concat(files);
-            mainSection.innerHTML = '';
-            mainSection.appendChild(buildPinnedContent(data));
-
-        } else {
-            mainSection.innerHTML = '';
-            mainSection.innerHTML = `<p>You don't have any pinned file or folder</p>`;
-        }
-    })
-});
-
-let queueModal = document.querySelector('.queue');
-let queueModalCloseButton = document.querySelector('.queue_close');
-queueModalCloseButton.addEventListener('click', () => {
-    blurLayer.style.display = 'none';
-    queueModal.style.display = 'none';
-});
-let queueButton = document.querySelector('#queue');
-queueButton.addEventListener('click', () => {
-    blurLayer.click();
-    if (window.innerWidth < 768) {
-        sidebarState(false);
-    }
-    blurLayer.style.display = 'block';
-    queueModal.style.display = 'block';
 });
 
 let trashButton = document.querySelector('#trash');
 trashButton.addEventListener('click', () => {
-    renderOriginalNav();
-    sidebarOptionSwitch();
     globalContextOption = "trash";
+    renderOriginalNav();
     fetch("/api/query", {method: "POST", body: JSON.stringify({"deleted": true})})
     .then(response => response.json())
     .then(data => {
@@ -241,31 +195,33 @@ trashButton.addEventListener('click', () => {
             mainSection.innerHTML = `<p>There is no trash file</p>`;
             return;
         }
-        let fileList = document.createElement('div');
-        fileList.className = 'file_list';
-        let ul = document.createElement('ul');
-        ul.className = 'all_files';
         dataMap = {};
         data.forEach((file) => {
             dataMap[file.hash] = file;
         });
         globalTrashFiles = dataMap;
+        let list = document.createElement('ul');
+        mainSection.appendChild(list);
         data.forEach((file) => {
-            ul.appendChild(newFileElem(file, true));
+            list.appendChild(newFileElem(file, true));
         });
-        fileList.appendChild(ul);
-        let trashOptions = document.createElement('div');
-        trashOptions.className = ('trash_options');
-        let p = document.createElement('p');
-        p.innerHTML = 'Empty trash?';
-        p.style.color = 'white';
-        p.style.fontSize = '14px';
-        trashOptions.appendChild(p);
-        mainSection.appendChild(fileList);
     });
-    if (window.innerWidth < 768) {
-        sidebarState(false);
-    }    
+    closeSidebar();  
+});
+
+let queueModal = document.querySelector('.queue');
+let queueModalCloseButton = document.querySelector('.queue_close');
+queueModalCloseButton.addEventListener('click', () => {
+    blurLayer.style.display = 'none';
+    queueModal.style.display = 'none';
+});
+
+let queueButton = document.querySelector('#queue');
+queueButton.addEventListener('click', () => {
+    blurLayer.click();
+    closeSidebar();
+    blurLayer.style.display = 'block';
+    queueModal.style.display = 'block';
 });
 
 let usernameField = document.querySelector('#username');
@@ -300,9 +256,7 @@ mainSection.addEventListener("drop", (e) => {
 });
 
 blurLayer.addEventListener('click', () => {
-    if (sidebar.style.display === 'flex' && window.innerWidth < 768) {
-        sidebarState(false);
-    }
+    closeSidebar();
     fileOptionPanel.style.display = 'none';
     queueModal.style.display = 'none';
     fileSender.style.display = 'none';

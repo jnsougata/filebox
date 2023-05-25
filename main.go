@@ -27,6 +27,7 @@ func main() {
 	api := r.Group("/api")
 	api.GET("/ping", Ping)
 	api.GET("/key", ProjectKey)
+	api.GET("/root", Root)
 	api.Any("/metadata", Metadata)
 	api.POST("/folder", ExtraFolderMeta)
 	api.GET("/embed/:hash", EmbedFile)

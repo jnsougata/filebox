@@ -567,32 +567,24 @@ function handleFolderClick(folder) {
     })
     .then(res => res.json())
     .then(data => {
-        let ul = document.createElement('ul');
-        ul.id = 'folder-view';
+        mainSection.innerHTML = '';
+        if (!data) {
+            return;
+        }
         let folders = data.filter((file) => file.type === 'folder');
         let files = data.filter((file) => file.type !== 'folder');
-        folders.forEach((folder) => {
-            ul.appendChild(newFileElem(folder));
+        mainSection.appendChild(buildPrompt(files));
+        let list = document.createElement('ul');
+        mainSection.appendChild(list);
+        folders.concat(files).forEach((file) => {
+            list.appendChild(newFileElem(file));
         });
-        files.forEach((file) => {
-            ul.appendChild(newFileElem(file));
-        });
-        let fileList = document.createElement('div');
-        fileList.className = 'file_list';
-        fileList.appendChild(ul);
-        let fileView = document.createElement('div');
-        fileView.className = 'my_files';
-        fileView.innerHTML = '';
-        fileView.appendChild(buildPrompt(files));
-        fileView.appendChild(fileList);
-        mainSection.innerHTML = '';
-        mainSection.appendChild(fileView);
         updateFolderStats(folders);
         updatePromptFragment(folder.name);
     })
 }
 
-function newFileElem(file, isTrash = false) {
+function newFileElem(file, trashed = false) {
     let li = document.createElement('li');
     li.id = `file-${file.hash}`
     let fileIcon = document.createElement('div');
@@ -820,13 +812,10 @@ function newFileElem(file, isTrash = false) {
     let menuOptionSpan = document.createElement('span');
     menuOptionSpan.className = 'material-symbols-rounded';
     menuOptionSpan.innerHTML = "more_horiz";
+    menuOptionSpan.style.fontSize = '18px';
     menuOptionSpan.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        if (fileOptionPanel.style.display === 'flex' && fileOptionPanel.id === `panel-${file.hash}`) {
-            fileOptionPanel.style.display = 'none';
-            return;
-        }
-        if (isTrash) {
+        if (trashed) {
             handleTrashFileMenuClick(file);
         } else {
             handleFileMenuClick(file);
@@ -1239,9 +1228,6 @@ function renderSearchResults(query) {
     })
     .then(response => response.json())
     .then(data => {
-        if (window.innerWidth < 768) {
-            sidebarState(false);
-        }
         let resultsPage = document.createElement('div');
         resultsPage.className = 'my_files';
         let key = Object.keys(query)[0];
@@ -1288,6 +1274,7 @@ function renderSearchResults(query) {
 
 function renderOriginalNav() {
     isFileMoving = false;
+    globalContextFolder = null;
     globalMultiSelectBucket = [];
     navBar.style.paddingLeft = '10px';
     navBar.style.paddingRight = '10px';

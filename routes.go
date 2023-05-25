@@ -68,6 +68,24 @@ func ProjectKey(c *gin.Context) {
 	})
 }
 
+func Root(c *gin.Context) {
+	q := deta.NewQuery()
+	q.NotEquals("deleted", true)
+	resp := base.FetchUntilEnd(q)
+	items := resp.Data["items"].([]map[string]interface{})
+	if items == nil {
+		c.JSON(http.StatusOK, nil)
+		return
+	}
+	var root []map[string]interface{}
+	for _, item := range items {
+		if _, ok := item["parent"]; !ok {
+			root = append(root, item)
+		}
+	}
+	c.JSON(http.StatusOK, root)
+}
+
 func Metadata(c *gin.Context) {
 	switch c.Request.Method {
 	case "GET":
