@@ -683,15 +683,12 @@ function newFileElem(file, trashed = false) {
                             }
                         });
                     }
-                    fetch(`/api/bulk`, {
-                        method: "PATCH", 
-                        body: JSON.stringify(globalMultiSelectBucket)}
-                    )
+                    fetch(`/api/bulk`, {method: "PATCH", body: JSON.stringify(globalMultiSelectBucket)})
                     .then(() => {
                         showSnack('Files Moved Successfully', colorGreen, 'success');
                         if (globalContextFolder) {
-                            renderOriginalNav();
                             handleFolderClick(globalContextFolder);
+                            renderOriginalNav();
                         } else {
                             isFileMoving = false;
                             browseButton.click();
@@ -1191,13 +1188,13 @@ function fileMover(file) {
         fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
         .then(() => {
             if (globalContextFolder) {
-                renderOriginalNav();
                 if (document.querySelector(`#file-${file.hash}`)) {
                     showSnack('File is already here', colorOrange, 'info');
                     return;
                 }   
                 showSnack('File Moved Successfully', colorGreen, 'success');
-                document.querySelector('#folder-view').appendChild(newFileElem(file))
+                handleFolderClick(globalContextFolder);
+                renderOriginalNav();
             } else {
                 isFileMoving = false;
                 browseButton.click();

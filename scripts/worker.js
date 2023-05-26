@@ -47,12 +47,7 @@ function upload(file, metadata, progressHandler) {
         let content = ev.target.result;
         runningTaskCount ++;
         let nameFragments = file.name.split('.');
-        let saveAs = "";
-        if (nameFragments.length > 1) {
-            saveAs = `${hash}.${nameFragments.pop()}`;
-        } else {
-            saveAs = `${hash}`;
-        }
+        let saveAs = nameFragments.length > 1 ? `${hash}.${nameFragments.pop()}` : `${hash}`;
         if (file.size < 10 * 1024 * 1024) {
             fetch(`${ROOT}/${projectId}/filebox/files?name=${saveAs}`, {
                 method: 'POST',
