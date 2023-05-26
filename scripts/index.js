@@ -6,7 +6,6 @@ let runningTaskCount = 0;
 let isFileMoving = false;
 let globalUserId = null;
 let globalConsumption = 0;
-let globalFolderQueue = [];
 let globalSecretKey = null;
 let globalTrashFiles = null;
 let globalContextFile = null;
@@ -32,14 +31,6 @@ window.fetch = async (...args) => {
     }
     return response;
 };
-
-function filterNonDeletedFiles(files) {
-    return files.filter((file) => {
-        if (file.deleted !== true) {
-            return true;
-        }
-    });
-}
 
 function getContextOptionElem() {
     let options = {
@@ -107,7 +98,6 @@ browseButton.addEventListener('click', () => {
     if (!isFileMoving) {
         renderOriginalNav();
     }
-    globalFolderQueue = [];
     fetch(`/api/root`)
     .then(response => response.json())
     .then(data => {
@@ -117,7 +107,7 @@ browseButton.addEventListener('click', () => {
         data.forEach((file) => {
             file.type === 'folder' ? folders.push(file) : files.push(file);
         });
-        mainSection.appendChild(buildPrompt());
+        mainSection.appendChild(buildPrompt({parent: null}));
         let list = document.createElement('ul');
         mainSection.appendChild(list);
         folders.concat(files).forEach((file) => {

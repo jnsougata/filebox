@@ -545,16 +545,7 @@ function handleFileMenuClick(file) {
 }
 
 function handleFolderClick(folder) {
-    fileOptionPanel.style.display = 'none';
     globalContextFolder = folder;
-    if (globalFolderQueue.length > 0) {
-        let lastFolder = globalFolderQueue[globalFolderQueue.length - 1];
-        if (lastFolder.hash !== folder.hash) {
-            globalFolderQueue.push(folder);
-        }
-    } else {
-        globalFolderQueue.push(folder);
-    }
     let parentOf;
     if (folder.parent) {
         parentOf = `${folder.parent}/${folder.name}`;
@@ -576,7 +567,7 @@ function handleFolderClick(folder) {
         data.forEach((file) => {
             file.type === 'folder' ? folders.push(file) : files.push(file);
         });
-        mainSection.appendChild(buildPrompt());
+        mainSection.appendChild(buildPrompt(folder));
         let list = document.createElement('ul');
         mainSection.appendChild(list);
         folders.concat(files).forEach((file) => {
@@ -890,7 +881,7 @@ function updatePromptFragment(text = 'home') {
     document.querySelector('.fragment').innerHTML = fragment;
 }
 
-function buildPrompt() {
+function buildPrompt(folder) {
     let prompt = document.createElement('div');
     prompt.className = 'prompt';
     let fragment = document.createElement('p');
@@ -903,19 +894,15 @@ function buildPrompt() {
         if (!isFileMoving) {
             globalMultiSelectBucket = [];
         }
-        if (globalFolderQueue.length === 0) {
-            globalContextFolder = null;
+        if (!folder.parent) {
+            browseButton.click();
             return;
         }
-        if (globalFolderQueue.length > 1) {
-            globalFolderQueue.pop();
-            let prev = globalFolderQueue[globalFolderQueue.length - 1];
-            handleFolderClick(prev);
-        } else {
-            globalContextFolder = null;
-            globalFolderQueue.pop();
-            getContextOptionElem().click();
-        }
+        let prev = {};
+        let fragments = folder.parent.split('/');
+        prev.name = fragments.pop();
+        prev.parent = fragments.length > 1 ? fragments.join('/') : null;
+        handleFolderClick(prev);
     });
     let selectAll = document.createElement('i');
     selectAll.className = 'material-symbols-rounded';
@@ -1254,20 +1241,16 @@ function renderSearchResults(query) {
     })
     .then(response => response.json())
     .then(data => {
-        let resultsPage = document.createElement('div');
-        resultsPage.className = 'my_files';
         let key = Object.keys(query)[0];
         let attr = key.replace("?contains","");
         let value = query[key];
+        mainSection.innerHTML = '';
         if (!data) {
-            mainSection.innerHTML = '';
             let p = document.createElement('p');
             let symbol = `<i class="fa-solid fa-circle-exclamation"></i> `;
             p.innerHTML = `${symbol} No results found for ${attr}: *${value}*`;
             p.style.backgroundColor = "#e44d27";
-            resultsPage.appendChild(p);
-            mainSection.appendChild(resultsPage);
-            fileOptionPanel.style.display = 'none';
+            mainSection.appendChild(p);
             return;
         }
         let absoluteResults = data.filter((file) => {
@@ -1282,19 +1265,12 @@ function renderSearchResults(query) {
         let p = document.createElement('p');
         p.innerHTML = `Search results for ${attr}: *${value}*`;
         p.style.backgroundColor = "#317840";
-        resultsPage.appendChild(p);
-        let fileList = document.createElement('div');
-        fileList.className = 'file_list';
-        let ul = document.createElement('ul');
-        ul.className = 'all_files';
+        mainSection.appendChild(p);
+        let list = document.createElement('ul');
+        mainSection.appendChild(list);
         data.forEach((file) => {
-            ul.appendChild(newFileElem(file));
+            list.appendChild(newFileElem(file));
         });
-        fileList.appendChild(ul);
-        resultsPage.appendChild(fileList);
-        mainSection.innerHTML = '';
-        mainSection.appendChild(resultsPage);
-        fileOptionPanel.style.display = 'none';
     })
 }
 

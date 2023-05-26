@@ -312,8 +312,8 @@ main {
 main > p {
     font-size: 12px;
     color: white;
-    margin-top: 20px;
-    padding: 5px 10px;
+    margin-top: 10px;
+    padding: 3px 10px;
     border-radius: 15px;
     background-color: orangered;
 }
