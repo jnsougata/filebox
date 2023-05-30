@@ -35,7 +35,7 @@ function closeQueue() {
     }
 }
 
-function upload(file, metadata, progressHandler) {
+function upload(file, metadata, progressHandler, refreshList = true) {
     let hash = metadata.hash;
     let header = {"X-Api-Key": globalSecretKey, "Content-Type": file.type}
     let projectId = globalSecretKey.split("_")[0];
@@ -61,6 +61,9 @@ function upload(file, metadata, progressHandler) {
                     showSnack(`Uploaded ${file.name}`, colorBlue, 'success');
                     updateSpaceUsage(file.size);
                     runningTaskCount --;
+                    if (!refreshList) {
+                        return;
+                    }
                     if (globalContextFolder) {
                         handleFolderClick(globalContextFolder)
                     } else {
@@ -111,6 +114,9 @@ function upload(file, metadata, progressHandler) {
                             .then(() => {
                                 updateSpaceUsage(file.size);
                                 showSnack(`Uploaded ${file.name} successfully`, colorBlue, 'success');
+                                if (!refreshList) {
+                                    return;
+                                }
                                 if (globalContextFolder) {
                                     handleFolderClick(globalContextFolder)
                                 } else {

@@ -740,6 +740,7 @@ function newFileElem(file, trashed = false) {
                     });
                     globalMultiSelectBucket = [];
                     showSnack(`Deleted selected files`, colorRed, 'info');
+                    document.getElementById('deselect-all').click();
                 })
             });
             let selectCount = document.createElement('p');
@@ -924,6 +925,7 @@ function buildPrompt(folder) {
         }
     });
     let deselectAll = document.createElement('i');
+    deselectAll.id = 'deselect-all';
     deselectAll.className = 'material-symbols-rounded';
     deselectAll.innerHTML = 'deselect';
     deselectAll.style.display = 'none';
@@ -1403,9 +1405,14 @@ function renderOriginalNav() {
             let metadata = buildFileMetadata(file);
             metadata.parent = parent;
             prependQueueElem(metadata, true)
-            upload(file, metadata, (percentage) => {
-                progressHandlerById(metadata.hash, percentage);
-            });
+            upload(
+                file, 
+                metadata, 
+                (percentage) => {
+                    progressHandlerById(metadata.hash, percentage);
+                }, 
+                false
+            );
         }
     });
     let folderUploadButton = document.createElement('button');
