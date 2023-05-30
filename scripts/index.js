@@ -102,6 +102,10 @@ browseButton.addEventListener('click', () => {
     .then(response => response.json())
     .then(data => {
         mainSection.innerHTML = '';
+        if (!data) {
+            mainSection.innerHTML = `<p>You don't have any file or folder</p>`;
+            return;
+        }
         let files = [];
         let folders = [];
         data.forEach((file) => {
