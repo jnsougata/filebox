@@ -914,34 +914,21 @@ main > ul > li > .info > p {
     }
 }
 
-.click_guard {
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    position: fixed;
-    z-index: 9998;
-    display: none;
-    background-color: transparent;
-}
-
 .context_menu {
-    top: 0;
-    left: 0;
     width: 260px;
     height: max-content;
     position: fixed;
     border-radius: 5px;
     color: white;
-    display: none;
     padding: 10px;
+    display: none;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     box-shadow: 0 0 10px 0 rgba(0,0,0,0.5);
     background-color: var(--color-blackish);
     z-index: 9999 !important;
+    border: 1px solid var(--color-blackish-light);
 }
 .context_menu > ul {
     width: 100%;

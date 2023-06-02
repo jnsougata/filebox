@@ -813,9 +813,12 @@ function newFileElem(file, trashed = false) {
         }
     });
     li.appendChild(menuOptionSpan);
-    li.addEventListener('click', () => {
+    li.addEventListener('click', (ev) => {
         if (file.type === 'folder') {
             handleFolderClick(file);
+        } else if (fileName.contentEditable === 'true') {
+            ev.stopPropagation();
+            return;
         } else {
             showFilePreview(file);
         }
@@ -1019,7 +1022,6 @@ function showSnack(text, color=colorGreen, type='success') {
     close.style.backgroundColor = 'transparent';
     close.addEventListener('click', () => {
         snackbar.style.display = 'none';
-        cg.click();
     });
     snackbar.innerHTML = "";
     content.appendChild(icon);
@@ -1491,7 +1493,7 @@ function renderFileSenderModal(file) {
             showSnack("You can't send a file to yourself", colorOrange, 'warning');
             return;
         }
-        let fileClone = JSON.parse(JSON.stringify(file));
+        let fileClone = structuredClone(file);
         delete fileClone.recipients;
         delete fileClone.pinned;
         fileClone.owner = globalUserId;

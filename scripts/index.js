@@ -266,7 +266,6 @@ window.addEventListener('DOMContentLoaded', () => {
     })
 });
 
-
 window.addEventListener('load', () => {
     if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("/service-worker.js");
@@ -287,6 +286,12 @@ window.addEventListener('load', () => {
     //         }
     //     });
     // }
+});
+
+document.addEventListener('click', (e) => {
+    if (e.target.tagName === 'DIALOG') {
+        closeContextMenu();
+    }
 });
 
 window.addEventListener('resize', () => {

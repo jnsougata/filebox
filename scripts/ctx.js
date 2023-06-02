@@ -1,8 +1,16 @@
 let cm =  document.querySelector('.context_menu');
-let cg = document.querySelector('.click_guard');
+
+function closeContextMenu() {
+    cm.close();
+    cm.style.display = 'none';
+    let parentId = cm.id;
+    cm.id = '';
+    let parent = document.getElementById(parentId);
+    parent && (parent.style.backgroundColor = `transparent`);
+}
 
 function renderFileContextMenu(ev, file) {
-    cg.style.display = 'block';
+    cm.showModal();
     cm.style.display = 'flex';
     cm.style.left = `${ev.pageX}px`;
     cm.style.top = `${ev.pageY}px`;
@@ -25,24 +33,21 @@ function renderFileContextMenu(ev, file) {
     cm.id = parent.id;
 }
 
-cg.addEventListener('click', () => {
-    cm.style.display = 'none';
-    cg.style.display = 'none';
-    let parentId = cm.id;
-    cm.id = '';
-    let parent = document.getElementById(parentId);
-    parent && (parent.style.backgroundColor = `transparent`);
-});
+// cg.addEventListener('click', () => {
+//     cg.style.display = 'none';
+//     let parentId = cm.id;
+//     cm.id = '';
+//     let parent = document.getElementById(parentId);
+//     parent && (parent.style.backgroundColor = `transparent`);
+// });
 
 function onSendClick(file) {
-    cg.click();
     renderFileSenderModal(file);
 }
 
 function onRenameClick(file) {
     let elem = document.querySelector(`#filename-${file.hash}`)
     elem.contentEditable = true;
-    cg.style.display = 'block';
     elem.style.zIndex = "9999";
     elem.focus();
     elem.addEventListener('blur', (ev) => {
@@ -76,7 +81,6 @@ function onRenameClick(file) {
 }
 
 function onDownloadClick(file) {
-    cg.click();
     prependQueueElem(file, false);
     download(file, (progress) => {
         progressHandlerById(file.hash, progress);
@@ -84,7 +88,6 @@ function onDownloadClick(file) {
 }
 
 function onShareLinkClick(file) {
-    cg.click();
     if (file.access === "private") {
         showSnack(`Make file public to share via link`, colorOrange, 'warning');
     } else {
@@ -96,7 +99,6 @@ function onShareLinkClick(file) {
 }
 
 function onEmbedClick(file) {
-    cg.click();
     if (file.access === "private") {
         showSnack(`Make file public to embed`, colorOrange, 'warning');
     } else if (file.size > 1024 * 1024 * 4) {
@@ -110,14 +112,12 @@ function onEmbedClick(file) {
 }
 
 function onMoveClick(file) {
-    cg.click();
     isFileMoving = true;
     browseButton.click();
     renderAuxNav(fileMover(file));
 }
 
 function onTrashClick(file) {
-    cg.click();
     if (file.type === 'folder') {
         fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
         .then((resp) => {
@@ -159,7 +159,6 @@ function onColorClick(file) {
 }
 
 function onRestoreClick(file) {
-    cg.click();
     checkFileParentExists(file)
     .then((exists) => {
         if (!exists && file.parent !== undefined) {
@@ -179,7 +178,6 @@ function onRestoreClick(file) {
 }
 
 function onDeletePermanentlyClick(file) {
-    cg.click();
     fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
     .then(() => {
         showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
@@ -192,7 +190,6 @@ function onDeletePermanentlyClick(file) {
 }
 
 function onPinUnpinClick(file) {
-    cg.click();
     if (file.pinned) {
         fetch(`/api/bookmark/${file.hash}`, {method: "DELETE"})
         .then(() => {
@@ -216,7 +213,7 @@ function onPinUnpinClick(file) {
     }
 }
 
-const fileContextOptions = [
+const contextOptions = [
     {
         label: 'Send', 
         icon: 'send', 
@@ -295,14 +292,15 @@ const fileContextOptions = [
 
 function buildFileContextMenu(file) {
     let ul = document.createElement('ul');
-    let li = file.pinned ? cmItem('Unpin', 'remove') : cmItem('Pin', 'add');
+    let li = file.pinned ? ctxMenuItem('Unpin', 'remove') : ctxMenuItem('Pin', 'add');
     li.addEventListener('click', () => {
+        closeContextMenu();
         onPinUnpinClick(file);
     });
     if (!file.deleted) {
         ul.appendChild(li);
     }
-    fileContextOptions.forEach(option => {
+    contextOptions.forEach(option => {
         if (file.deleted) {
             if (!option.trashOnly) {
                 return;
@@ -328,9 +326,9 @@ function buildFileContextMenu(file) {
                 return;
             }
         }        
-        let li = cmItem(option.label, option.icon);
+        let li = ctxMenuItem(option.label, option.icon);
         li.addEventListener('click', () => {
-            cm.style.display = 'none';
+            closeContextMenu();
             option.callback(file);
         });
         ul.appendChild(li);
@@ -338,7 +336,7 @@ function buildFileContextMenu(file) {
     return ul;
 }
 
-function cmItem(label, icon) {
+function ctxMenuItem(label, icon) {
     let li = document.createElement('li');
     let p = document.createElement('p');
     p.innerHTML = label;
