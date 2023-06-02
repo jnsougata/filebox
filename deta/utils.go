@@ -23,7 +23,7 @@ func (r *Response) JSON() map[string]interface{} {
 
 func (r *Response) ArrayJSON() []map[string]interface{} {
 	var data []map[string]interface{}
-	json.Unmarshal(r.Bytes, &data)
+	_ = json.Unmarshal(r.Bytes, &data)
 	return data
 }
 

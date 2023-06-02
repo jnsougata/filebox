@@ -29,7 +29,7 @@ func main() {
 	api.GET("/key", ProjectKey)
 	api.GET("/root", Root)
 	api.Any("/metadata", Metadata)
-	api.POST("/folder", ExtraFolderMeta)
+	api.POST("/folder", FolderMeta)
 	api.GET("/embed/:hash", EmbedFile)
 	api.GET("/file/metadata/:hash", SharedMeta)
 	api.POST("/query", Query)
@@ -42,7 +42,6 @@ func main() {
 	api.GET("/download/:recipient/:hash/:part", DownloadFile)
 	api.GET("/external/:recipient/:owner/:hash/:part", DownloadFileExtern)
 	api.POST("/push/:id", PushFileMeta)
-	api.POST("/accept", AcceptFileMeta)
 
 	if err := r.Run(":8080"); err != http.ErrServerClosed {
 		log.Fatal(err)

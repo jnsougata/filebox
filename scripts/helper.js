@@ -559,6 +559,8 @@ function handleFolderClick(folder) {
     .then(res => res.json())
     .then(data => {
         mainSection.innerHTML = '';
+        mainSection.appendChild(buildPrompt(folder));
+        updatePromptFragment(folder.name);
         if (!data) {
             return;
         }
@@ -567,14 +569,12 @@ function handleFolderClick(folder) {
         data.forEach((file) => {
             file.type === 'folder' ? folders.push(file) : files.push(file);
         });
-        mainSection.appendChild(buildPrompt(folder));
         let list = document.createElement('ul');
         mainSection.appendChild(list);
         folders.concat(files).forEach((file) => {
             list.appendChild(newFileElem(file));
         });
         updateFolderStats(folders);
-        updatePromptFragment(folder.name);
     })
 }
 

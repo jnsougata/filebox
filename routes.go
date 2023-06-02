@@ -176,13 +176,13 @@ func Metadata(c *gin.Context) {
 	}
 }
 
-func ExtraFolderMeta(c *gin.Context) {
+func FolderMeta(c *gin.Context) {
 	var body map[string]interface{}
 	_ = json.NewDecoder(c.Request.Body).Decode(&body)
 	parent := body["parent"].(string)
 	q := deta.NewQuery()
 	q.Equals("parent", parent)
-	resp := base.Fetch(q).ArrayJSON()
+	resp := base.FetchUntilEnd(q).ArrayJSON()
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -386,7 +386,7 @@ func FileBulkOps(c *gin.Context) {
 			hashes = append(hashes, item["hash"].(string))
 			driveNames = append(driveNames, FileToDriveSavedName(item))
 		}
-		ch := make(chan bool, len(hashes)) 
+		ch := make(chan bool, len(hashes))
 		for _, hash := range hashes {
 			go func(hash string) {
 				_ = base.Delete(hash)
@@ -448,13 +448,5 @@ func PushFileMeta(c *gin.Context) {
 		"application/json",
 		c.Request.Body,
 	)
-	c.JSON(resp.StatusCode, nil)
-}
-
-func AcceptFileMeta(c *gin.Context) {
-	var file map[string]interface{}
-	_ = json.NewDecoder(c.Request.Body).Decode(&file)
-	record := deta.Record{Key: file["hash"].(string), Value: file}
-	resp := base.Put(record)
 	c.JSON(resp.StatusCode, nil)
 }
