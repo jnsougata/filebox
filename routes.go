@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/deta"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,13 +11,12 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/jnsougata/deta-go/deta"
 )
 
-var d = deta.New(nil)
-var drive = d.Drive("filebox")
-var base = d.Base("filebox_metadata")
+var detaProjectKey = os.Getenv("DETA_PROJECT_KEY")
+var con = deta.New(detaProjectKey)
+var drive = con.Drive("filebox")
+var base = con.Base("filebox_metadata")
 
 func Ping(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
@@ -24,7 +24,7 @@ func Ping(c *gin.Context) {
 
 func SharedPage(c *gin.Context) {
 	hash := c.Param("hash")
-	metadata := base.Get(hash).Data
+	metadata := base.Get(hash).JSON()
 	_, ok := metadata["hash"].(string)
 	if !ok {
 		c.String(http.StatusNotFound, "Not Found")
@@ -39,7 +39,7 @@ func SharedPage(c *gin.Context) {
 }
 
 func Action(c *gin.Context) {
-	data := drive.Files("", 0, "").Data
+	data := drive.Files("", 0, "").JSON()
 	names := data["names"].([]interface{})
 	hashes := map[string]string{}
 	for _, name := range names {
@@ -52,27 +52,25 @@ func Action(c *gin.Context) {
 	}
 	var orphanNames []string
 	for k, v := range hashes {
-		resp := base.Get(k).Data
+		resp := base.Get(k).JSON()
 		_, ok := resp["hash"]
 		if !ok {
 			orphanNames = append(orphanNames, v)
 		}
 	}
 	r := drive.Delete(orphanNames...)
-	c.JSON(r.StatusCode, r.Data)
+	c.JSON(r.StatusCode, r.JSON())
 }
 
 func ProjectKey(c *gin.Context) {
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"key": os.Getenv("DETA_API_KEY"),
-	})
+	c.JSON(http.StatusOK, map[string]interface{}{"key": detaProjectKey})
 }
 
 func Root(c *gin.Context) {
 	q := deta.NewQuery()
 	q.NotEquals("deleted", true)
 	resp := base.FetchUntilEnd(q)
-	items := resp.Data["items"].([]map[string]interface{})
+	items := resp.ArrayJSON()
 	if items == nil {
 		c.JSON(http.StatusOK, nil)
 		return
@@ -92,7 +90,7 @@ func Metadata(c *gin.Context) {
 		q := deta.NewQuery()
 		q.NotEquals("deleted", true)
 		resp := base.FetchUntilEnd(q)
-		items := resp.Data["items"]
+		items := resp.ArrayJSON()
 		c.JSON(http.StatusOK, items)
 		return
 
@@ -106,7 +104,7 @@ func Metadata(c *gin.Context) {
 		if !hasPrent && isFolder {
 			q := deta.NewQuery()
 			q.Equals("name", data["name"].(string))
-			resp := base.FetchUntilEnd(q).Data["items"].([]map[string]interface{})
+			resp := base.FetchUntilEnd(q).ArrayJSON()
 			var tmp []map[string]interface{}
 			for _, item := range resp {
 				if _, ok := item["parent"]; !ok {
@@ -122,14 +120,14 @@ func Metadata(c *gin.Context) {
 			q := deta.NewQuery()
 			q.Equals("parent", data["parent"].(string))
 			q.Equals("name", data["name"].(string))
-			resp := base.FetchUntilEnd(q).Data["items"].([]map[string]interface{})
+			resp := base.FetchUntilEnd(q).ArrayJSON()
 			if len(resp) > 0 {
 				c.JSON(http.StatusConflict, nil)
 				return
 			}
 		}
 		resp := base.Put(deta.Record{Key: key, Value: data})
-		c.JSON(resp.StatusCode, resp.Data)
+		c.JSON(resp.StatusCode, resp.JSON())
 		return
 
 	case "PATCH":
@@ -138,7 +136,7 @@ func Metadata(c *gin.Context) {
 		key := data["hash"].(string)
 		data["key"] = key
 		resp := base.Put(deta.Record{Key: key, Value: data})
-		c.JSON(resp.StatusCode, resp.Data)
+		c.JSON(resp.StatusCode, resp.JSON())
 		return
 
 	case "DELETE":
@@ -158,7 +156,7 @@ func Metadata(c *gin.Context) {
 			q.Equals("parent", childrenPath)
 			q.NotEquals("deleted", true)
 			resp := base.FetchUntilEnd(q)
-			children := resp.Data["items"].([]map[string]interface{})
+			children := resp.ArrayJSON()
 			if len(children) > 0 {
 				c.JSON(http.StatusConflict, nil)
 			} else {
@@ -184,32 +182,32 @@ func ExtraFolderMeta(c *gin.Context) {
 	parent := body["parent"].(string)
 	q := deta.NewQuery()
 	q.Equals("parent", parent)
-	resp := base.Fetch(q).Data["items"]
+	resp := base.Fetch(q).ArrayJSON()
 	c.JSON(http.StatusOK, resp)
 }
 
 func EmbedFile(c *gin.Context) {
 	hash := c.Param("hash")
 	resp := base.Get(hash)
-	access, ok := resp.Data["access"]
+	metadata := resp.JSON()
+	access, ok := metadata["access"]
 	if ok && access.(string) == "private" {
 		c.String(http.StatusForbidden, "Unauthorized")
 	}
-	isDeleted, ok := resp.Data["deleted"]
+	isDeleted, ok := metadata["deleted"]
 	if ok && isDeleted.(bool) {
 		c.String(http.StatusNotFound, "File not found")
 		return
 	}
-	if resp.Data["size"].(float64) > 5*1024*1024 {
+	if metadata["size"].(float64) > 5*1024*1024 {
 		c.String(http.StatusForbidden, "File too large")
 		return
 	}
-	fileName := resp.Data["name"].(string)
-	mime := resp.Data["mime"].(string)
+	fileName := metadata["name"].(string)
+	mime := metadata["mime"].(string)
 	c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%s", fileName))
-	streamingResp := drive.Get(FileToDriveSavedName(resp.Data))
-	data, _ := io.ReadAll(streamingResp.Reader)
-	c.Data(http.StatusOK, mime, data)
+	streamingResp := drive.Get(FileToDriveSavedName(metadata))
+	c.Data(http.StatusOK, mime, streamingResp.Bytes)
 }
 
 func DownloadFile(c *gin.Context) {
@@ -217,14 +215,15 @@ func DownloadFile(c *gin.Context) {
 	part := c.Param("part")
 	recipient := c.Param("recipient")
 	resp := base.Get(hash)
+	metadata := resp.JSON()
 	if recipient == "na" {
-		access, ok := resp.Data["access"]
+		access, ok := metadata["access"]
 		if ok && access.(string) == "private" {
 			c.String(http.StatusForbidden, "Unauthorized")
 			return
 		}
 	} else {
-		recipients, ok := resp.Data["recipients"]
+		recipients, ok := metadata["recipients"]
 		if !ok {
 			c.String(http.StatusForbidden, "Unauthorized")
 			return
@@ -243,16 +242,15 @@ func DownloadFile(c *gin.Context) {
 		}
 	}
 	skip, _ := strconv.Atoi(part)
-	ProjectKey := os.Getenv("DETA_PROJECT_KEY")
-	ProjectId := strings.Split(ProjectKey, "_")[0]
+	ProjectId := strings.Split(detaProjectKey, "_")[0]
 	url := fmt.Sprintf(
 		"https://drive.deta.sh/v1/%s/filebox/files/download?name=%s",
 		ProjectId,
-		FileToDriveSavedName(resp.Data),
+		FileToDriveSavedName(metadata),
 	)
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("X-API-Key", ProjectKey)
-	if (skip+1)*4*1024*1024 > int(resp.Data["size"].(float64)) {
+	req.Header.Set("X-API-Key", detaProjectKey)
+	if (skip+1)*4*1024*1024 > int(metadata["size"].(float64)) {
 		req.Header.Set("Range", fmt.Sprintf("bytes=%d-", skip*4*1024*1024))
 	} else {
 		req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", skip*4*1024*1024, (skip+1)*4*1024*1024-1))
@@ -266,7 +264,7 @@ func DownloadFile(c *gin.Context) {
 func SharedMeta(c *gin.Context) {
 	hash := c.Param("hash")
 	resp := base.Get(hash)
-	data := resp.Data
+	data := resp.JSON()
 	delete(data, "key")
 	delete(data, "deleted")
 	delete(data, "recipients")
@@ -283,7 +281,7 @@ func Query(c *gin.Context) {
 	for k, v := range body {
 		q.Equals(k, v)
 	}
-	resp := base.FetchUntilEnd(q).Data["items"]
+	resp := base.FetchUntilEnd(q).ArrayJSON()
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -302,7 +300,7 @@ func Consumption(c *gin.Context) {
 	q.NotEquals("shared", true)
 	resp := base.FetchUntilEnd(q)
 	size := 0
-	files := resp.Data["items"].([]map[string]interface{})
+	files := resp.ArrayJSON()
 	for _, file := range files {
 		size += int(file["size"].(float64))
 	}
@@ -316,14 +314,14 @@ func Bookmark(c *gin.Context) {
 		updater := deta.NewUpdater(hash)
 		updater.Set("pinned", true)
 		resp := base.Update(updater)
-		c.JSON(resp.StatusCode, resp.Data)
+		c.JSON(resp.StatusCode, resp.JSON())
 		return
 
 	case "DELETE":
 		updater := deta.NewUpdater(hash)
 		updater.Delete("pinned")
 		resp := base.Update(updater)
-		c.JSON(resp.StatusCode, resp.Data)
+		c.JSON(resp.StatusCode, resp.JSON())
 		return
 
 	default:
@@ -338,7 +336,7 @@ func Access(c *gin.Context) {
 	updater := deta.NewUpdater(body["hash"].(string))
 	updater.Set("access", body["access"].(string))
 	resp := base.Update(updater)
-	c.JSON(resp.StatusCode, resp.Data)
+	c.JSON(resp.StatusCode, resp.JSON())
 }
 
 func FolderItemCountBulk(c *gin.Context) {
@@ -362,7 +360,7 @@ func FolderItemCountBulk(c *gin.Context) {
 	}
 	q.Union(queries...)
 	resp := base.FetchUntilEnd(q)
-	items := resp.Data["items"].([]map[string]interface{})
+	items := resp.ArrayJSON()
 	for _, item := range items {
 		path := item["parent"].(string)
 		record, ok := parentMap[path]
@@ -388,7 +386,16 @@ func FileBulkOps(c *gin.Context) {
 			hashes = append(hashes, item["hash"].(string))
 			driveNames = append(driveNames, FileToDriveSavedName(item))
 		}
-		_ = base.Delete(hashes...)
+		ch := make(chan bool, len(hashes)) 
+		for _, hash := range hashes {
+			go func(hash string) {
+				_ = base.Delete(hash)
+				ch <- true
+			}(hash)
+		}
+		for i := 0; i < len(hashes); i++ {
+			<-ch
+		}
 		_ = drive.Delete(driveNames...)
 		c.String(http.StatusOK, "OK")
 		return
