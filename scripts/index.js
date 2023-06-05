@@ -28,6 +28,8 @@ window.fetch = async (...args) => {
     const response = await fetchx(...args);
     if (response.status === 502) {
         showSnack("Bad Gateway! Try again.", colorOrange, 'warning');
+    } else if (response.status === 404) {
+        showSnack("File not found. Might have been deleted from drive", colorRed, 'error');
     }
     return response;
 };
@@ -215,6 +217,13 @@ queueButton.addEventListener('click', () => {
     closeSidebar();
     blurLayer.style.display = 'block';
     queueModal.style.display = 'block';
+});
+
+let filePreviewModal = document.querySelector('.file_preview');
+filePreviewModal.addEventListener('click', () => {
+    filePreviewModal.innerHTML = '';
+    filePreviewModal.close()
+    controller.abort();
 });
 
 let usernameField = document.querySelector('#username');

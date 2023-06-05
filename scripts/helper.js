@@ -1064,20 +1064,16 @@ function renderFilesByQuery(query) {
     });
 }
 
-async function loadSharedFile(file, controller) {
-    let progressBar = document.getElementById(`bar-${file.hash}`);
-    let percentageElem = document.getElementById(`percentage-${file.hash}`);
+async function loadSharedFile(file, controller, loaderElem) {
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
     if (size < chunkSize) {
         let resp = await fetch(`/api/external/${globalUserId}/${file.owner}/${file.hash}/0`, {signal: controller.signal});
-        percentageElem.innerHTML = '100%';
-        progressBar.style.width = '100%';
+        loaderElem.innerHTML = '100%';
         return await resp.blob();
     } else {
         let skips = 0;
         let progress = 0;
-        let loadingLevel = document.querySelector('#loading-amount');
         if (size % chunkSize === 0) {
             skips = size / chunkSize;
         } else {
@@ -1094,8 +1090,7 @@ async function loadSharedFile(file, controller) {
                 .then((blob) => {
                     progress += blob.size;
                     let percentage = Math.floor((progress / size) * 100);
-                    progressBar.style.width = `${percentage}%`;
-                    percentageElem.innerHTML = `${percentage}%`;
+                    loaderElem.innerHTML = `${percentage}%`;
                     return blob;
                 })
             );
@@ -1110,17 +1105,18 @@ async function loadSharedFile(file, controller) {
 // will implement streaming later
 // this is just a basic implementation
 async function showFilePreview(file) {
-    showSnack(`Loading preview for ${file.name}`, colorBlue, 'info');
-    prependQueueElem(file, null);
+    filePreviewModal.innerHTML = '';
+    filePreviewModal.innerHTML = `
+    <p><i>${file.name}</i> - <b><span style="color: ${colorGreen}" id='loader-amount'>0%</span></b></p>`;
+    filePreviewModal.showModal();
+    let loaderAmount = document.querySelector('#loader-amount');
     controller = new AbortController();
     let src;
-    queueButton.click();
     if (file.shared) {
-        let blob = await loadSharedFile(file, controller);
+        let blob = await loadSharedFile(file, controller, loaderAmount);
         src = URL.createObjectURL(new Blob([blob], {type: file.mime}));
+        loaderAmount.innerHTML = '100%';
     } else {
-        let progressBar = document.getElementById(`bar-${file.hash}`);
-        let percentageElem = document.getElementById(`percentage-${file.hash}`);
         let extRegex = /(?:\.([^.]+))?$/;
         let extension = extRegex.exec(file.name);
         if (extension && extension[1]) {
@@ -1154,8 +1150,7 @@ async function showFilePreview(file) {
                         controller.enqueue(value);
                         progress += value.length;
                         let percentage = Math.floor((progress / file.size) * 100);
-                        progressBar.style.width = `${percentage}%`;
-                        percentageElem.innerHTML = `${percentage}%`;
+                        loaderAmount.innerHTML = `${percentage}%`;
                         return pump();
                     });
                 }
@@ -1165,7 +1160,12 @@ async function showFilePreview(file) {
         const blob = await br.blob();
         src = URL.createObjectURL(new Blob([blob], {type: file.mime}));
     }
-    window.location.href = src;
+    filePreviewModal.innerHTML = '';
+    let embed = document.createElement('embed');
+    embed.src = src;
+    embed.type = file.mime;
+    filePreviewModal.appendChild(embed);
+    blurLayer.click();
 }
 
 function fileMover(file) {
