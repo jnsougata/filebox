@@ -204,23 +204,12 @@ trashButton.addEventListener('click', () => {
     closeSidebar();  
 });
 
-let autofixButton = document.querySelector('#autofix');
-autofixButton.addEventListener('click', () => {
-    fetch("/api/metadata")
+let sanitizeButton = document.querySelector('#sanitize');
+sanitizeButton.addEventListener('click', () => {
+    fetch("/api/sanitize")
     .then(response => response.json())
     .then(data => {
-        data = data.filter((file) => {
-            return file.parent === undefined;
-        });
-        data.forEach((file) => {
-            delete file.project_id;
-            file.parent = null;
-            fetch(`/api/metadata`, {method: 'PATCH', body: JSON.stringify(file)})
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            });
-        });
+        showSnack(`${data.sanitized} files sanitized `, colorGreen, 'success');
     });
 });
 
@@ -333,17 +322,7 @@ window.addEventListener('resize', () => {
         sidebar.style.display = 'none';
         cm.style.display = 'none';
     }
-    if (
-        fileOptionPanel.style.display === 'flex' 
-        || 
-        queueModal.style.display === 'block'
-        || 
-        fileSender.style.display === 'flex'
-    ) {
-        blurLayer.style.display = 'block';
-    } else {
-        blurLayer.style.display = 'none';
-    }
+    blurLayer.click();
 });
 
 window.addEventListener("paste", (e) => {

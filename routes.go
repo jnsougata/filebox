@@ -14,9 +14,9 @@ import (
 )
 
 var detaProjectKey = os.Getenv("DETA_PROJECT_KEY")
-var con = deta.New(detaProjectKey)
-var drive = con.Drive("filebox")
-var base = con.Base("filebox_metadata")
+var connection = deta.New(detaProjectKey)
+var drive = connection.Drive("filebox")
+var base = connection.Base("filebox_metadata")
 
 func Ping(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
@@ -444,4 +444,37 @@ func PushFileMeta(c *gin.Context) {
 		c.Request.Body,
 	)
 	c.JSON(resp.StatusCode, nil)
+}
+
+func SanitizeFiles(c *gin.Context) {
+	files := base.FetchUntilEnd(deta.NewQuery()).ArrayJSON()
+	var sanitized []map[string]interface{}
+	for _, file := range files {
+		_, ok := file["parent"]
+		if !ok {
+			file["parent"] = nil
+			delete(file, "project_id")
+			sanitized = append(sanitized, file)
+		}
+	}
+	var batches [][]map[string]interface{}
+	for i := 0; i < len(sanitized); i += 25 {
+		end := i + 25
+		if end > len(sanitized) {
+			end = len(sanitized)
+		}
+		batches = append(batches, sanitized[i:end])
+	}
+	var success = 0
+	for _, batch := range batches {
+		var records []deta.Record
+		for _, file := range batch {
+			records = append(records, deta.Record{Key: file["hash"].(string), Value: file})
+		}
+		resp := base.Put(records...)
+		if resp.StatusCode == http.StatusMultiStatus {
+			success += len(batch)
+		}
+	}
+	c.JSON(http.StatusOK, map[string]interface{}{"sanitized": success})
 }

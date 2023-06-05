@@ -31,6 +31,7 @@ func main() {
 	api.Any("/metadata", Metadata)
 	api.POST("/folder", FolderMeta)
 	api.GET("/embed/:hash", EmbedFile)
+	api.GET("/sanitize", SanitizeFiles)
 	api.GET("/file/metadata/:hash", SharedMeta)
 	api.POST("/query", Query)
 	api.POST("/rename", Rename)
