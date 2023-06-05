@@ -1165,7 +1165,6 @@ async function showFilePreview(file) {
     embed.src = src;
     embed.type = file.mime;
     filePreviewModal.appendChild(embed);
-    blurLayer.click();
 }
 
 function fileMover(file) {

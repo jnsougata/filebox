@@ -24,9 +24,9 @@ func FileToDriveSavedName(file map[string]interface{}) string {
 
 func FolderToAsParentPath(folder map[string]interface{}) string {
 	var path string
-	_, ok := folder["parent"]
-	if ok {
-		path = folder["parent"].(string) + "/" + folder["name"].(string)
+	parent, ok := folder["parent"]
+	if ok && parent != nil {
+		path = parent.(string) + "/" + folder["name"].(string)
 	} else {
 		path = folder["name"].(string)
 	}

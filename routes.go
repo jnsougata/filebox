@@ -68,6 +68,7 @@ func ProjectKey(c *gin.Context) {
 
 func Root(c *gin.Context) {
 	q := deta.NewQuery()
+	q.Equals("parent", nil)
 	q.NotEquals("deleted", true)
 	resp := base.FetchUntilEnd(q)
 	items := resp.ArrayJSON()
@@ -75,13 +76,7 @@ func Root(c *gin.Context) {
 		c.JSON(http.StatusOK, nil)
 		return
 	}
-	var root []map[string]interface{}
-	for _, item := range items {
-		if _, ok := item["parent"]; !ok {
-			root = append(root, item)
-		}
-	}
-	c.JSON(http.StatusOK, root)
+	c.JSON(http.StatusOK, items)
 }
 
 func Metadata(c *gin.Context) {

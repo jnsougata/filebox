@@ -204,6 +204,26 @@ trashButton.addEventListener('click', () => {
     closeSidebar();  
 });
 
+let autofixButton = document.querySelector('#autofix');
+autofixButton.addEventListener('click', () => {
+    fetch("/api/metadata")
+    .then(response => response.json())
+    .then(data => {
+        data = data.filter((file) => {
+            return file.parent === undefined;
+        });
+        data.forEach((file) => {
+            delete file.project_id;
+            file.parent = null;
+            fetch(`/api/metadata`, {method: 'PATCH', body: JSON.stringify(file)})
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            });
+        });
+    });
+});
+
 let queueModal = document.querySelector('.queue');
 let queueModalCloseButton = document.querySelector('.queue_close');
 queueModalCloseButton.addEventListener('click', () => {
