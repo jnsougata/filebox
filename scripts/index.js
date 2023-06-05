@@ -50,20 +50,19 @@ function closeSidebar() {
     }
 }
 
-let sidebarOptions = document.querySelectorAll('.sidebar_option');
 let previousOption = null;
-for (let i = 0; i < sidebarOptions.length; i++) {
-    sidebarOptions[i].addEventListener('click', () => {
-        let currOption = sidebarOptions[i]
-        currOption.style.borderLeft = '5px solid #2e83f3a8';
-        currOption.style.backgroundColor = '#ffffff09';
-        if (previousOption && previousOption !== currOption) {
+let sidebarOptions = document.querySelectorAll('.sidebar_option');
+Array.from(sidebarOptions).forEach((option) => {
+    option.addEventListener('click', () => {
+        option.style.borderLeft = '5px solid #2e83f3a8';
+        option.style.backgroundColor = '#ffffff09';
+        if (previousOption && previousOption !== option) {
             previousOption.style.borderLeft = '5px solid transparent';
             previousOption.style.backgroundColor = 'transparent';
         }
-        previousOption = currOption;
+        previousOption = option;
     });
-}
+});
 
 let recentButton = document.querySelector('#recent');
 recentButton.addEventListener('click', () => {

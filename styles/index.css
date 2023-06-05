@@ -126,7 +126,7 @@ body {
 .sidebar_option:hover {
     background-color: #ffffff1c;
 }
-.usage {
+.sidebar_option_rounded {
     width: 100%;
     height: max-content;
     padding-left: 20px;
@@ -139,28 +139,27 @@ body {
     flex-shrink: 0;
     padding-top: 10px;
 }
-.usage > .stat {
+.sidebar_option_rounded > .inner {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    pointer-events: none;
     background-color: var(--color-blackish-light);
     border-radius: 20px 0 0 20px;
 }
-.usage > .stat > .icon {
+.sidebar_option_rounded > .inner > .icon {
     width: 40px;
     height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.usage > .stat > .icon > span {
+.sidebar_option_rounded > .inner > .icon > span {
     font-size: 20px;
     color: #ccc;
     z-index: 2;
 }
-.usage > .stat > p {
+.sidebar_option_rounded > .inner > p {
     font-size: 14px;
     color: #ccc;
 }
