@@ -23,6 +23,7 @@ func main() {
 	r.Static("/scripts", "scripts")
 	r.Static("/styles", "styles")
 	r.POST("/__space/v0/actions", Action)
+	r.GET("/__space/actions", AppActions)
 
 	api := r.Group("/api")
 	api.GET("/ping", Ping)
@@ -43,6 +44,9 @@ func main() {
 	api.GET("/download/:recipient/:hash/:part", DownloadFile)
 	api.GET("/external/:recipient/:owner/:hash/:part", DownloadFileExtern)
 	api.POST("/push/:id", PushFileMeta)
+
+	actions := r.Group("/actions")
+	actions.POST("/save", Save.Handler)
 
 	if err := r.Run(":8080"); err != http.ErrServerClosed {
 		log.Fatal(err)

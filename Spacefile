@@ -5,6 +5,7 @@ micros:
     src: .
     engine: custom
     primary: true
+    provide_actions: true
     commands:
       - go get
       - go build .
