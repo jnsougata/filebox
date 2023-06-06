@@ -27,26 +27,29 @@ var Save = SpaceAppAction{
 	Path:  "/actions/save",
 	Input: []Input{
 		{
-			Name: "name", 
+			Name: "name",
 			Type: "string"},
 		{
-			Name: "url", 
+			Name: "url",
 			Type: "string",
 		},
 	},
-	Handler: func (c *gin.Context) {
+	Handler: func(c *gin.Context) {
 		var data map[string]interface{}
 		c.BindJSON(&data)
 		name := data["name"].(string)
 		url := data["url"].(string)
+		key := randomHex(32)
 		record := deta.Record{
+			Key: key,
 			Value: map[string]interface{}{
 				"name":   name,
 				"url":    url,
-				"date":   time.Now().Unix(),
+				"date":   time.Now().Format("2006-01-02T15:04:05.000Z"),
 				"parent": nil,
 				"size":   0,
 				"mime":   "text/plain",
+				"hash":   key,
 			},
 		}
 		base.Put(record)
