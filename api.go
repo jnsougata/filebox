@@ -67,7 +67,7 @@ func Metadata(c *gin.Context) {
 
 	case "POST":
 		var data map[string]interface{}
-		_ = json.NewDecoder(c.Request.Body).Decode(&data)
+		c.BindJSON(&data)
 		key := data["hash"].(string)
 		data["key"] = key
 		_, hasPrent := data["parent"]
@@ -103,7 +103,7 @@ func Metadata(c *gin.Context) {
 
 	case "PATCH":
 		var data map[string]interface{}
-		_ = json.NewDecoder(c.Request.Body).Decode(&data)
+		c.BindJSON(&data)
 		key := data["hash"].(string)
 		data["key"] = key
 		resp := base.Put(deta.Record{Key: key, Value: data})
@@ -148,9 +148,9 @@ func Metadata(c *gin.Context) {
 }
 
 func FolderMeta(c *gin.Context) {
-	var body map[string]interface{}
-	_ = json.NewDecoder(c.Request.Body).Decode(&body)
-	parent := body["parent"].(string)
+	var data map[string]interface{}
+	c.BindJSON(&data)
+	parent := data["parent"].(string)
 	q := deta.NewQuery()
 	q.Equals("parent", parent)
 	resp := base.FetchUntilEnd(q).ArrayJSON()
@@ -246,10 +246,10 @@ func SharedMeta(c *gin.Context) {
 }
 
 func Query(c *gin.Context) {
-	var body map[string]interface{}
-	_ = json.NewDecoder(c.Request.Body).Decode(&body)
+	var data map[string]interface{}
+	c.BindJSON(&data)
 	q := deta.NewQuery()
-	for k, v := range body {
+	for k, v := range data {
 		q.Equals(k, v)
 	}
 	resp := base.FetchUntilEnd(q).ArrayJSON()
@@ -257,10 +257,10 @@ func Query(c *gin.Context) {
 }
 
 func Rename(c *gin.Context) {
-	var body map[string]interface{}
-	_ = json.NewDecoder(c.Request.Body).Decode(&body)
-	u := deta.NewUpdater(body["hash"].(string))
-	u.Set("name", body["name"].(string))
+	var data map[string]interface{}
+	c.BindJSON(&data)
+	u := deta.NewUpdater(data["hash"].(string))
+	u.Set("name", data["name"].(string))
 	resp := base.Update(u)
 	c.JSON(resp.StatusCode, resp)
 }
@@ -302,17 +302,17 @@ func Bookmark(c *gin.Context) {
 }
 
 func Access(c *gin.Context) {
-	var body map[string]interface{}
-	_ = json.NewDecoder(c.Request.Body).Decode(&body)
-	updater := deta.NewUpdater(body["hash"].(string))
-	updater.Set("access", body["access"].(string))
+	var data map[string]interface{}
+	c.BindJSON(&data)
+	updater := deta.NewUpdater(data["hash"].(string))
+	updater.Set("access", data["access"].(string))
 	resp := base.Update(updater)
 	c.JSON(resp.StatusCode, resp.JSON())
 }
 
 func FolderItemCountBulk(c *gin.Context) {
 	var folders []map[string]interface{}
-	_ = json.NewDecoder(c.Request.Body).Decode(&folders)
+	c.BindJSON(&folders)
 	parentMap := map[string]interface{}{}
 	for _, folder := range folders {
 		parentMap[FolderToAsParentPath(folder)] = map[string]interface{}{
@@ -350,7 +350,7 @@ func FileBulkOps(c *gin.Context) {
 	switch c.Request.Method {
 	case "DELETE":
 		var body []map[string]interface{}
-		_ = json.NewDecoder(c.Request.Body).Decode(&body)
+		c.BindJSON(&body)
 		var hashes []string
 		var driveNames []string
 		for _, item := range body {
@@ -373,7 +373,7 @@ func FileBulkOps(c *gin.Context) {
 
 	case "PATCH":
 		var body []map[string]interface{}
-		_ = json.NewDecoder(c.Request.Body).Decode(&body)
+		c.BindJSON(&body)
 		var files []deta.Record
 		for _, item := range body {
 			record := deta.Record{Key: item["hash"].(string), Value: item}

@@ -14,11 +14,11 @@ type Input struct {
 }
 
 type SpaceAppAction struct {
-	Name    string  `json:"name"`
-	Title   string  `json:"title"`
-	Path    string  `json:"path"`
-	Input   []Input `json:"input"`
-	Handler func(c *gin.Context)
+	Name    string               `json:"name"`
+	Title   string               `json:"title"`
+	Path    string               `json:"path"`
+	Input   []Input              `json:"input"`
+	Handler func(c *gin.Context) `json:"-"`
 }
 
 var Save = SpaceAppAction{
@@ -30,7 +30,7 @@ var Save = SpaceAppAction{
 			Name: "name",
 			Type: "string"},
 		{
-			Name: "url",
+			Name: "content",
 			Type: "string",
 		},
 	},
@@ -38,13 +38,12 @@ var Save = SpaceAppAction{
 		var data map[string]interface{}
 		c.BindJSON(&data)
 		name := data["name"].(string)
-		url := data["url"].(string)
+		content := data["content"].(string)
 		key := randomHex(32)
 		record := deta.Record{
 			Key: key,
 			Value: map[string]interface{}{
 				"name":   name,
-				"url":    url,
 				"date":   time.Now().Format("2006-01-02T15:04:05.000Z"),
 				"parent": nil,
 				"size":   0,
@@ -53,17 +52,13 @@ var Save = SpaceAppAction{
 			},
 		}
 		base.Put(record)
+		drive.Put(FileToDriveSavedName(record.Value.(map[string]interface{})), []byte(content))
 		c.String(200, fmt.Sprintf("Saved %s successfully", name))
 	},
 }
 
 func AppActions(c *gin.Context) {
-	type actions struct {
-		Actions []SpaceAppAction `json:"actions"`
-	}
-	c.JSON(200, actions{
-		Actions: []SpaceAppAction{
-			Save,
-		},
+	c.JSON(200, map[string]interface{}{
+		"actions": []SpaceAppAction{Save},
 	})
 }
