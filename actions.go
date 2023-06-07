@@ -38,7 +38,7 @@ var Save = SpaceAppAction{
 		var data map[string]interface{}
 		c.BindJSON(&data)
 		name := data["name"].(string)
-		content := data["content"].(string)
+		content := []byte(data["content"].(string))
 		key := randomHex(32)
 		record := deta.Record{
 			Key: key,
@@ -46,13 +46,13 @@ var Save = SpaceAppAction{
 				"name":   name,
 				"date":   time.Now().Format("2006-01-02T15:04:05.000Z"),
 				"parent": nil,
-				"size":   0,
+				"size":   len(content),
 				"mime":   "text/plain",
 				"hash":   key,
 			},
 		}
 		base.Put(record)
-		drive.Put(FileToDriveSavedName(record.Value.(map[string]interface{})), []byte(content))
+		drive.Put(FileToDriveSavedName(record.Value.(map[string]interface{})), content)
 		c.String(200, fmt.Sprintf("Saved %s successfully", name))
 	},
 }
