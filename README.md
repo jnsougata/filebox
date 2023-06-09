@@ -37,7 +37,7 @@ A personal cloud storage service for free (upto 10GB)
 
 
 ## TODO Improvements
-- [ ] Use global right sidebar 
+- [x] Use global right sidebar  
 - [ ] Modal based search panel
-- [ ] Code refactor and cleanup
-- [ ] CSS cleanup
+- [x] Code refactor and cleanup
+- [x] CSS cleanup
