@@ -1,6 +1,7 @@
 let controller;
 let fileSender = document.querySelector('.file_sender');
 let fileOptionPanel = document.querySelector('.file_menu');
+let navRight = document.querySelector('.nav_right');
 let queueTaskList = document.querySelector('#queue-task-list');
 
 
@@ -15,6 +16,18 @@ let queueTaskList = document.querySelector('#queue-task-list');
 //         icon: '/assets/icon.png',
 //     });
 // }
+
+function renderInRightNav(elem) {
+    navRight.innerHTML = "";
+    navRight.appendChild(elem);
+    navRight.style.display = "flex";
+    blurLayer.style.display = "block";
+}
+
+function hideRightNav() {
+    navRight.style.display = "none";
+    blurLayer.style.display = "none";
+}
 
 function dateStringToTimestamp(dateString) {
     let date = new Date(dateString);
@@ -197,9 +210,8 @@ function handleStartup(key) {
 }
 
 function handleTrashFileMenuClick(file) {
-    fileOptionPanel.innerHTML = "";
-    fileOptionPanel.id = `panel-${file.hash}`;
-    blurLayer.style.display = 'block';
+    let fileOptionPanel = document.createElement("div");
+    fileOptionPanel.className = "file_menu";
     let title = document.createElement("div");
     title.className = "title";
     let fileNameElem = document.createElement("p");
@@ -209,8 +221,7 @@ function handleTrashFileMenuClick(file) {
     close.className = `material-symbols-rounded`;
     close.innerHTML = `chevron_right`;
     close.addEventListener("click", () => {
-        fileOptionPanel.style.display = 'none';
-        blurLayer.style.display = 'none';
+        hideRightNav();
     });
     title.appendChild(close);
     fileOptionPanel.appendChild(title);
@@ -255,13 +266,12 @@ function handleTrashFileMenuClick(file) {
     });
     fileOptionPanel.appendChild(restore);
     fileOptionPanel.appendChild(deleteButton);
-    fileOptionPanel.style.display = 'flex';
+    renderInRightNav(fileOptionPanel);
 }
 
 function handleFileMenuClick(file) {
-    fileOptionPanel.innerHTML = "";
-    fileOptionPanel.id = `panel-${file.hash}`;
-    blurLayer.style.display = 'block';
+    let fileOptionPanel = document.createElement("div");
+    fileOptionPanel.className = "file_menu";
 
     // Title
     let title = document.createElement("div");
@@ -273,8 +283,7 @@ function handleFileMenuClick(file) {
     close.className = `material-symbols-rounded`;
     close.innerHTML = `chevron_right`;
     close.addEventListener("click", () => {
-        fileOptionPanel.style.display = 'none';
-        blurLayer.style.display = 'none';
+        hideRightNav();
     });
     title.appendChild(close);
     fileOptionPanel.appendChild(title);
@@ -541,7 +550,7 @@ function handleFileMenuClick(file) {
         });
     }
 
-    fileOptionPanel.style.display = 'flex';
+    renderInRightNav(fileOptionPanel);
 }
 
 function handleFolderClick(folder) {
@@ -950,43 +959,6 @@ function buildPrompt(folder) {
     div.appendChild(deselectAll);
     prompt.appendChild(div);
     return prompt;
-}
-
-function prependQueueElem(file, isUpload = true) {
-    let li = document.createElement('li');
-    let icon = document.createElement('div');
-    icon.className = 'icon';
-    setIconByMime(file.mime, icon)
-    if (isUpload === null) {
-        icon.innerHTML = '<span class="material-symbols-rounded">open_in_browser</span>';
-    }
-    let info = document.createElement('div');
-    info.className = 'info';
-    let name = document.createElement('p');
-    name.innerHTML = file.name;
-    let progress = document.createElement('div');
-    progress.className = 'progress';
-    let bar = document.createElement('div');
-    bar.className = 'bar';
-    bar.style.width = '0%';
-    if (isUpload === null) {
-        bar.style.backgroundColor = `#8cb4fc`;
-    } else if (isUpload) {
-        bar.style.backgroundColor = colorBlue;
-    } else {
-        bar.style.backgroundColor = colorGreen;
-    }
-    bar.id = `bar-${file.hash}`;
-    progress.appendChild(bar);
-    info.appendChild(name);
-    info.appendChild(progress);
-    let percentage = document.createElement('p');
-    percentage.innerHTML = '0%';
-    percentage.id = `percentage-${file.hash}`;
-    li.appendChild(icon);
-    li.appendChild(info);
-    li.appendChild(percentage);
-    queueTaskList.prepend(li);
 }
 
 function updateToCompleted(hash) {
@@ -1468,9 +1440,8 @@ function renderFileSenderModal(file) {
         showSnack('File sending is not available for this instance', colorOrange, 'info');
         return;
     }
-    fileOptionPanel.style.display = 'none';
-    blurLayer.style.display = 'block';
-    fileSender.innerHTML = '';
+    let fileSender = document.createElement('div');
+    fileSender.className = 'file_sender';
     let filename = document.createElement('p');
     filename.innerHTML = file.name;
     let userIdField = document.createElement('input');
@@ -1481,8 +1452,7 @@ function renderFileSenderModal(file) {
     let cancelButton = document.createElement('button');
     cancelButton.innerHTML = 'Cancel';
     cancelButton.addEventListener('click', () => {
-        fileSender.style.display = 'none';
-        blurLayer.style.display = 'none';
+        hideRightNav();
     });
     let sendButton = document.createElement('button');
     sendButton.innerHTML = 'Send';
@@ -1528,7 +1498,7 @@ function renderFileSenderModal(file) {
     fileSender.appendChild(filename);
     fileSender.appendChild(userIdField);
     fileSender.appendChild(buttons);
-    fileSender.style.display = 'flex';
+    renderInRightNav(fileSender);
 }
 
 function buildTitleP(text) {

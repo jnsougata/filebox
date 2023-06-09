@@ -25,14 +25,12 @@ function buildFileMetadata(file) {
 }
 
 function progressHandlerById(hash, percentage) {
-    document.getElementById(`bar-${hash}`).style.width = `${percentage}%`;
-    document.getElementById(`percentage-${hash}`).innerHTML = `${percentage}%`;
+    taskNodes[hash].percentage.innerHTML = `${percentage}%`;
+    taskNodes[hash].bar.style.width = `${percentage}%`;
 }
 
 function closeQueue() {
-    if (runningTaskCount === 0) {
-        queueModalCloseButton.click();
-    }
+    hideRightNav();
 }
 
 function upload(file, metadata, progressHandler, refreshList = true) {
@@ -45,7 +43,6 @@ function upload(file, metadata, progressHandler, refreshList = true) {
         progressHandler(0);
         showSnack(`Uploading ${file.name}`, colorBlue, 'info');
         let content = ev.target.result;
-        runningTaskCount ++;
         let nameFragments = file.name.split('.');
         let saveAs = nameFragments.length > 1 ? `${hash}.${nameFragments.pop()}` : `${hash}`;
         if (file.size < 10 * 1024 * 1024) {
@@ -60,7 +57,6 @@ function upload(file, metadata, progressHandler, refreshList = true) {
                     progressHandler(100);
                     showSnack(`Uploaded ${file.name}`, colorBlue, 'success');
                     updateSpaceUsage(file.size);
-                    runningTaskCount --;
                     if (!refreshList) {
                         return;
                     }
@@ -110,6 +106,8 @@ function upload(file, metadata, progressHandler, refreshList = true) {
                         })
                         .then(response => response.json())
                         .then(() => {
+                            progressHandler(100);
+                            closeQueue();
                             fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(metadata)})
                             .then(() => {
                                 updateSpaceUsage(file.size);
@@ -125,14 +123,13 @@ function upload(file, metadata, progressHandler, refreshList = true) {
                             })
                         })
                     } else {
+                        taskNodes[hash].bar.style.backgroundColor = colorRed;
                         showSnack(`Failed to upload ${file.name}`, colorRed, 'error');
                         fetch(`${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`, {
                             method: 'DELETE', 
                             headers: header
                         })
                     }
-                    runningTaskCount--;
-                    closeQueue();
                 })
             })
         }
@@ -177,7 +174,6 @@ async function fetchFileFromDrive(file, progressHandler) {
 function download(file, progressHandler) {
     showSnack(`Downloading ${file.name}`, colorGreen, 'info');
     progressHandler(0);
-    runningTaskCount ++;
     queueButton.click();
     let header = {"X-Api-Key": globalSecretKey}
     let projectId = globalSecretKey.split("_")[0];
@@ -217,7 +213,6 @@ function download(file, progressHandler) {
         a.href = url;
         a.download = file.name;
         showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
-        runningTaskCount --;
         closeQueue();
         a.click();
     })
@@ -268,8 +263,6 @@ function createFolder() {
 function downloadShared(file, progressHandler) {
     showSnack(`Downloading ${file.name}`, colorGreen, 'info');
     progressHandler(0);
-    prependQueueElem(file, false);
-    runningTaskCount++;
     queueButton.click();
     let size = file.size;
     const chunkSize = 1024 * 1024 * 4
@@ -282,7 +275,6 @@ function downloadShared(file, progressHandler) {
             a.download = file.name;
             progressHandler(100);
             showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
-            runningTaskCount --;
             closeQueue();
             a.click();
         })
@@ -315,7 +307,6 @@ function downloadShared(file, progressHandler) {
             a.href = URL.createObjectURL(new Blob(blobs, {type: file.mime}));
             a.download = file.name;
             showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
-            runningTaskCount --;
             closeQueue();
             a.click();
         })

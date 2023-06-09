@@ -19,7 +19,6 @@ let navBar = document.querySelector('nav');
 let sidebar = document.querySelector('.sidebar');
 let blurLayer = document.querySelector('.blur_layer');
 let mainSection = document.querySelector('main');
-let taskQueueElem = document.querySelector('.queue');
 let totalSizeWidget = document.querySelector('#storage');
 
 
@@ -46,8 +45,8 @@ function getContextOptionElem() {
 }
 
 function closeSidebar() {
+    blurLayer.style.display = 'none';
     if (window.innerWidth < 768) {
-        blurLayer.style.display = 'none';
         sidebar.style.display = 'none';
     }
 }
@@ -213,19 +212,11 @@ sanitizeButton.addEventListener('click', () => {
     });
 });
 
-let queueModal = document.querySelector('.queue');
-let queueModalCloseButton = document.querySelector('.queue_close');
-queueModalCloseButton.addEventListener('click', () => {
-    blurLayer.style.display = 'none';
-    queueModal.style.display = 'none';
-});
 
 let queueButton = document.querySelector('#queue');
 queueButton.addEventListener('click', () => {
-    blurLayer.click();
     closeSidebar();
-    blurLayer.style.display = 'block';
-    queueModal.style.display = 'block';
+    renderQueue();
 });
 
 let filePreviewModal = document.querySelector('.file_preview');
@@ -268,10 +259,7 @@ mainSection.addEventListener("drop", (e) => {
 
 blurLayer.addEventListener('click', () => {
     closeSidebar();
-    fileOptionPanel.style.display = 'none';
-    queueModal.style.display = 'none';
-    fileSender.style.display = 'none';
-    blurLayer.style.display = 'none';
+    hideRightNav();
 });
 
 window.addEventListener('DOMContentLoaded', () => {

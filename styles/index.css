@@ -403,25 +403,17 @@ main > ul > li > .info > p {
 }
 
 .file_menu {
-    right: 0;
-    bottom: 0;
-    position: fixed;
-    width: 500px;
-    height: 100vh;
-    height: 100dvh;
-    display: none;
+    width: 100%;
+    height: 100%;
+    display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    z-index: 10000 !important;
-    animation: sildein_rtl 0.5s;
-    background-color: #1a1c20;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.425);
 }
 .file_menu > .file_menu_close {
-    position: absolute;
     top: 0;
     right: 0;
+    position: absolute;
     width: 35px;
     height: 35px;
     display: flex;
@@ -632,20 +624,12 @@ main > ul > li > .info > p {
 }
     
 .queue {
-    right: 0;
-    bottom: 0;
-    position: fixed;
-    width: 500px;
-    height: 100vh;
-    height: 100dvh;
-    display: none;
+    width: 100%;
+    height: 100%;
+    display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    z-index: 10000 !important;
-    animation: sildein_rtl 0.5s;
-    background-color: #1a1c20;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.425);
     padding-top: 10px;
 }
 .queue > .queue_close {
@@ -844,20 +828,12 @@ main > ul > li > .info > p {
 }
 
 .file_sender {
-    right: 0;
-    bottom: 0;
-    position: fixed;
-    width: 500px;
-    height: 100vh;
-    height: 100dvh;
-    display: none;
+    width: 100%;
+    height: 100%;
+    display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    z-index: 10000 !important;
-    animation: sildein_rtl 0.5s;
-    background-color: #1a1c20;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.425);
     padding: 45px;
 }
 .file_sender > input[type="text"] {
@@ -899,7 +875,6 @@ main > ul > li > .info > p {
 @media screen and (max-width: 768px) {
     .file_sender {
         padding: 20px;
-        width: 300px;
     }
     .file_sender > input[type="text"] {
         font-size: 13px;
@@ -1084,4 +1059,27 @@ main > ul > li > .info > p {
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+
+.nav_right {
+    right: 0;
+    bottom: 0;
+    position: fixed;
+    width: 500px;
+    height: 100vh;
+    height: 100dvh;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    z-index: 10000 !important;
+    animation: sildein_rtl 0.5s;
+    background-color: #1a1c20;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.425);
+}
+
+@media screen and (max-width: 768px) {
+    .nav_right {
+        width: 300px;
+    }
 }
