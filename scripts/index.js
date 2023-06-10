@@ -16,7 +16,7 @@ let globalContextOption = null;
 let globalDiscoveryStatus = null;
 let globalMultiSelectBucket = [];
 let navBar = document.querySelector('nav');
-let sidebar = document.querySelector('.sidebar');
+let sidebar = document.querySelector('.nav_left');
 let blurLayer = document.querySelector('.blur_layer');
 let mainSection = document.querySelector('main');
 let totalSizeWidget = document.querySelector('#storage');
@@ -52,7 +52,7 @@ function closeSidebar() {
 }
 
 let previousOption = null;
-let sidebarOptions = document.querySelectorAll('.sidebar_option');
+let sidebarOptions = document.querySelectorAll('.nav_left_option');
 Array.from(sidebarOptions).forEach((option) => {
     option.addEventListener('click', () => {
         option.style.borderLeft = '5px solid #2e83f3a8';
