@@ -31,6 +31,6 @@ micros:
       - "/shared/*"
       - "/styles/*"
       - "/scripts/*"
-      - "/api/embed/*"
+      - "/embed/*"
       - "/api/download/*"
       - "/api/accept"

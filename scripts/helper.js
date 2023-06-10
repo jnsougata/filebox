@@ -448,7 +448,7 @@ function handleFileMenuClick(file) {
         } else if (file.size > 1024 * 1024 * 4) {
             showSnack(`File is too large to embed`, colorRed, 'error');
         } else {
-            window.navigator.clipboard.writeText(`${window.location.origin}/api/embed/${file.hash}`)
+            window.navigator.clipboard.writeText(`${window.location.origin}/embed/${file.hash}`)
             .then(() => {
                 showSnack(`Copied to clipboard`, colorGreen, 'success');
             })
