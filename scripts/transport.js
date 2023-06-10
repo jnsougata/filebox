@@ -1,7 +1,5 @@
 function randId() {
-    return [...Array(16)].map(
-        () => Math.floor(Math.random() * 16).toString(16)
-    ).join('');
+    return [...Array(16)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 }
 
 function buildFileMetadata(file) {
@@ -15,11 +13,9 @@ function buildFileMetadata(file) {
         "date": new Date().toISOString(),
     }
     if (globalContextFolder) {
-        if (globalContextFolder.parent) {
-            meta.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
-        } else {
-            meta.parent = globalContextFolder.name;
-        }
+        meta.parent = globalContextFolder.parent ? `${globalContextFolder.parent}/${globalContextFolder.name}` : globalContextFolder.name;
+    } else {
+        meta.parent = null;
     }
     return meta;
 }
@@ -29,8 +25,45 @@ function progressHandlerById(hash, percentage) {
     taskNodes[hash].bar.style.width = `${percentage}%`;
 }
 
-function closeQueue() {
-    hideRightNav();
+function createFolder() {
+    let name = prompt("Enter folder name", "New Folder");
+    if (name === "~shared") {
+        showSnack(`~shared is a reserved folder name`, colorOrange, 'warning');
+        return;
+    }
+    if (name && name.includes("/")) {
+        showSnack(`Folder name cannot contain /`, colorOrange, 'warning');
+        return;
+    }
+    if (name === "") {
+        showSnack(`Folder name cannot be empty`, colorOrange, 'warning');
+        return;
+    }
+    if (!name) {
+        return;
+    }
+    let body = {
+        "name": name,
+        "type": "folder",
+        "hash": randId(),
+        "date": new Date().toISOString(),
+    }
+    if (globalContextFolder) {
+        if (globalContextFolder.parent) {
+            body.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
+        } else {
+            body.parent = globalContextFolder.name;
+        }
+    }
+    fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(body)})
+    .then((resp) => {
+        if (resp.status === 409) {
+            showSnack(`Folder with same name already exists`, colorRed, 'error');
+        } else if (resp.status <= 207) {
+            showSnack(`Created folder ${name}`, colorGreen, 'success');
+            handleFolderClick(body);
+        }
+    })
 }
 
 function upload(file, metadata, progressHandler, refreshList = true) {
@@ -60,11 +93,8 @@ function upload(file, metadata, progressHandler, refreshList = true) {
                     if (!refreshList) {
                         return;
                     }
-                    if (globalContextFolder) {
-                        handleFolderClick(globalContextFolder)
-                    } else {
-                        getContextOptionElem().click();
-                    }
+                    globalContextFolder ? handleFolderClick(globalContextFolder) : currentOption().click();
+                    hideRightNav();
                 })
             })
         } else {
@@ -107,7 +137,6 @@ function upload(file, metadata, progressHandler, refreshList = true) {
                         .then(response => response.json())
                         .then(() => {
                             progressHandler(100);
-                            closeQueue();
                             fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(metadata)})
                             .then(() => {
                                 updateSpaceUsage(file.size);
@@ -115,11 +144,8 @@ function upload(file, metadata, progressHandler, refreshList = true) {
                                 if (!refreshList) {
                                     return;
                                 }
-                                if (globalContextFolder) {
-                                    handleFolderClick(globalContextFolder)
-                                } else {
-                                    getContextOptionElem().click();
-                                }
+                                globalContextFolder ? handleFolderClick(globalContextFolder) : currentOption().click();
+                                hideRightNav();
                             })
                         })
                     } else {
@@ -213,51 +239,10 @@ function download(file, progressHandler) {
         a.href = url;
         a.download = file.name;
         showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
-        closeQueue();
+        hideRightNav();
         a.click();
     })
     .catch((err) => console.error(err));
-}
-
-function createFolder() {
-    let name = prompt("Enter folder name", "New Folder");
-    if (name === "~shared") {
-        showSnack(`~shared is a reserved folder name`, colorOrange, 'warning');
-        return;
-    }
-    if (name && name.includes("/")) {
-        showSnack(`Folder name cannot contain /`, colorOrange, 'warning');
-        return;
-    }
-    if (name === "") {
-        showSnack(`Folder name cannot be empty`, colorOrange, 'warning');
-        return;
-    }
-    if (!name) {
-        return;
-    }
-    let body = {
-        "name": name,
-        "type": "folder",
-        "hash": randId(),
-        "date": new Date().toISOString(),
-    }
-    if (globalContextFolder) {
-        if (globalContextFolder.parent) {
-            body.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
-        } else {
-            body.parent = globalContextFolder.name;
-        }
-    }
-    fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(body)})
-    .then((resp) => {
-        if (resp.status === 409) {
-            showSnack(`Folder with same name already exists`, colorRed, 'error');
-        } else if (resp.status <= 207) {
-            showSnack(`Created folder ${name}`, colorGreen, 'success');
-            handleFolderClick(body);
-        }
-    })
 }
 
 function downloadShared(file, progressHandler) {
@@ -275,7 +260,7 @@ function downloadShared(file, progressHandler) {
             a.download = file.name;
             progressHandler(100);
             showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
-            closeQueue();
+            hideRightNav();
             a.click();
         })
     } else {
@@ -303,11 +288,12 @@ function downloadShared(file, progressHandler) {
         });
         Promise.all(promises)
         .then((blobs) => {
+            progressHandler(100);
             let a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob(blobs, {type: file.mime}));
             a.download = file.name;
             showSnack(`Downloaded ${file.name}`, colorGreen, 'success');
-            closeQueue();
+            hideRightNav();
             a.click();
         })
     }

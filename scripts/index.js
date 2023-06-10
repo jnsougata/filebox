@@ -8,7 +8,6 @@ let globalUserId = null;
 let globalConsumption = 0;
 let globalSecretKey = null;
 let globalTrashFiles = null;
-let globalContextFile = null;
 let isUserSubscribed = false;
 let globalPreviewFile = null;
 let globalContextFolder = null;
@@ -33,7 +32,7 @@ window.fetch = async (...args) => {
     return response;
 };
 
-function getContextOptionElem() {
+function currentOption() {
     let options = {
         "recent": recentButton,
         "browse": browseButton,

@@ -1260,7 +1260,7 @@ function renderOriginalNav() {
     backButton.addEventListener('click', () => {
         backButton.style.display = 'none';
         if (searched) {
-            getContextOptionElem().click();
+            currentOption().click();
         } else {
             inputBar.value = '';
         }
