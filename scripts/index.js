@@ -13,7 +13,6 @@ let globalPreviewFile = null;
 let globalContextFolder = null;
 let globalContextOption = null;
 let globalDiscoveryStatus = null;
-let globalMultiSelectBucket = [];
 let navBar = document.querySelector('nav');
 let sidebar = document.querySelector('.nav_left');
 let blurLayer = document.querySelector('.blur_layer');
@@ -26,8 +25,6 @@ window.fetch = async (...args) => {
     const response = await fetchx(...args);
     if (response.status === 502) {
         showSnack("Bad Gateway! Try again.", colorOrange, 'warning');
-    } else if (response.status === 404) {
-        showSnack("File not found. Might have been deleted from drive", colorRed, 'error');
     }
     return response;
 };
@@ -266,7 +263,16 @@ window.addEventListener('DOMContentLoaded', () => {
     fetch(`/api/key`)
     .then((response) => response.json())
     .then((data) => {
-        handleStartup(data.key);
+        globalSecretKey = data.key;
+        let globalUserIdParts = /-(.*?)\./.exec(window.location.hostname);
+        globalUserId = globalUserIdParts ? globalUserIdParts[1] : null;
+        document.querySelector('#username').innerHTML = globalUserId ? globalUserId : 'Anonymous';
+        fetch("/api/consumption")
+        .then(response => response.json())
+        .then(data => {
+            updateSpaceUsage(data.size);
+        })
+        browseButton.click();
     })
 });
 

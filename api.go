@@ -70,26 +70,10 @@ func Metadata(c *gin.Context) {
 		c.BindJSON(&data)
 		key := data["hash"].(string)
 		data["key"] = key
-		_, hasPrent := data["parent"]
 		_, isFolder := data["type"]
-		if !hasPrent && isFolder {
+		if isFolder {
 			q := deta.NewQuery()
-			q.Equals("name", data["name"].(string))
-			resp := base.FetchUntilEnd(q).ArrayJSON()
-			var tmp []map[string]interface{}
-			for _, item := range resp {
-				if _, ok := item["parent"]; !ok {
-					tmp = append(tmp, item)
-				}
-			}
-			if len(tmp) > 0 {
-				c.JSON(http.StatusConflict, nil)
-				return
-			}
-		}
-		if hasPrent && isFolder {
-			q := deta.NewQuery()
-			q.Equals("parent", data["parent"].(string))
+			q.Equals("parent", data["parent"])
 			q.Equals("name", data["name"].(string))
 			resp := base.FetchUntilEnd(q).ArrayJSON()
 			if len(resp) > 0 {
@@ -116,24 +100,9 @@ func Metadata(c *gin.Context) {
 		_ = json.Unmarshal(metadata, &file)
 		_, isFolder := file["type"]
 		if isFolder {
-			var childrenPath string
-			_, hasParent := file["parent"]
-			if hasParent {
-				childrenPath = fmt.Sprintf("%s/%s", file["parent"].(string), file["name"].(string))
-			} else {
-				childrenPath = file["name"].(string)
-			}
-			q := deta.NewQuery()
-			q.Equals("parent", childrenPath)
-			q.NotEquals("deleted", true)
-			resp := base.FetchUntilEnd(q)
-			children := resp.ArrayJSON()
-			if len(children) > 0 {
-				c.JSON(http.StatusConflict, nil)
-			} else {
-				_ = base.Delete(file["hash"].(string))
-				c.JSON(http.StatusOK, nil)
-			}
+			_ = base.Delete(file["hash"].(string))
+			c.JSON(http.StatusOK, nil)
+			return
 		}
 		hash := file["hash"].(string)
 		_ = base.Delete(hash)
@@ -145,16 +114,6 @@ func Metadata(c *gin.Context) {
 		c.JSON(http.StatusMethodNotAllowed, nil)
 		return
 	}
-}
-
-func FolderMeta(c *gin.Context) {
-	var data map[string]interface{}
-	c.BindJSON(&data)
-	parent := data["parent"].(string)
-	q := deta.NewQuery()
-	q.Equals("parent", parent)
-	resp := base.FetchUntilEnd(q).ArrayJSON()
-	c.JSON(http.StatusOK, resp)
 }
 
 func EmbedFile(c *gin.Context) {
@@ -310,7 +269,7 @@ func Access(c *gin.Context) {
 	c.JSON(resp.StatusCode, resp.JSON())
 }
 
-func FolderItemCountBulk(c *gin.Context) {
+func FolderChildrenCount(c *gin.Context) {
 	var folders []map[string]interface{}
 	c.BindJSON(&folders)
 	parentMap := map[string]interface{}{}

@@ -1,4 +1,5 @@
 let controller;
+let globalMultiSelectBucket = [];
 let fileSender = document.querySelector('.file_sender');
 let fileOptionPanel = document.querySelector('.file_menu');
 let navRight = document.querySelector('.nav_right');
@@ -68,14 +69,13 @@ function updateFolderStats(folders) {
     if (folders.length === 0) {
         return;
     }
-    fetch(`/api/items/count`, {method: "POST", body: JSON.stringify(folders)})
+    fetch(`/api/children-count`, {method: "POST", body: JSON.stringify(folders)})
     .then((resp) => resp.json())
     .then((stats) => {
         stats.forEach((stat) => {
             let statElem = document.getElementById(`stat-${stat.hash}`);
             if (statElem) {
-                let old = statElem.innerHTML;
-                statElem.innerHTML = `${stat.count} items • ${old}`
+                statElem.innerHTML = `${stat.count} items • ${statElem.innerHTML}`
             }
         }); 
     })  
@@ -165,7 +165,6 @@ function downloadFolderAsZip(folder) {
             hash: folder.hash,
         }
         prependQueueElem(zipData);
-        blurLayer.click();
         queueButton.click();
         let promises = [];
         let completed = 0;
@@ -192,21 +191,6 @@ function downloadFolderAsZip(folder) {
             });
         })
     })
-}
-
-function handleStartup(key) {
-    globalSecretKey = key;
-    globalUserIdParts = /-(.*?)\./.exec(window.location.hostname);
-    if (globalUserIdParts) {
-        globalUserId = globalUserIdParts[1];
-    }
-    document.querySelector('#username').innerHTML = globalUserId ? globalUserId : 'Anonymous';
-    fetch("/api/consumption")
-    .then(response => response.json())
-    .then(data => {
-        updateSpaceUsage(data.size);
-    })
-    recentButton.click();
 }
 
 function handleTrashFileMenuClick(file) {
@@ -483,8 +467,24 @@ function handleFileMenuClick(file) {
     let downloadZip = document.createElement("div");
     downloadZip.className = "file_menu_option";
     downloadZip.innerHTML = `<p>Download as Zip</p><span class="material-symbols-rounded">archive</span>`;
-    downloadZip.addEventListener("click", () => {
-        downloadFolderAsZip(file);
+    downloadZip.addEventListener("click", async () => {
+        //downloadFolderAsZip(file);
+        const {tree, _} = await buildChildrenTree(file);
+        let totalSize = caculateTreeSize(tree);
+        let folderData = {
+            name: file.name,
+            size: totalSize,
+            type: 'folder',
+            hash: file.hash,
+        }
+        prependQueueElem(folderData, false);
+        showSnack(`Zipping ${file.name}...`, colorBlue, `info`)
+        const zip = await zipFolderRecursive(tree, file.hash, new JSZip(), 0, totalSize);
+        let content = await zip.generateAsync({type:"blob"});
+        let a = document.createElement('a');
+        a.href = window.URL.createObjectURL(content);
+        a.download = `${file.name}.zip`;
+        a.click();
     });
     if (file.type === 'folder') {
         fileOptionPanel.appendChild(downloadZip);
@@ -498,21 +498,26 @@ function handleFileMenuClick(file) {
     } else {
         trashButton.innerHTML = `<p>Trash</p><span class="material-symbols-rounded">delete_forever</span>`;
     }
-    trashButton.addEventListener("click", () => {
+    trashButton.addEventListener("click", async () => {
         if (file.type === 'folder') {
-            fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
-            .then((resp) => {
-                if (resp.status === 409) {
-                    showSnack(`Folder is not empty`, colorOrange, 'warning');
-                    close.click();
-                    return;
-                }
-                if (resp.status === 200) {
-                    showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
+            let ok = confirm(`Are you sure you want to delete folder "${file.name}" permanently?`);
+            if (!ok) return;
+            const {tree, _} = await buildChildrenTree(file);
+            async function deleteFilesRecursively(tree) {
+                fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+                .then(() => {
                     document.getElementById(`file-${file.hash}`).remove();
-                    close.click();
-                } 
-            })
+                })
+                tree.forEach(async (file) => {
+                    if (file.type === 'folder') {
+                        await deleteFilesRecursively(file.children);
+                        fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+                    } else {
+                        fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+                    }
+                });
+            }
+            await deleteFilesRecursively(tree);
         } else {
             file.deleted = true;
             fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})
@@ -555,13 +560,8 @@ function handleFileMenuClick(file) {
 
 function handleFolderClick(folder) {
     globalContextFolder = folder;
-    let parentOf;
-    if (folder.parent) {
-        parentOf = `${folder.parent}/${folder.name}`;
-    } else {
-        parentOf = folder.name;
-    }
-    fetch(`/api/folder`, {
+    let parentOf = folder.parent ? `${folder.parent}/${folder.name}` : folder.name;
+    fetch(`/api/query`, {
         method: "POST",
         body: JSON.stringify({parent: parentOf})
     })
@@ -908,11 +908,11 @@ function buildPrompt(folder) {
             browseButton.click();
             return;
         }
-        let prev = {};
         let fragments = folder.parent.split('/');
-        prev.name = fragments.pop();
-        prev.parent = fragments.length > 1 ? fragments.join('/') : null;
-        handleFolderClick(prev);
+        handleFolderClick({
+            name: fragments.pop(),
+            parent: fragments.length >= 1 ? fragments.join('/') : null
+        });
     });
     let selectAll = document.createElement('i');
     selectAll.className = 'material-symbols-rounded';

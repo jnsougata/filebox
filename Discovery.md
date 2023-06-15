@@ -27,7 +27,6 @@ Upload & organize files in your Personal Space Drive
 - Custom context menu for file operations
 - **Upload and store folders** ( ⚠ limited browser support )
 - **Zipped folder or multiple file download** support
-  - ⚠ Excludes nested folders 
   - ⚠ Excludes files from other users 
   
 ### Future 
