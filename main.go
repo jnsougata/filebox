@@ -43,6 +43,7 @@ func main() {
 	api.GET("/download/:recipient/:hash/:part", DownloadFile)
 	api.GET("/external/:recipient/:owner/:hash/:part", DownloadFileExtern)
 	api.POST("/push/:id", PushFileMeta)
+	api.POST("/accept", AcceptFileMeta)
 
 	actions := r.Group("/actions")
 	actions.POST("/save", Save.Handler)

@@ -381,6 +381,14 @@ func PushFileMeta(c *gin.Context) {
 	c.JSON(resp.StatusCode, nil)
 }
 
+func AcceptFileMeta(c *gin.Context) {
+	var data map[string]interface{}
+	c.BindJSON(&data)
+	hash := data["hash"].(string)
+	resp := base.Put(deta.Record{Key: hash, Value: data})
+	c.JSON(resp.StatusCode, nil)
+}
+
 func SanitizeFiles(c *gin.Context) {
 	files := base.FetchUntilEnd(deta.NewQuery()).ArrayJSON()
 	var sanitized []map[string]interface{}
