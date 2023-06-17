@@ -36,9 +36,6 @@ function dateStringToTimestamp(dateString) {
 }
 
 function sortFileByTimestamp(data) {
-    data = data.filter((file) => {
-        return !(file.type === 'folder');
-    });
     data = data.sort((a, b) => {
         return dateStringToTimestamp(b.date) - dateStringToTimestamp(a.date);
     });
@@ -136,61 +133,46 @@ function setIconByMime(mime, elem) {
     }
 }
 
-function downloadFolderAsZip(folder) {
-    let childrenPath = folder.parent ? `${folder.parent}/${folder.name}` : folder.name;
-    fetch(`/api/query`, {
-        method: "POST", 
-        body: JSON.stringify({
-            "parent": childrenPath,
-            "type?ne": "folder",
-            "deleted?ne": true,
-            "shared?ne": true,
-        })}
-    )
-    .then((resp) => resp.json())
-    .then((data) => {
-        if (!data) {
-            showSnack("Folder is empty", colorOrange, "info");
-            return;
-        }
-        let zip = new JSZip();
-        let totalSize = 0;
-        data.forEach((file) => {
-            totalSize += parseInt(file.size);
-        });
-        let zipData = {
-            name: `${folder.name}-${folder.hash}.zip`,
-            mime: 'application/zip',
-            size: totalSize,
-            hash: folder.hash,
-        }
-        prependQueueElem(zipData);
-        queueButton.click();
-        let promises = [];
-        let completed = 0;
-        data.forEach((file) => {
-            promises.push(
-                fetchFileFromDrive(file, (cmp) => {
-                    completed += cmp;
-                    let percentage = Math.round(completed / totalSize * 100);
-                    progressHandlerById(zipData.hash, percentage);
-                })
-                .then((blob) => {
-                    zip.file(file.name, new Blob([blob], {type: file.mime}));
-                })
-            );
-        });
-        Promise.all(promises)
+async function downloadFolderAsZip(folder) {
+    const {tree, _} = await buildChildrenTree(folder);
+    let totalSize = caculateTreeSize(tree);
+    let folderData = {
+        name: folder.name,
+        size: totalSize,
+        type: 'folder',
+        hash: folder.hash,
+    }
+    prependQueueElem(folderData, false);
+    showSnack(`Zipping ${folder.name}...`, colorBlue, `info`)
+    const zip = await zipFolderRecursive(tree, folder.hash, new JSZip(), 0, totalSize);
+    let content = await zip.generateAsync({type:"blob"});
+    let a = document.createElement('a');
+    a.href = window.URL.createObjectURL(content);
+    a.download = `${folder.name}.zip`;
+    a.click();
+}
+
+async function deleteFolderPermanently(folder) {
+    let ok = confirm(`Are you sure you want to delete folder "${folder.name}" permanently?`);
+    if (!ok) return;
+    const {tree, _} = await buildChildrenTree(folder);
+    let treeSize = caculateTreeSize(tree);
+    async function deleteFilesRecursively(tree) {
+        fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(folder)})
         .then(() => {
-            zip.generateAsync({type:"blob"})
-            .then((content) => {
-                let a = document.createElement('a');
-                a.href = window.URL.createObjectURL(content);
-                a.download = zipData.name;
-                a.click();
-            });
+            document.getElementById(`file-${folder.hash}`).remove();
         })
-    })
+        tree.forEach(async (file) => {
+            if (file.type === 'folder') {
+                await deleteFilesRecursively(file.children);
+                fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+            } else {
+                fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
+            }
+        });
+    }
+    await deleteFilesRecursively(tree);
+    updateSpaceUsage(-treeSize);
 }
 
 function handleTrashFileMenuClick(file) {
@@ -467,24 +449,8 @@ function handleFileMenuClick(file) {
     let downloadZip = document.createElement("div");
     downloadZip.className = "file_menu_option";
     downloadZip.innerHTML = `<p>Download as Zip</p><span class="material-symbols-rounded">archive</span>`;
-    downloadZip.addEventListener("click", async () => {
-        //downloadFolderAsZip(file);
-        const {tree, _} = await buildChildrenTree(file);
-        let totalSize = caculateTreeSize(tree);
-        let folderData = {
-            name: file.name,
-            size: totalSize,
-            type: 'folder',
-            hash: file.hash,
-        }
-        prependQueueElem(folderData, false);
-        showSnack(`Zipping ${file.name}...`, colorBlue, `info`)
-        const zip = await zipFolderRecursive(tree, file.hash, new JSZip(), 0, totalSize);
-        let content = await zip.generateAsync({type:"blob"});
-        let a = document.createElement('a');
-        a.href = window.URL.createObjectURL(content);
-        a.download = `${file.name}.zip`;
-        a.click();
+    downloadZip.addEventListener("click", () => {
+        downloadFolderAsZip(file);
     });
     if (file.type === 'folder') {
         fileOptionPanel.appendChild(downloadZip);
@@ -500,24 +466,12 @@ function handleFileMenuClick(file) {
     }
     trashButton.addEventListener("click", async () => {
         if (file.type === 'folder') {
-            let ok = confirm(`Are you sure you want to delete folder "${file.name}" permanently?`);
-            if (!ok) return;
-            const {tree, _} = await buildChildrenTree(file);
-            async function deleteFilesRecursively(tree) {
-                fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
-                .then(() => {
-                    document.getElementById(`file-${file.hash}`).remove();
-                })
-                tree.forEach(async (file) => {
-                    if (file.type === 'folder') {
-                        await deleteFilesRecursively(file.children);
-                        fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
-                    } else {
-                        fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
-                    }
-                });
-            }
-            await deleteFilesRecursively(tree);
+            deleteFolderPermanently(file)
+            .then(() => {
+                showSnack(`Deleted folder "${file.name}" permanently`, colorRed, 'warning');
+                close.click();
+            })
+            
         } else {
             file.deleted = true;
             fetch(`/api/metadata`, {method: "PATCH", body: JSON.stringify(file)})

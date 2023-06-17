@@ -10,7 +10,7 @@ let downloadButton = document.querySelector("#download");
 
 window.addEventListener('DOMContentLoaded', async () => {
     let hash = window.location.href.split("/").pop();
-    let resp = await fetch(`/api/file/metadata/${hash}`)
+    let resp = await fetch(`/api/metadata/${hash}`)
     fileInfo = await resp.json();
     fileNameElem.innerHTML = fileInfo.name;
 });

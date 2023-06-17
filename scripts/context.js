@@ -33,14 +33,6 @@ function renderFileContextMenu(ev, file) {
     cm.id = parent.id;
 }
 
-// cg.addEventListener('click', () => {
-//     cg.style.display = 'none';
-//     let parentId = cm.id;
-//     cm.id = '';
-//     let parent = document.getElementById(parentId);
-//     parent && (parent.style.backgroundColor = `transparent`);
-// });
-
 function onSendClick(file) {
     renderFileSenderModal(file);
 }
@@ -119,14 +111,9 @@ function onMoveClick(file) {
 
 function onTrashClick(file) {
     if (file.type === 'folder') {
-        fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(file)})
-        .then((resp) => {
-            if (resp.status === 409) {
-                showSnack(`Folder is not empty`, colorOrange, 'warning');
-            } else if (resp.status === 200) {
-                showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
-                document.getElementById(`file-${file.hash}`).remove();
-            }
+        deleteFolderPermanently(file)
+        .then(() => {
+            showSnack(`Permanently Deleted ${file.name}`, colorRed, 'warning');
         })
     } else {
         file.deleted = true;
