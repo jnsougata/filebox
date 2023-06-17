@@ -160,7 +160,10 @@ async function deleteFolderPermanently(folder) {
     async function deleteFilesRecursively(tree) {
         fetch(`/api/metadata`, {method: "DELETE", body: JSON.stringify(folder)})
         .then(() => {
-            document.getElementById(`file-${folder.hash}`).remove();
+            let folder = document.getElementById(`file-${folder.hash}`);
+            if (folder) {
+                folder.remove();
+            }
         })
         tree.forEach(async (file) => {
             if (file.type === 'folder') {
@@ -663,8 +666,7 @@ function newFileElem(file, trashed = false) {
                 fileMover.appendChild(cancelButton);
                 fileMover.appendChild(p);
                 fileMover.appendChild(selectButton);
-                renderAuxNav(fileMover);
-                globalMultiSelectBucketUpdated = true;
+                renderAuxNav(fileMover)
             });
             let privateButton = document.createElement('button');
             privateButton.innerHTML = '<span class="material-symbols-rounded">visibility_off</span>';
@@ -702,6 +704,7 @@ function newFileElem(file, trashed = false) {
                         document.getElementById(`file-${file.hash}`).remove();
                     });
                     globalMultiSelectBucket = [];
+                    renderOriginalNav();
                     showSnack(`Deleted selected files`, colorRed, 'info');
                     document.getElementById('deselect-all').click();
                 })
@@ -1311,9 +1314,7 @@ function renderOriginalNav() {
                 "hash": randId(),
                 "date": new Date().toISOString(),
             }
-            if (folderPath) {
-                body.parent = folderPath;
-            }
+            body.parent = folderPath ? folderPath: null;
             fetch(`/api/metadata`, {method: "POST", body: JSON.stringify(body)})
         });
         for (let i = 0; i < ev.target.files.length; i++) {
