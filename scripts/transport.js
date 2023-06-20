@@ -1,86 +1,12 @@
-function randId() {
-  return [...Array(16)]
-    .map(() => Math.floor(Math.random() * 16).toString(16))
-    .join("");
-}
-
-function buildFileMetadata(file) {
-  let hash = randId();
-  let meta = {
-    hash: hash,
-    name: file.name,
-    size: file.size,
-    mime: file.type,
-    access: "private",
-    date: new Date().toISOString(),
-  };
-  if (globalContextFolder) {
-    meta.parent = globalContextFolder.parent
-      ? `${globalContextFolder.parent}/${globalContextFolder.name}`
-      : globalContextFolder.name;
-  } else {
-    meta.parent = null;
-  }
-  return meta;
-}
-
-function progressHandlerById(hash, percentage) {
-  taskNodes[hash].percentage.innerHTML = `${percentage}%`;
-  taskNodes[hash].bar.style.width = `${percentage}%`;
-}
-
-function createFolder() {
-  let name = prompt("Enter folder name", "New Folder");
-  if (name === "") {
-    showSnack(`Folder name cannot be empty`, colorOrange, "warning");
-    return;
-  }
-  if (name === "~shared") {
-    showSnack(`~shared is a reserved folder name`, colorOrange, "warning");
-    return;
-  }
-  if (name && name.includes("/")) {
-    showSnack(`Folder name cannot contain /`, colorOrange, "warning");
-    return;
-  }
-  if (!name) {
-    return;
-  }
-  let body = {
-    name: name,
-    type: "folder",
-    hash: randId(),
-    date: new Date().toISOString(),
-    parent: null,
-  };
-  if (globalContextFolder) {
-    if (globalContextFolder.parent) {
-      body.parent = `${globalContextFolder.parent}/${globalContextFolder.name}`;
-    } else {
-      body.parent = globalContextFolder.name;
-    }
-  }
-  fetch(`/api/metadata`, { method: "POST", body: JSON.stringify(body) }).then(
-    (resp) => {
-      if (resp.status === 409) {
-        showSnack(`Folder with same name already exists`, colorRed, "error");
-      } else if (resp.status <= 207) {
-        showSnack(`Created folder ${name}`, colorGreen, "success");
-        handleFolderClick(body);
-      }
-    }
-  );
-}
-
 function upload(file, metadata, progressHandler, refreshList = true) {
   let hash = metadata.hash;
-  let header = { "X-Api-Key": globalSecretKey, "Content-Type": file.type };
-  let projectId = globalSecretKey.split("_")[0];
+  let header = { "X-Api-Key": secretKeyGL, "Content-Type": file.type };
+  let projectId = secretKeyGL.split("_")[0];
   const ROOT = "https://drive.deta.sh/v1";
   let reader = new FileReader();
   reader.onload = (ev) => {
     progressHandler(0);
-    showSnack(`Uploading ${file.name}`, colorBlue, "info");
+    showSnack(`Uploading ${file.name}`, COLOR_BLUE, "info");
     let content = ev.target.result;
     let nameFragments = file.name.split(".");
     let saveAs =
@@ -96,13 +22,13 @@ function upload(file, metadata, progressHandler, refreshList = true) {
           body: JSON.stringify(metadata),
         }).then(() => {
           progressHandler(100);
-          showSnack(`Uploaded ${file.name}`, colorBlue, "success");
+          showSnack(`Uploaded ${file.name}`, COLOR_BLUE, "success");
           updateSpaceUsage(file.size);
           if (!refreshList) {
             return;
           }
-          globalContextFolder
-            ? handleFolderClick(globalContextFolder)
+          openedFolderGL
+            ? handleFolderClick(openedFolderGL)
             : currentOption().click();
           hideRightNav();
         });
@@ -164,21 +90,21 @@ function upload(file, metadata, progressHandler, refreshList = true) {
                     updateSpaceUsage(file.size);
                     showSnack(
                       `Uploaded ${file.name} successfully`,
-                      colorBlue,
+                      COLOR_BLUE,
                       "success"
                     );
                     if (!refreshList) {
                       return;
                     }
-                    globalContextFolder
-                      ? handleFolderClick(globalContextFolder)
+                    openedFolderGL
+                      ? handleFolderClick(openedFolderGL)
                       : currentOption().click();
                     hideRightNav();
                   });
                 });
             } else {
-              taskNodes[hash].bar.style.backgroundColor = colorRed;
-              showSnack(`Failed to upload ${file.name}`, colorRed, "error");
+              taskFactoryGL[hash].bar.style.backgroundColor = COLOR_RED;
+              showSnack(`Failed to upload ${file.name}`, COLOR_RED, "error");
               fetch(
                 `${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`,
                 {
@@ -196,8 +122,8 @@ function upload(file, metadata, progressHandler, refreshList = true) {
 
 async function fetchFileFromDrive(file, progressHandler) {
   progressHandler(0);
-  let header = { "X-Api-Key": globalSecretKey };
-  let projectId = globalSecretKey.split("_")[0];
+  let header = { "X-Api-Key": secretKeyGL };
+  let projectId = secretKeyGL.split("_")[0];
   const ROOT = "https://drive.deta.sh/v1";
   let extension = file.name.split(".").pop();
   let qualifiedName = file.hash + "." + extension;
@@ -232,11 +158,11 @@ async function fetchFileFromDrive(file, progressHandler) {
 }
 
 function download(file, progressHandler) {
-  showSnack(`Downloading ${file.name}`, colorGreen, "info");
+  showSnack(`Downloading ${file.name}`, COLOR_GREEN, "info");
   progressHandler(0);
   queueButton.click();
-  let header = { "X-Api-Key": globalSecretKey };
-  let projectId = globalSecretKey.split("_")[0];
+  let header = { "X-Api-Key": secretKeyGL };
+  let projectId = secretKeyGL.split("_")[0];
   const ROOT = "https://drive.deta.sh/v1";
   let extension = file.name.split(".").pop();
   let qualifiedName = file.hash + "." + extension;
@@ -272,7 +198,7 @@ function download(file, progressHandler) {
       let a = document.createElement("a");
       a.href = url;
       a.download = file.name;
-      showSnack(`Downloaded ${file.name}`, colorGreen, "success");
+      showSnack(`Downloaded ${file.name}`, COLOR_GREEN, "success");
       hideRightNav();
       a.click();
     })
@@ -280,20 +206,20 @@ function download(file, progressHandler) {
 }
 
 function downloadShared(file, progressHandler) {
-  showSnack(`Downloading ${file.name}`, colorGreen, "info");
+  showSnack(`Downloading ${file.name}`, COLOR_GREEN, "info");
   progressHandler(0);
   queueButton.click();
   let size = file.size;
   const chunkSize = 1024 * 1024 * 4;
   if (size < chunkSize) {
-    fetch(`/api/external/${globalUserId}/${file.owner}/${file.hash}/0`)
+    fetch(`/api/external/${userIdGL}/${file.owner}/${file.hash}/0`)
       .then((resp) => resp.blob())
       .then((blob) => {
         let a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = file.name;
         progressHandler(100);
-        showSnack(`Downloaded ${file.name}`, colorGreen, "success");
+        showSnack(`Downloaded ${file.name}`, COLOR_GREEN, "success");
         hideRightNav();
         a.click();
       });
@@ -310,7 +236,7 @@ function downloadShared(file, progressHandler) {
     heads.forEach((head) => {
       promises.push(
         fetch(
-          `/api/external/${globalUserId}/${file.owner}/${file.hash}/${head}`
+          `/api/external/${userIdGL}/${file.owner}/${file.hash}/${head}`
         )
           .then((resp) => {
             return resp.blob();
@@ -327,7 +253,7 @@ function downloadShared(file, progressHandler) {
       let a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob(blobs, { type: file.mime }));
       a.download = file.name;
-      showSnack(`Downloaded ${file.name}`, colorGreen, "success");
+      showSnack(`Downloaded ${file.name}`, COLOR_GREEN, "success");
       hideRightNav();
       a.click();
     });

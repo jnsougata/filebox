@@ -1,7 +1,3 @@
-let taskCount = -1;
-
-let taskNodes = {};
-
 function prependQueueElem(file, isUpload = true) {
   let li = document.createElement("li");
   let icon = document.createElement("div");
@@ -21,11 +17,11 @@ function prependQueueElem(file, isUpload = true) {
   bar.className = "bar";
   bar.style.width = "0%";
   if (isUpload === null) {
-    bar.style.backgroundColor = `#8cb4fc`;
+    bar.style.backgroundColor = COLOR_FILE_LOAD;
   } else if (isUpload) {
-    bar.style.backgroundColor = colorBlue;
+    bar.style.backgroundColor = COLOR_BLUE;
   } else {
-    bar.style.backgroundColor = colorGreen;
+    bar.style.backgroundColor = COLOR_GREEN;
   }
   bar.id = `bar-${file.hash}`;
   progress.appendChild(bar);
@@ -37,13 +33,13 @@ function prependQueueElem(file, isUpload = true) {
   li.appendChild(icon);
   li.appendChild(info);
   li.appendChild(percentage);
-  taskNodes[file.hash] = {
+  taskFactoryGL[file.hash] = {
     element: li,
-    index: taskCount + 1,
+    index: taskCountGL + 1,
     bar: bar,
     percentage: percentage,
   };
-  taskCount++;
+  taskCountGL++;
   renderQueue();
 }
 
@@ -62,7 +58,7 @@ function renderQueue() {
   let p = document.createElement("p");
   p.innerHTML = "Tasks";
   let tasks = document.createElement("ul");
-  let sortedNodes = Object.values(taskNodes).sort((a, b) => b.index - a.index);
+  let sortedNodes = Object.values(taskFactoryGL).sort((a, b) => b.index - a.index);
   for (let node of sortedNodes) {
     tasks.appendChild(node.element);
   }

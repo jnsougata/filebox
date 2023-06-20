@@ -1,5 +1,3 @@
-var fileContextMenu__GL = null;
-
 function onSendClick(file) {
   renderFileSenderModal(file);
 }
@@ -22,7 +20,7 @@ function onRenameClick(file) {
     newext = newext ? newext[0] : "";
     if (oldext !== newext) {
       ev.target.innerHTML = file.name;
-      showSnack("File extension cannot be changed", colorOrange, "warning");
+      showSnack("File extension cannot be changed", COLOR_ORANGE, "warning");
       return;
     }
     fetch(`/api/rename`, {
@@ -34,7 +32,7 @@ function onRenameClick(file) {
         elem.innerHTML = ev.target.innerText;
         showSnack(
           `File renamed to ${ev.target.innerText}`,
-          colorGreen,
+          COLOR_GREEN,
           "success"
         );
       }
@@ -51,33 +49,32 @@ function onDownloadClick(file) {
 
 function onShareLinkClick(file) {
   if (file.access === "private") {
-    showSnack(`Make file public to share via link`, colorOrange, "warning");
+    showSnack(`Make file public to share via link`, COLOR_ORANGE, "warning");
   } else {
     window.navigator.clipboard
       .writeText(`${window.location.origin}/shared/${file.hash}`)
       .then(() => {
-        showSnack(`Copied sharing URL to clipboard`, colorGreen, "success");
+        showSnack(`Copied sharing URL to clipboard`, COLOR_GREEN, "success");
       });
   }
 }
 
 function onEmbedClick(file) {
   if (file.access === "private") {
-    showModal;
-    showSnack(`Make file public to embed`, colorOrange, "warning");
+    showSnack(`Make file public to embed`, COLOR_ORANGE, "warning");
   } else if (file.size > 1024 * 1024 * 4) {
-    showSnack(`File is too large to embed`, colorRed, "error");
+    showSnack(`File is too large (> 4MB) to embed`, COLOR_RED, "error");
   } else {
     window.navigator.clipboard
       .writeText(`${window.location.origin}/embed/${file.hash}`)
       .then(() => {
-        showSnack(`Copied embed URL to clipboard`, colorGreen, "success");
+        showSnack(`Copied embed URL to clipboard`, COLOR_GREEN, "success");
       });
   }
 }
 
 function onMoveClick(file) {
-  isFileMoving = true;
+  isFileMovingGL = true;
   browseButton.click();
   renderAuxNav(fileMover(file));
 }
@@ -85,7 +82,7 @@ function onMoveClick(file) {
 function onTrashClick(file) {
   if (file.type === "folder") {
     deleteFolderPermanently(file).then(() => {
-      showSnack(`Permanently Deleted ${file.name}`, colorRed, "warning");
+      showSnack(`Permanently Deleted ${file.name}`, COLOR_RED, "warning");
     });
   } else {
     file.deleted = true;
@@ -93,7 +90,7 @@ function onTrashClick(file) {
       method: "PATCH",
       body: JSON.stringify(file),
     }).then(() => {
-      showSnack(`Moved to trash ${file.name}`, colorRed, "warning");
+      showSnack(`Moved to trash ${file.name}`, COLOR_RED, "warning");
       document.getElementById(`file-${file.hash}`).remove();
     });
   }
@@ -114,7 +111,7 @@ function onColorClick(file) {
       let folder = document.getElementById(`file-${file.hash}`);
       let folderIcon = folder.children[0];
       folderIcon.style.color = file.color;
-      showSnack(`Folder color changed successfully`, colorGreen, "success");
+      showSnack(`Folder color changed successfully`, COLOR_GREEN, "success");
     });
   });
   document.body.appendChild(pickerElem);
@@ -124,7 +121,7 @@ function onColorClick(file) {
 function onRestoreClick(file) {
   checkFileParentExists(file).then((exists) => {
     if (!exists && file.parent !== undefined) {
-      showSnack(`Parent not found. Restoring to root`, colorOrange, "warning");
+      showSnack(`Parent not found. Restoring to root`, COLOR_ORANGE, "warning");
       delete file.parent;
       delete file.deleted;
     } else {
@@ -135,8 +132,8 @@ function onRestoreClick(file) {
       body: JSON.stringify(file),
     }).then(() => {
       document.getElementById(`file-${file.hash}`).remove();
-      showSnack(`Restored ${file.name}`, colorGreen, "success");
-      delete globalTrashFiles[file.hash];
+      showSnack(`Restored ${file.name}`, COLOR_GREEN, "success");
+      delete trashFilesGL[file.hash];
     });
   });
 }
@@ -144,12 +141,12 @@ function onRestoreClick(file) {
 function onDeletePermanentlyClick(file) {
   fetch(`/api/metadata`, { method: "DELETE", body: JSON.stringify(file) }).then(
     () => {
-      showSnack(`Permanently Deleted ${file.name}`, colorRed, "warning");
+      showSnack(`Permanently Deleted ${file.name}`, COLOR_RED, "warning");
       document.getElementById(`file-${file.hash}`).remove();
       if (!file.shared) {
         updateSpaceUsage(-file.size);
       }
-      delete globalTrashFiles[file.hash];
+      delete trashFilesGL[file.hash];
     }
   );
 }
@@ -157,7 +154,7 @@ function onDeletePermanentlyClick(file) {
 function onPinUnpinClick(file) {
   if (file.pinned) {
     fetch(`/api/bookmark/${file.hash}`, { method: "DELETE" }).then(() => {
-      showSnack(`File unpinned successfully`, colorOrange, "info");
+      showSnack(`File unpinned successfully`, COLOR_ORANGE, "info");
       let card = document.getElementById(`file-${file.hash}`);
       if (card) {
         card.remove();
@@ -166,7 +163,7 @@ function onPinUnpinClick(file) {
     });
   } else {
     fetch(`/api/bookmark/${file.hash}`, { method: "POST" }).then(() => {
-      showSnack(`File pinned successfully`, colorGreen, "success");
+      showSnack(`File pinned successfully`, COLOR_GREEN, "success");
       let pinnedSection = document.querySelector(".pinned_files");
       if (pinnedSection) {
         pinnedSection.appendChild(newFileElem(file));
@@ -271,7 +268,7 @@ class FileContextMenu {
     }
     parent.style.backgroundColor = `var(--color-blackish-hover)`;
     this.elem.id = this.file.hash;
-    fileContextMenu__GL = this;
+    fileContextMenuGL = this;
   }
 
   close() {
@@ -281,6 +278,6 @@ class FileContextMenu {
     if (fileElem) {
       fileElem.style.backgroundColor = `transparent`;
     }
-    fileContextMenu__GL = null;
+    fileContextMenuGL = null;
   }
 }

@@ -1,29 +1,8 @@
-const colorRed = "#CB1446";
-const colorGreen = "#2AA850";
-const colorBlue = "#2E83F3";
-const colorOrange = "#FF6700";
-let runningTaskCount = 0;
-let isFileMoving = false;
-let globalUserId = null;
-let globalConsumption = 0;
-let globalSecretKey = null;
-let globalTrashFiles = null;
-let isUserSubscribed = false;
-let globalPreviewFile = null;
-let globalContextFolder = null;
-let globalContextOption = null;
-let globalDiscoveryStatus = null;
-let navBar = document.querySelector("nav");
-let sidebar = document.querySelector(".nav_left");
-let blurLayer = document.querySelector(".blur_layer");
-let mainSection = document.querySelector("main");
-let totalSizeWidget = document.querySelector("#storage");
-
 const fetchx = window.fetch;
 window.fetch = async (...args) => {
   const response = await fetchx(...args);
   if (response.status === 502) {
-    showSnack("Bad Gateway! Try again.", colorOrange, "warning");
+    showSnack("Bad Gateway! Try again.", COLOR_ORANGE, "warning");
   }
   return response;
 };
@@ -36,13 +15,13 @@ function currentOption() {
     trash: trashButton,
     shared: sharedButton,
   };
-  return options[globalContextOption];
+  return options[openedOptionGL];
 }
 
 function closeSidebar() {
-  blurLayer.style.display = "none";
+  BLUR_LAYER.style.display = "none";
   if (window.innerWidth < 768) {
-    sidebar.style.display = "none";
+    NAV_LEFT.style.display = "none";
   }
 }
 
@@ -62,17 +41,17 @@ Array.from(sidebarOptions).forEach((option) => {
 
 let recentButton = document.querySelector("#recent");
 recentButton.addEventListener("click", () => {
-  globalContextOption = "recent";
+  openedOptionGL = "recent";
   closeSidebar();
   renderOriginalNav();
   fetch(`/api/metadata`)
     .then((response) => response.json())
     .then((data) => {
-      mainSection.innerHTML = "";
+      MAIN.innerHTML = "";
       if (data) {
         data = sortFileByTimestamp(data).slice(0, 10);
         let list = document.createElement("ul");
-        mainSection.appendChild(list);
+        MAIN.appendChild(list);
         data.forEach((file) => {
           list.appendChild(newFileElem(file));
         });
@@ -87,18 +66,18 @@ recentButton.addEventListener("click", () => {
 
 let browseButton = document.querySelector("#browse");
 browseButton.addEventListener("click", () => {
-  globalContextOption = "browse";
-  globalContextFolder = null;
+  openedOptionGL = "browse";
+  openedFolderGL = null;
   closeSidebar();
-  if (!isFileMoving) {
+  if (!isFileMovingGL) {
     renderOriginalNav();
   }
   fetch(`/api/root`)
     .then((response) => response.json())
     .then((data) => {
-      mainSection.innerHTML = "";
+      MAIN.innerHTML = "";
       if (!data) {
-        mainSection.innerHTML = `<p>You don't have any file or folder</p>`;
+        MAIN.innerHTML = `<p>You don't have any file or folder</p>`;
         return;
       }
       let files = [];
@@ -106,20 +85,20 @@ browseButton.addEventListener("click", () => {
       data.forEach((file) => {
         file.type === "folder" ? folders.push(file) : files.push(file);
       });
-      mainSection.appendChild(buildPrompt({ parent: null }));
+      MAIN.appendChild(buildPrompt({ parent: null }));
       let list = document.createElement("ul");
-      mainSection.appendChild(list);
+      MAIN.appendChild(list);
       folders.concat(files).forEach((file) => {
         list.appendChild(newFileElem(file));
       });
       updateFolderStats(folders);
-      updatePromptFragment();
+  		document.querySelector(".fragment").innerText = "/home";
     });
 });
 
 let pinnedButton = document.querySelector("#pinned");
 pinnedButton.addEventListener("click", () => {
-  globalContextOption = "pinned";
+  openedOptionGL = "pinned";
   closeSidebar();
   renderOriginalNav();
   fetch("/api/query", {
@@ -128,9 +107,9 @@ pinnedButton.addEventListener("click", () => {
   })
     .then((response) => response.json())
     .then((data) => {
-      mainSection.innerHTML = "";
+      MAIN.innerHTML = "";
       if (!data) {
-        mainSection.innerHTML = `<p>You don't have any pinned file or folder</p>`;
+        MAIN.innerHTML = `<p>You don't have any pinned file or folder</p>`;
         return;
       }
       let files = [];
@@ -139,7 +118,7 @@ pinnedButton.addEventListener("click", () => {
         file.type === "folder" ? folders.push(file) : files.push(file);
       });
       let list = document.createElement("ul");
-      mainSection.appendChild(list);
+      MAIN.appendChild(list);
       folders.concat(files).forEach((file) => {
         list.appendChild(newFileElem(file));
       });
@@ -148,10 +127,10 @@ pinnedButton.addEventListener("click", () => {
 
 let sharedButton = document.querySelector("#shared");
 sharedButton.addEventListener("click", () => {
-  globalContextOption = "shared";
+  openedOptionGL = "shared";
   closeSidebar();
   renderOriginalNav();
-  mainSection.innerHTML = "";
+  MAIN.innerHTML = "";
   let fileList = document.createElement("div");
   fileList.className = "file_list";
   fetch(`/api/query`, {
@@ -166,11 +145,11 @@ sharedButton.addEventListener("click", () => {
     })
     .then((data) => {
       if (!data) {
-        mainSection.innerHTML = `<p>You haven't received any file</p>`;
+        MAIN.innerHTML = `<p>You haven't received any file</p>`;
         return;
       }
       let list = document.createElement("ul");
-      mainSection.appendChild(list);
+      MAIN.appendChild(list);
       data.forEach((file) => {
         list.appendChild(newFileElem(file));
       });
@@ -179,7 +158,7 @@ sharedButton.addEventListener("click", () => {
 
 let trashButton = document.querySelector("#trash");
 trashButton.addEventListener("click", () => {
-  globalContextOption = "trash";
+  openedOptionGL = "trash";
   renderOriginalNav();
   fetch("/api/query", {
     method: "POST",
@@ -187,18 +166,18 @@ trashButton.addEventListener("click", () => {
   })
     .then((response) => response.json())
     .then((data) => {
-      mainSection.innerHTML = "";
+      MAIN.innerHTML = "";
       if (!data) {
-        mainSection.innerHTML = `<p>There is no trash file</p>`;
+        MAIN.innerHTML = `<p>There is no trash file</p>`;
         return;
       }
       dataMap = {};
       data.forEach((file) => {
         dataMap[file.hash] = file;
       });
-      globalTrashFiles = dataMap;
+      trashFilesGL = dataMap;
       let list = document.createElement("ul");
-      mainSection.appendChild(list);
+      MAIN.appendChild(list);
       data.forEach((file) => {
         list.appendChild(newFileElem(file, true));
       });
@@ -211,7 +190,7 @@ sanitizeButton.addEventListener("click", () => {
   fetch("/api/sanitize")
     .then((response) => response.json())
     .then((data) => {
-      showSnack(`${data.sanitized} files sanitized `, colorGreen, "success");
+      showSnack(`${data.sanitized} files sanitized `, COLOR_GREEN, "success");
     });
 });
 
@@ -230,21 +209,21 @@ filePreviewModal.addEventListener("click", () => {
 
 let usernameField = document.querySelector("#username");
 usernameField.addEventListener("click", () => {
-  if (!globalUserId) {
-    showSnack("Can not extract user id from domain name", colorRed, "error");
+  if (!userIdGL) {
+    showSnack("Can not extract user id from domain name", COLOR_RED, "error");
     return;
   }
-  navigator.clipboard.writeText(globalUserId).then(() => {
-    showSnack("User Id copied to clipboard!", colorGreen, "success");
+  navigator.clipboard.writeText(userIdGL).then(() => {
+    showSnack("User Id copied to clipboard!", COLOR_GREEN, "success");
   });
 });
 
-mainSection.addEventListener("dragover", (e) => {
+MAIN.addEventListener("dragover", (e) => {
   e.preventDefault();
   e.stopPropagation();
 });
 
-mainSection.addEventListener("drop", (e) => {
+MAIN.addEventListener("drop", (e) => {
   e.preventDefault();
   if (e.dataTransfer.items) {
     [...e.dataTransfer.items].forEach((item) => {
@@ -258,7 +237,7 @@ mainSection.addEventListener("drop", (e) => {
   }
 });
 
-blurLayer.addEventListener("click", () => {
+BLUR_LAYER.addEventListener("click", () => {
   closeSidebar();
   hideRightNav();
 });
@@ -269,11 +248,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   renderOriginalNav();
   let resp = await fetch(`/api/key`);
   let data = await resp.json();
-  globalSecretKey = data.key;
+  secretKeyGL = data.key;
   let globalUserIdParts = /-(.*?)\./.exec(window.location.hostname);
-  globalUserId = globalUserIdParts ? globalUserIdParts[1] : null;
-  document.querySelector("#username").innerHTML = globalUserId
-    ? globalUserId
+  userIdGL = globalUserIdParts ? globalUserIdParts[1] : null;
+  document.querySelector("#username").innerHTML = userIdGL
+    ? userIdGL
     : "Anonymous";
   resp = await fetch("/api/consumption");
   data = await resp.json();
@@ -303,8 +282,8 @@ window.addEventListener("load", () => {
 });
 
 document.addEventListener("click", (e) => {
-  if (e.target.tagName === "DIALOG" && fileContextMenu__GL) {
-    fileContextMenu__GL.close();
+  if (e.target.tagName === "DIALOG" && fileContextMenuGL) {
+    fileContextMenuGL.close();
   }
 });
 
@@ -314,12 +293,14 @@ window.addEventListener("resize", () => {
     navIcon.parentNode.replaceChild(buildDynamicNavIcon(), navIcon);
   }
   if (window.innerWidth > 768) {
-    sidebar.style.display = "flex";
+    NAV_LEFT.style.display = "flex";
   } else {
-    sidebar.style.display = "none";
-    fileContextMenu__GL.close();
+    NAV_LEFT.style.display = "none";
+    if (fileContextMenuGL) {
+			fileContextMenuGL.close();
+		}
   }
-  blurLayer.click();
+  BLUR_LAYER.click();
 });
 
 window.addEventListener("paste", (e) => {
