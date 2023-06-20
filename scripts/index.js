@@ -258,22 +258,19 @@ blurLayer.addEventListener('click', () => {
     hideRightNav();
 });
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+    await fetch("/api/sanitize")
+    browseButton.click();
     renderOriginalNav();
-    fetch(`/api/key`)
-    .then((response) => response.json())
-    .then((data) => {
-        globalSecretKey = data.key;
-        let globalUserIdParts = /-(.*?)\./.exec(window.location.hostname);
-        globalUserId = globalUserIdParts ? globalUserIdParts[1] : null;
-        document.querySelector('#username').innerHTML = globalUserId ? globalUserId : 'Anonymous';
-        fetch("/api/consumption")
-        .then(response => response.json())
-        .then(data => {
-            updateSpaceUsage(data.size);
-        })
-        browseButton.click();
-    })
+    let resp = await fetch(`/api/key`)
+    let data = await resp.json();
+    globalSecretKey = data.key;
+    let globalUserIdParts = /-(.*?)\./.exec(window.location.hostname);
+    globalUserId = globalUserIdParts ? globalUserIdParts[1] : null;
+    document.querySelector('#username').innerHTML = globalUserId ? globalUserId : 'Anonymous';
+    resp = await fetch("/api/consumption")
+    data = await resp.json();
+    updateSpaceUsage(data.size);
 });
 
 window.addEventListener('load', () => {
@@ -299,8 +296,8 @@ window.addEventListener('load', () => {
 });
 
 document.addEventListener('click', (e) => {
-    if (e.target.tagName === 'DIALOG') {
-        closeContextMenu();
+    if (e.target.tagName === 'DIALOG' && fileContextMenu__GL) {
+        fileContextMenu__GL.close();
     }
 });
 
@@ -313,7 +310,7 @@ window.addEventListener('resize', () => {
         sidebar.style.display = 'flex';
     } else {
         sidebar.style.display = 'none';
-        cm.style.display = 'none';
+        fileContextMenu__GL.close();
     }
     blurLayer.click();
 });
