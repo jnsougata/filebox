@@ -157,7 +157,7 @@ async function fetchFileFromDrive(file, progressHandler) {
     .then((response) => response.blob());
 }
 
-function download(file, progressHandler) {
+async function download(file, progressHandler) {
   showSnack(`Downloading ${file.name}`, COLOR_GREEN, "info");
   progressHandler(0);
   queueButton.click();
@@ -166,43 +166,36 @@ function download(file, progressHandler) {
   const ROOT = "https://drive.deta.sh/v1";
   let extension = file.name.split(".").pop();
   let qualifiedName = file.hash + "." + extension;
-  fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
+  let resp =  await fetch(`${ROOT}/${projectId}/filebox/files/download?name=${qualifiedName}`, {
     method: "GET",
     headers: header,
   })
-    .then((response) => {
-      let progress = 0;
-      const reader = response.body.getReader();
-      return new ReadableStream({
-        start(controller) {
-          return pump();
-          function pump() {
-            return reader.read().then(({ done, value }) => {
-              if (done) {
-                controller.close();
-                return;
-              }
-              controller.enqueue(value);
-              progress += value.length;
-              progressHandler(Math.round((progress / file.size) * 100));
-              return pump();
-            });
-          }
-        },
-      });
-    })
-    .then((stream) => new Response(stream))
-    .then((response) => response.blob())
-    .then((blob) => URL.createObjectURL(blob))
-    .then((url) => {
-      let a = document.createElement("a");
-      a.href = url;
-      a.download = file.name;
-      showSnack(`Downloaded ${file.name}`, COLOR_GREEN, "success");
-      hideRightNav();
-      a.click();
-    })
-    .catch((err) => console.error(err));
+	let progress = 0;
+	const reader = resp.body.getReader();
+	let stream = new ReadableStream({
+		start(controller) {
+			return pump();
+			function pump() {
+				return reader.read().then(({ done, value }) => {
+					if (done) {
+						controller.close();
+						return;
+					}
+					controller.enqueue(value);
+					progress += value.length;
+					progressHandler(Math.round((progress / file.size) * 100));
+					return pump();
+				});
+			}
+		},
+	});
+	let blob = await new Response(stream).blob();
+	let a = document.createElement("a");
+	a.href = URL.createObjectURL(blob);
+	a.download = file.name;
+	showSnack(`Downloaded ${file.name}`, COLOR_GREEN, "success");
+	hideRightNav();
+	a.click();
 }
 
 function downloadShared(file, progressHandler) {
@@ -334,4 +327,28 @@ async function zipFolderRecursive(tree, hash, zip, done, totalSize) {
   });
   progressHandlerById(hash, 100);
   return zip;
+}
+
+
+class File {
+  constructor() {
+  }
+
+	static fromJSON(json) {
+		return Object.assign(new File(), json);
+	}
+
+	async downloadShared(progressHandler) {
+
+	}
+
+	async download(progressHandler) {
+
+	}
+
+
+
+
+
+	
 }

@@ -155,18 +155,19 @@ async function createFolder() {
     parent: null,
   };
   if (openedFolderGL) {
-    if (openedFolderGL.parent) {
-      body.parent = `${openedFolderGL.parent}/${openedFolderGL.name}`;
-    } else {
-      body.parent = openedFolderGL.name;
-    }
+    body.parent = openedFolderGL.parent
+      ? `${openedFolderGL.parent}/${openedFolderGL.name}`
+      : openedFolderGL.name;
   }
-  let resp = await fetch(`/api/metadata`, { method: "POST", body: JSON.stringify(body) })
+  let resp = await fetch(`/api/metadata`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
   if (resp.status === 409) {
-		showSnack(`Folder with same name already exists`, COLOR_RED, "error");
-		return;
-	} else if (resp.status <= 207) {
-		showSnack(`Created folder ${name}`, COLOR_GREEN, "success");
-		handleFolderClick(body);
-	}
+    showSnack(`Folder with same name already exists`, COLOR_RED, "error");
+    return;
+  } else if (resp.status <= 207) {
+    showSnack(`Created folder ${name}`, COLOR_GREEN, "success");
+    handleFolderClick(body);
+  }
 }

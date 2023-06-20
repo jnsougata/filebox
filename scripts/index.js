@@ -40,158 +40,141 @@ Array.from(sidebarOptions).forEach((option) => {
 });
 
 let recentButton = document.querySelector("#recent");
-recentButton.addEventListener("click", () => {
+recentButton.addEventListener("click", async () => {
   openedOptionGL = "recent";
   closeSidebar();
   renderOriginalNav();
-  fetch(`/api/metadata`)
-    .then((response) => response.json())
-    .then((data) => {
-      MAIN.innerHTML = "";
-      if (data) {
-        data = sortFileByTimestamp(data).slice(0, 10);
-        let list = document.createElement("ul");
-        MAIN.appendChild(list);
-        data.forEach((file) => {
-          list.appendChild(newFileElem(file));
-        });
-      } else {
-        let greeted = localStorage.getItem("isGreeted");
-        if (!greeted) {
-          renderGreetings();
-        }
-      }
+  const resp = await fetch(`/api/metadata`);
+  let data = await resp.json();
+  MAIN.innerHTML = "";
+  if (data) {
+    data = sortFileByTimestamp(data).slice(0, 10);
+    let list = document.createElement("ul");
+    MAIN.appendChild(list);
+    data.forEach((file) => {
+      list.appendChild(newFileElem(file));
     });
+  } else {
+    let greeted = localStorage.getItem("isGreeted");
+    if (!greeted) {
+      renderGreetings();
+    }
+  }
 });
 
 let browseButton = document.querySelector("#browse");
-browseButton.addEventListener("click", () => {
+browseButton.addEventListener("click", async () => {
   openedOptionGL = "browse";
   openedFolderGL = null;
   closeSidebar();
   if (!isFileMovingGL) {
     renderOriginalNav();
   }
-  fetch(`/api/root`)
-    .then((response) => response.json())
-    .then((data) => {
-      MAIN.innerHTML = "";
-      if (!data) {
-        MAIN.innerHTML = `<p>You don't have any file or folder</p>`;
-        return;
-      }
-      let files = [];
-      let folders = [];
-      data.forEach((file) => {
-        file.type === "folder" ? folders.push(file) : files.push(file);
-      });
-      MAIN.appendChild(buildPrompt({ parent: null }));
-      let list = document.createElement("ul");
-      MAIN.appendChild(list);
-      folders.concat(files).forEach((file) => {
-        list.appendChild(newFileElem(file));
-      });
-      updateFolderStats(folders);
-  		document.querySelector(".fragment").innerText = "/home";
-    });
+  const resp = await fetch(`/api/root`);
+  const data = await resp.json();
+  MAIN.innerHTML = "";
+  if (!data) {
+    MAIN.innerHTML = `<p>You don't have any file or folder</p>`;
+    return;
+  }
+  let files = [];
+  let folders = [];
+  data.forEach((file) => {
+    file.type === "folder" ? folders.push(file) : files.push(file);
+  });
+  MAIN.appendChild(buildPrompt({ parent: null }));
+  let list = document.createElement("ul");
+  MAIN.appendChild(list);
+  folders.concat(files).forEach((file) => {
+    list.appendChild(newFileElem(file));
+  });
+  updateFolderStats(folders);
+  document.querySelector(".fragment").innerText = "/home";
 });
 
 let pinnedButton = document.querySelector("#pinned");
-pinnedButton.addEventListener("click", () => {
+pinnedButton.addEventListener("click", async () => {
   openedOptionGL = "pinned";
   closeSidebar();
   renderOriginalNav();
-  fetch("/api/query", {
+  const resp = await fetch("/api/query", {
     method: "POST",
     body: JSON.stringify({ pinned: true, "deleted?ne": true }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      MAIN.innerHTML = "";
-      if (!data) {
-        MAIN.innerHTML = `<p>You don't have any pinned file or folder</p>`;
-        return;
-      }
-      let files = [];
-      let folders = [];
-      data.forEach((file) => {
-        file.type === "folder" ? folders.push(file) : files.push(file);
-      });
-      let list = document.createElement("ul");
-      MAIN.appendChild(list);
-      folders.concat(files).forEach((file) => {
-        list.appendChild(newFileElem(file));
-      });
-    });
+  });
+  let data = await resp.json();
+  MAIN.innerHTML = "";
+  if (!data) {
+    MAIN.innerHTML = `<p>You don't have any pinned file or folder</p>`;
+    return;
+  }
+  let files = [];
+  let folders = [];
+  data.forEach((file) => {
+    file.type === "folder" ? folders.push(file) : files.push(file);
+  });
+  let list = document.createElement("ul");
+  MAIN.appendChild(list);
+  folders.concat(files).forEach((file) => {
+    list.appendChild(newFileElem(file));
+  });
 });
 
 let sharedButton = document.querySelector("#shared");
-sharedButton.addEventListener("click", () => {
+sharedButton.addEventListener("click", async () => {
   openedOptionGL = "shared";
   closeSidebar();
   renderOriginalNav();
   MAIN.innerHTML = "";
   let fileList = document.createElement("div");
   fileList.className = "file_list";
-  fetch(`/api/query`, {
+  const resp = await fetch(`/api/query`, {
     method: "POST",
     body: JSON.stringify({ parent: "~shared" }),
-  })
-    .then((resp) => {
-      if (resp.status === 200) {
-        return resp.json();
-      }
-      return null;
-    })
-    .then((data) => {
-      if (!data) {
-        MAIN.innerHTML = `<p>You haven't received any file</p>`;
-        return;
-      }
-      let list = document.createElement("ul");
-      MAIN.appendChild(list);
-      data.forEach((file) => {
-        list.appendChild(newFileElem(file));
-      });
-    });
+  });
+  let data = await resp.json();
+  if (!data) {
+    MAIN.innerHTML = `<p>You haven't received any file</p>`;
+    return;
+  }
+  let list = document.createElement("ul");
+  MAIN.appendChild(list);
+  data.forEach((file) => {
+    list.appendChild(newFileElem(file));
+  });
 });
 
 let trashButton = document.querySelector("#trash");
-trashButton.addEventListener("click", () => {
+trashButton.addEventListener("click", async () => {
   openedOptionGL = "trash";
   renderOriginalNav();
-  fetch("/api/query", {
+  const resp = await fetch("/api/query", {
     method: "POST",
     body: JSON.stringify({ deleted: true }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      MAIN.innerHTML = "";
-      if (!data) {
-        MAIN.innerHTML = `<p>There is no trash file</p>`;
-        return;
-      }
-      dataMap = {};
-      data.forEach((file) => {
-        dataMap[file.hash] = file;
-      });
-      trashFilesGL = dataMap;
-      let list = document.createElement("ul");
-      MAIN.appendChild(list);
-      data.forEach((file) => {
-        list.appendChild(newFileElem(file, true));
-      });
-    });
+  });
+  const data = await resp.json();
+  MAIN.innerHTML = "";
+  if (!data) {
+    MAIN.innerHTML = `<p>There is no trash file</p>`;
+    return;
+  }
+  dataMap = {};
+  data.forEach((file) => {
+    dataMap[file.hash] = file;
+  });
+  trashFilesGL = dataMap;
+  let list = document.createElement("ul");
+  MAIN.appendChild(list);
+  data.forEach((file) => {
+    list.appendChild(newFileElem(file, true));
+  });
   closeSidebar();
 });
 
 let sanitizeButton = document.querySelector("#sanitize");
-sanitizeButton.addEventListener("click", () => {
-  fetch("/api/sanitize")
-    .then((response) => response.json())
-    .then((data) => {
-      showSnack(`${data.sanitized} files sanitized `, COLOR_GREEN, "success");
-    });
+sanitizeButton.addEventListener("click", async () => {
+  const resp = await fetch("/api/sanitize");
+	const data = await resp.json();
+	showSnack(`${data.sanitized} files sanitized `, COLOR_GREEN, "success");
 });
 
 let queueButton = document.querySelector("#queue");
@@ -297,8 +280,8 @@ window.addEventListener("resize", () => {
   } else {
     NAV_LEFT.style.display = "none";
     if (fileContextMenuGL) {
-			fileContextMenuGL.close();
-		}
+      fileContextMenuGL.close();
+    }
   }
   BLUR_LAYER.click();
 });
