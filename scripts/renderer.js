@@ -948,8 +948,6 @@ async function loadSharedFile(file, controller, loaderElem) {
 }
 
 // this will suck at large files
-// will implement streaming later
-// this is just a basic implementation
 async function showFilePreview(file) {
   filePreviewModal.innerHTML = "";
   filePreviewModal.innerHTML = `
@@ -1134,13 +1132,13 @@ function renderOriginalNav() {
   NAV_TOP.style.paddingLeft = "10px";
   NAV_TOP.style.paddingRight = "10px";
   let icon = buildDynamicNavIcon();
-  let backButton = document.createElement("button");
   let searched = false;
-  backButton.innerHTML =
+  let clearButton = document.createElement("button");
+  clearButton.innerHTML =
     '<span class="material-symbols-rounded">clear_all</span>';
-  backButton.style.display = "none";
-  backButton.addEventListener("click", () => {
-    backButton.style.display = "none";
+  clearButton.style.display = "none";
+  clearButton.addEventListener("click", () => {
+    clearButton.style.display = "none";
     if (searched) {
       currentOption().click();
     } else {
@@ -1160,7 +1158,7 @@ function renderOriginalNav() {
     inputTimer = setTimeout(() => {
       if (ev.target.value.length > 0) {
         searched = true;
-        backButton.style.display = "flex";
+        clearButton.style.display = "flex";
         let matches = /:(.*?) (.*)/.exec(ev.target.value);
         if (matches) {
           let attr = matches[1];
@@ -1299,7 +1297,7 @@ function renderOriginalNav() {
   NAV_TOP.innerHTML = "";
   NAV_TOP.appendChild(icon);
   NAV_TOP.appendChild(inputBar);
-  NAV_TOP.appendChild(backButton);
+  NAV_TOP.appendChild(clearButton);
   NAV_TOP.appendChild(newFolderButton);
   NAV_TOP.appendChild(folderUploadButton);
   NAV_TOP.appendChild(newFileButton);
@@ -1398,16 +1396,6 @@ function renderFileSenderModal(file) {
   fileSender.appendChild(userIdField);
   fileSender.appendChild(buttons);
   renderInRightNav(fileSender);
-}
-
-function buildTitleP(text) {
-  let p = document.createElement("p");
-  p.innerHTML = text;
-  p.style.width = "100%";
-  p.style.textAlign = "left";
-  p.style.padding = "10px";
-  p.style.fontSize = "18px";
-  return p;
 }
 
 function renderGreetings() {
