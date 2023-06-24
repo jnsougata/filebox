@@ -440,7 +440,7 @@ async function handleFolderClick(folder) {
   const data = await resp.json()
   MAIN.innerHTML = "";
   MAIN.appendChild(buildPrompt(folder));
-  let fragment = parentOf ? `/home/${parentOf}` : "/home";
+  let fragment = parentOf ? `~/${parentOf}` : "home";
   document.querySelector(".fragment").innerText = fragment;
   if (!data) return;
   let folders = [];

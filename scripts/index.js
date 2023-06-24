@@ -89,7 +89,7 @@ browseButton.addEventListener("click", async () => {
     list.appendChild(newFileElem(file));
   });
   updateFolderStats(folders);
-  document.querySelector(".fragment").innerText = "/home";
+  document.querySelector(".fragment").innerText = "home";
 });
 
 let pinnedButton = document.querySelector("#pinned");

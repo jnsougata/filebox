@@ -1,4 +1,4 @@
-let fileInfo = null;
+let file = null;
 let isTaskRunning = false;
 let footer = document.querySelector("footer");
 let fileSizeBar = document.querySelector("#size");
@@ -10,19 +10,16 @@ let downloadButton = document.querySelector("#download");
 window.addEventListener("DOMContentLoaded", async () => {
   let hash = window.location.href.split("/").pop();
   let resp = await fetch(`/api/metadata/${hash}`);
-  fileInfo = await resp.json();
-  fileNameElem.innerHTML = fileInfo.name;
+  file = await resp.json();
+  fileNameElem.innerHTML = file.name;
 });
 
-downloadButton.addEventListener("click", () => {
-  if (!isTaskRunning) {
-    footer.style.display = "none";
-    progressBar.style.width = "0%";
-    downloadByChunk(fileInfo);
+downloadButton.addEventListener("click", async () => {
+  if (isTaskRunning) {
+    return;
   }
-});
-
-function downloadByChunk(file) {
+  footer.style.display = "none";
+  progressBar.style.width = "0%";
   isTaskRunning = true;
   footer.style.display = "block";
   percentage.innerHTML = `Downloaded 0.00%`;
@@ -32,26 +29,21 @@ function downloadByChunk(file) {
   let name = file.name;
   const chunkSize = 1024 * 1024 * 4;
   if (size < chunkSize) {
-    fetch(`/api/download/na/${file.hash}/0`)
-      .then((response) => {
-        if (response.status === 403) {
-          alert(`File access denied by owner!`);
-          return;
-        } else {
-          return response.blob();
-        }
-      })
-      .then((blob) => {
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement("a");
-        a.href = url;
-        a.download = name;
-        percentage.innerHTML = `Downloaded 100%`;
-        progressBar.style.width = "100%";
-        fileSizeBar.innerHTML = `${fileSizeMB} / ${fileSizeMB} MB`;
-        a.click();
-        isTaskRunning = false;
-      });
+    const resp = await fetch(`/api/download/na/${file.hash}/0`);
+    if (resp.status === 403) {
+      alert(`File access denied by owner!`);
+      window.location.reload();
+    } else {
+      let url = URL.createObjectURL(await resp.blob());
+      let a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      percentage.innerHTML = `Downloaded 100%`;
+      progressBar.style.width = "100%";
+      fileSizeBar.innerHTML = `${fileSizeMB} / ${fileSizeMB} MB`;
+      a.click();
+      isTaskRunning = false;
+    }
   } else {
     let skips = 0;
     if (size % chunkSize === 0) {
@@ -62,19 +54,19 @@ function downloadByChunk(file) {
     let heads = Array.from(Array(skips).keys());
     let promises = [];
     let progress = 0;
-    let allOk = true;
     heads.forEach((head) => {
       promises.push(
         fetch(`/api/download/na/${file.hash}/${head}`)
           .then((response) => {
             if (response.status === 403) {
               alert(`File access denied by owner!`);
-              allOk = false;
+              window.location.reload();
             } else if (response.status === 502) {
               alert(`Server refused to deliver chunk ${head}, try again!`);
-              allOk = false;
+              window.location.reload();
+            } else {
+              return response.blob();
             }
-            return response.blob();
           })
           .then((blob) => {
             progress++;
@@ -91,21 +83,16 @@ function downloadByChunk(file) {
           })
       );
     });
-    Promise.all(promises).then((blobs) => {
-      let blob = new Blob(blobs, { type: file.mime });
-      let url = URL.createObjectURL(blob);
-      let a = document.createElement("a");
-      a.href = url;
-      a.download = name;
-      if (allOk) {
-        a.click();
-        progressBar.style.width = "100%";
-        percentage.innerHTML = `Downloaded 100%`;
-        fileSizeBar.innerHTML = `${fileSizeMB} / ${fileSizeMB} MB`;
-      } else {
-        alert("File is very powerful. Please try again.");
-      }
-      isTaskRunning = false;
-    });
+    const blobs = await Promise.all(promises);
+    progressBar.style.width = "100%";
+    percentage.innerHTML = `Downloaded 100%`;
+    fileSizeBar.innerHTML = `${fileSizeMB} / ${fileSizeMB} MB`;
+    let blob = new Blob(blobs, { type: file.mime });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.click();
+    isTaskRunning = false;
   }
-}
+});

@@ -171,3 +171,79 @@ async function createFolder() {
     handleFolderClick(body);
   }
 }
+
+async function buildChildrenTree(folder) {
+  let node = [];
+  let resp = await fetch(`/api/query`, {
+    method: "POST",
+    body: JSON.stringify({
+      "deleted?ne": true,
+      "shared?ne": true,
+      parent: folder.parent ? `${folder.parent}/${folder.name}` : folder.name,
+    }),
+  });
+  let children = await resp.json();
+  if (!children) {
+    return { tree: node, hash: folder.hash };
+  }
+  let promises = [];
+  children.forEach((child) => {
+    if (child.type === "folder") {
+      promises.push(buildChildrenTree(child));
+      node.push(child);
+    } else {
+      node.push(child);
+    }
+  });
+  let childrenTree = await Promise.all(promises);
+  childrenTree.forEach((childTree) => {
+    node.forEach((child) => {
+      if (child.hash === childTree.hash) {
+        child.children = childTree.tree;
+      }
+    });
+  });
+  return { tree: node, hash: folder.hash };
+}
+
+function caculateTreeSize(tree) {
+  let size = 0;
+  tree.forEach((child) => {
+    if (child.type === "folder") {
+      size += caculateTreeSize(child.children);
+    } else {
+      size += child.size;
+    }
+  });
+  return size;
+}
+
+async function zipFolderRecursive(tree, hash, zip, done, totalSize) {
+  let promises = [];
+  let recursions = [];
+  tree.forEach((child) => {
+    if (child.type === "folder") {
+      let folder = zip.folder(child.name);
+      if (child.children.length > 0) {
+        recursions.push(
+          zipFolderRecursive(child.children, hash, folder, done, totalSize)
+        );
+      }
+    } else {
+      promises.push(
+        fetchFileFromDrive(child, (progress) => {
+          done += progress;
+          let percentage = Math.round((done / totalSize) * 100);
+          progressHandlerById(hash, percentage);
+        })
+      );
+    }
+  });
+  await Promise.all(recursions);
+  let blobs = await Promise.all(promises);
+  blobs.forEach((blob, index) => {
+    zip.file(tree[index].name, blob);
+  });
+  progressHandlerById(hash, 100);
+  return zip;
+}
