@@ -101,29 +101,25 @@ function handleTrashFileMenuClick(file) {
   let restore = document.createElement("div");
   restore.className = "file_menu_option";
   restore.innerHTML = `<p>Restore</p><span class="material-symbols-rounded">replay</span>`;
-  restore.addEventListener("click", () => {
-    checkFileParentExists(file).then((exists) => {
-      if (!exists && file.parent !== undefined) {
-        showSnack(
-          `Parent not found. Restoring to root`,
-          COLOR_ORANGE,
-          "warning"
-        );
-        delete file.parent;
-        delete file.deleted;
-      } else {
-        delete file.deleted;
-      }
-      fetch(`/api/metadata`, {
-        method: "PATCH",
-        body: JSON.stringify(file),
-      }).then(() => {
-        showSnack(`Restored ${file.name}`, COLOR_GREEN, "success");
-        document.getElementById(`file-${file.hash}`).remove();
-        delete trashFilesGL[file.hash];
-        close.click();
-      });
+  restore.addEventListener("click", async () => {
+    delete file.deleted;
+    let ok = await checkFileParentExists(file);
+    if (!ok && file.parent !== undefined) {
+      showSnack(
+        `Parent not found. Restoring to root`,
+        COLOR_ORANGE,
+        "warning"
+      );
+      file.parent = null;
+    }
+    await fetch(`/api/metadata`, {
+      method: "PATCH",
+      body: JSON.stringify(file),
     });
+    showSnack(`Restored ${file.name}`, COLOR_GREEN, "success");
+    document.getElementById(`file-${file.hash}`).remove();
+    delete trashFilesGL[file.hash];
+    close.click();
   });
   let deleteButton = document.createElement("div");
   deleteButton.className = "file_menu_option";
