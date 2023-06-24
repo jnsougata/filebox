@@ -21,7 +21,7 @@ Upload & organize files in your Personal Space Drive
 10. Multiple file selection and operations
 11. Send files to other instances of Filebox
 
-### Changelog (v2.3.5)
+### Changelog (v2.3.6)
 - Install as **PWA**
 - UX improvements
 - Custom context menu for file operations
