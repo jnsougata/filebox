@@ -10,7 +10,7 @@ import (
 func main() {
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) {
-		c.File("static/index.html")
+		c.File("static/app.html")
 	})
 	r.GET("/manifest.json", func(c *gin.Context) {
 		c.File("manifest.json")

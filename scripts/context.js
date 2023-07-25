@@ -174,18 +174,80 @@ function onPinUnpinClick(file) {
 }
 
 const contextOptions = [
-  { label: "Send", icon: "send", callback: onSendClick, fileOnly: true },
-  { label: "Rename", icon: "edit", callback: onRenameClick, fileOnly: true },
-  { label: "Download", icon: "download", callback: onDownloadClick, fileOnly: true,},
-  { label: "Share Link", icon: "link", callback: onShareLinkClick, fileOnly: true, ownerOnly: true,},
-  { label: "Embed Link", icon: "code", callback: onEmbedClick, fileOnly: true, ownerOnly: true,},
-  { label: "Move", icon: "arrow_forward", callback: onMoveClick, fileOnly: true,},
-  { label: "Color", icon: "color_lens", callback: onColorClick,folderOnly: true,},
-  { label: "Download as Zip", icon: "archive", callback: downloadFolderAsZip, folderOnly: true,},
-  { label: "Trash", icon: "delete", callback: onTrashClick, fileOnly: true,},
-  { label: "Delete Permanently", icon: "delete", callback: onTrashClick, folderOnly: true,},
-  { label: "Restore", icon: "replay", callback: onRestoreClick, trashOnly: true,},
-  { label: "Delete Permanently", icon: "delete_forever", callback: onDeletePermanentlyClick, trashOnly: true,},
+  {
+    label: "Send",
+    icon: "send",
+    callback: onSendClick,
+    fileOnly: true,
+  },
+  {
+    label: "Rename",
+    icon: "edit",
+    callback: onRenameClick,
+    fileOnly: true,
+  },
+  {
+    label: "Download",
+    icon: "download",
+    callback: onDownloadClick,
+    fileOnly: true,
+  },
+  {
+    label: "Share Link",
+    icon: "link",
+    callback: onShareLinkClick,
+    fileOnly: true,
+    ownerOnly: true,
+  },
+  {
+    label: "Embed Link",
+    icon: "code",
+    callback: onEmbedClick,
+    fileOnly: true,
+    ownerOnly: true,
+  },
+  {
+    label: "Move",
+    icon: "arrow_forward",
+    callback: onMoveClick,
+    fileOnly: true,
+  },
+  {
+    label: "Color",
+    icon: "color_lens",
+    callback: onColorClick,
+    folderOnly: true,
+  },
+  {
+    label: "Download as Zip",
+    icon: "archive",
+    callback: downloadFolderAsZip,
+    folderOnly: true,
+  },
+  {
+    label: "Trash",
+    icon: "delete",
+    callback: onTrashClick,
+    fileOnly: true,
+  },
+  {
+    label: "Delete Permanently",
+    icon: "delete",
+    callback: onTrashClick,
+    folderOnly: true,
+  },
+  {
+    label: "Restore",
+    icon: "replay",
+    callback: onRestoreClick,
+    trashOnly: true,
+  },
+  {
+    label: "Delete Permanently",
+    icon: "delete_forever",
+    callback: onDeletePermanentlyClick,
+    trashOnly: true,
+  },
 ];
 
 class FileContextMenu {

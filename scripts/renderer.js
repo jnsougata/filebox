@@ -1171,6 +1171,7 @@ function renderOriginalNav() {
     }, 500);
   });
   let newFolderButton = document.createElement("button");
+  newFolderButton.title = "New Folder";
   newFolderButton.innerHTML =
     '<span class="material-symbols-rounded">create_new_folder</span>';
   newFolderButton.addEventListener("click", () => {
@@ -1268,6 +1269,7 @@ function renderOriginalNav() {
     }
   });
   let folderUploadButton = document.createElement("button");
+  folderUploadButton.title = "Upload Folder";
   folderUploadButton.innerHTML =
     '<span class="material-symbols-rounded">drive_folder_upload</span>';
   folderUploadButton.addEventListener("click", () => {
@@ -1278,6 +1280,7 @@ function renderOriginalNav() {
   newHiddenFileInput.multiple = true;
   newHiddenFileInput.style.display = "none";
   let newFileButton = document.createElement("button");
+  newFileButton.title = "Upload File";
   newFileButton.innerHTML =
     '<span class="material-symbols-rounded">upload_file</span>';
   newFileButton.addEventListener("click", () => {
