@@ -173,6 +173,7 @@ function handleFileMenuClick(file) {
     if (file.access === "private") {
       file.access = "public";
       visibilityOption.innerHTML = `<p>Access</p><span class="material-symbols-rounded">visibility</span>`;
+      share.style.opacity = 1;
       file.size > 1024 * 1024 * 4 ? (embed.style.opacity = 0.3) : (embed.style.opacity = 1);
       showSnack("Access changed to public", COLOR_GREEN, "info");
     } else {
