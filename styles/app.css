@@ -396,7 +396,6 @@ main > ul > li > .info > p {
     white-space: nowrap;
     text-align: left;
     text-overflow: ellipsis;
-    
 }
 @media screen and (max-width: 768px) {
     main > ul > li {

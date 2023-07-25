@@ -459,7 +459,6 @@ function newFileElem(file, trashed = false) {
   fileIcon.style.color = file.color || "#ccc";
   let pickerElem = document.createElement("input");
   pickerElem.type = "color";
-  pickerElem.style.display = "none";
   pickerElem.value = file.color || "#ccc";
   pickerElem.addEventListener("change", () => {
     file.color = pickerElem.value;
