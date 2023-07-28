@@ -37,7 +37,6 @@ func main() {
 	api.POST("/rename", Rename)
 	api.GET("/consumption", Consumption)
 	api.Any("/bookmark/:hash", Bookmark)
-	api.PATCH("/file/access", Access)
 	api.POST("/children-count", FolderChildrenCount)
 	api.Any("/bulk", FileBulkOps)
 	api.GET("/download/:recipient/:hash/:part", DownloadFile)

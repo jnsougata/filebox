@@ -87,7 +87,7 @@ function onTrashClick(file) {
   } else {
     file.deleted = true;
     fetch(`/api/metadata`, {
-      method: "PATCH",
+      method: "PUT",
       body: JSON.stringify(file),
     }).then(() => {
       showSnack(`Moved to trash ${file.name}`, COLOR_RED, "warning");
@@ -105,7 +105,7 @@ function onColorClick(file) {
     file.color = pickerElem.value;
     file.project_id = globalProjectId;
     fetch(`/api/metadata`, {
-      method: "PATCH",
+      method: "PUT",
       body: JSON.stringify(file),
     }).then(() => {
       let folder = document.getElementById(`file-${file.hash}`);
@@ -128,7 +128,7 @@ function onRestoreClick(file) {
       delete file.deleted;
     }
     fetch(`/api/metadata`, {
-      method: "PATCH",
+      method: "PUT",
       body: JSON.stringify(file),
     }).then(() => {
       document.getElementById(`file-${file.hash}`).remove();

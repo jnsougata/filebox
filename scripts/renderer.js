@@ -113,7 +113,7 @@ function handleTrashFileMenuClick(file) {
       file.parent = null;
     }
     await fetch(`/api/metadata`, {
-      method: "PATCH",
+      method: "PUT",
       body: JSON.stringify(file),
     });
     showSnack(`Restored ${file.name}`, COLOR_GREEN, "success");
@@ -183,7 +183,7 @@ function handleFileMenuClick(file) {
       embed.style.opacity = 0.3;
       showSnack("Access changed to private", COLOR_ORANGE, "info");
     }
-    fetch(`/api/file/access`, {
+    fetch(`/api/metadata`, {
       method: "PATCH",
       body: JSON.stringify({ hash: file.hash, access: file.access }),
     });
@@ -383,7 +383,7 @@ function handleFileMenuClick(file) {
     } else {
       file.deleted = true;
       fetch(`/api/metadata`, {
-        method: "PATCH",
+        method: "PUT",
         body: JSON.stringify(file),
       }).then(() => {
         showSnack(`Moved to trash ${file.name}`, COLOR_RED, "warning");
@@ -411,7 +411,7 @@ function handleFileMenuClick(file) {
       recipientElem.addEventListener("click", () => {
         file.recipients = file.recipients.filter((r) => r !== recipient);
         fetch(`/api/metadata`, {
-          method: "PATCH",
+          method: "PUT",
           body: JSON.stringify(file),
         }).then(() => {
           showSnack(`Blocked access for ${recipient}`, COLOR_ORANGE, "warning");
@@ -464,7 +464,7 @@ function newFileElem(file, trashed = false) {
   pickerElem.addEventListener("change", () => {
     file.color = pickerElem.value;
     fetch(`/api/metadata`, {
-      method: "PATCH",
+      method: "PUT",
       body: JSON.stringify(file),
     }).then(() => {
       fileIcon.style.color = file.color;
@@ -1038,7 +1038,7 @@ function fileMover(file) {
       }
     }
     fetch(`/api/metadata`, {
-      method: "PATCH",
+      method: "PUT",
       body: JSON.stringify(file),
     }).then(() => {
       if (openedFolderGL) {
@@ -1373,7 +1373,7 @@ function renderFileSenderModal(file) {
         file.recipients = [userIdField.value];
       }
       fetch(`/api/metadata`, {
-        method: "PATCH",
+        method: "PUT",
         body: JSON.stringify(file),
       }).then((resp) => {
         if (resp.status === 207) {

@@ -85,12 +85,24 @@ func Metadata(c *gin.Context) {
 		c.JSON(resp.StatusCode, resp.JSON())
 		return
 
-	case "PATCH":
+	case "PUT":
 		var data map[string]interface{}
 		c.BindJSON(&data)
 		key := data["hash"].(string)
 		data["key"] = key
 		resp := base.Put(deta.Record{Key: key, Value: data})
+		c.JSON(resp.StatusCode, resp.JSON())
+		return
+
+	case "PATCH":
+		var data map[string]interface{}
+		c.BindJSON(&data)
+		updater := deta.NewUpdater(data["hash"].(string))
+		delete(data, "hash")
+		for k, v := range data {
+			updater.Set(k, v)
+		}
+		resp := base.Update(updater)
 		c.JSON(resp.StatusCode, resp.JSON())
 		return
 
@@ -258,15 +270,6 @@ func Bookmark(c *gin.Context) {
 		c.String(http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
-}
-
-func Access(c *gin.Context) {
-	var data map[string]interface{}
-	c.BindJSON(&data)
-	updater := deta.NewUpdater(data["hash"].(string))
-	updater.Set("access", data["access"].(string))
-	resp := base.Update(updater)
-	c.JSON(resp.StatusCode, resp.JSON())
 }
 
 func FolderChildrenCount(c *gin.Context) {
