@@ -14,7 +14,7 @@ async function updateFolderStats(folders) {
   if (folders.length === 0) {
     return;
   }
-  let resp = await fetch(`/api/children-count`, {
+  let resp = await fetch(`/api/count/items`, {
     method: "POST",
     body: JSON.stringify(folders),
   });

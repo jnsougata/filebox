@@ -273,19 +273,18 @@ func Bookmark(c *gin.Context) {
 }
 
 func FolderChildrenCount(c *gin.Context) {
-	var folders []map[string]interface{}
-	c.BindJSON(&folders)
-	parentMap := map[string]interface{}{}
-	for _, folder := range folders {
-		parentMap[FolderToAsParentPath(folder)] = map[string]interface{}{
-			"hash":  folder["hash"],
-			"count": 0,
+	var targets []map[string]interface{}
+	c.BindJSON(&targets)
+	counterMap := map[string]interface{}{}
+	for _, target := range targets {
+		counterMap[FolderToAsParentPath(target)] = map[string]interface{}{
+			"hash":  target["hash"], "count": 0,
 		}
 	}
 	q := deta.NewQuery()
 	q.Value = []map[string]interface{}{}
 	var queries []deta.Query
-	for parentPath := range parentMap {
+	for parentPath := range counterMap {
 		nq := deta.NewQuery()
 		nq.Equals("parent", parentPath)
 		nq.NotEquals("deleted", true)
@@ -296,14 +295,15 @@ func FolderChildrenCount(c *gin.Context) {
 	items := resp.ArrayJSON()
 	for _, item := range items {
 		path := item["parent"].(string)
-		record, ok := parentMap[path]
+		ctxFolder, ok := counterMap[path]
 		if ok {
-			parentMap[path].(map[string]interface{})["count"] = record.(map[string]interface{})["count"].(int) + 1
+			ctxFolderMap := ctxFolder.(map[string]interface{})
+			ctxFolderMap["count"] = ctxFolderMap["count"].(int) + 1
 		}
 	}
 	var counts []interface{}
-	for _, v := range parentMap {
-		counts = append(counts, v.(map[string]interface{}))
+	for _, v := range counterMap {
+		counts = append(counts, v)
 	}
 	c.JSON(resp.StatusCode, counts)
 }
