@@ -328,3 +328,10 @@ window.addEventListener("paste", (e) => {
     });
   }
 });
+
+window.addEventListener("beforeunload", (e) => {
+  if (taskCountGL > 0) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
