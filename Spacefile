@@ -18,6 +18,7 @@ micros:
       - manifest.json
       - service-worker.js
     run: ./backend
+    dev: go run .
     actions:
       - id: "cleanup"
         name: "cleanup"
