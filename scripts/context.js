@@ -23,8 +23,8 @@ function onRenameClick(file) {
       showSnack("File extension cannot be changed", COLOR_ORANGE, "warning");
       return;
     }
-    fetch(`/api/rename`, {
-      method: "POST",
+    fetch(`/api/metadata`, {
+      method: "PATCH",
       body: JSON.stringify({ hash: file.hash, name: ev.target.innerText }),
     }).then((res) => {
       if (res.status === 200) {
@@ -153,7 +153,10 @@ function onDeletePermanentlyClick(file) {
 
 function onPinUnpinClick(file) {
   if (file.pinned) {
-    fetch(`/api/bookmark/${file.hash}`, { method: "DELETE" }).then(() => {
+    fetch(`/api/metadata`, { 
+      method: "PATCH",
+      body: JSON.stringify({ hash: file.hash, pinned: false }), 
+    }).then(() => {
       showSnack(`File unpinned successfully`, COLOR_ORANGE, "info");
       let card = document.getElementById(`file-${file.hash}`);
       if (card) {
@@ -162,7 +165,10 @@ function onPinUnpinClick(file) {
       delete file.pinned;
     });
   } else {
-    fetch(`/api/bookmark/${file.hash}`, { method: "POST" }).then(() => {
+    fetch(`/api/metadata`, { 
+      method: "PATCH",
+      body: JSON.stringify({ hash: file.hash, pinned: true }), 
+    }).then(() => {
       showSnack(`File pinned successfully`, COLOR_GREEN, "success");
       let pinnedSection = document.querySelector(".pinned_files");
       if (pinnedSection) {

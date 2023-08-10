@@ -227,15 +227,6 @@ func Query(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func Rename(c *gin.Context) {
-	var data map[string]interface{}
-	c.BindJSON(&data)
-	u := deta.NewUpdater(data["hash"].(string))
-	u.Set("name", data["name"].(string))
-	resp := base.Update(u)
-	c.JSON(resp.StatusCode, resp)
-}
-
 func Consumption(c *gin.Context) {
 	q := deta.NewQuery()
 	q.NotEquals("type", "folder")
@@ -244,32 +235,12 @@ func Consumption(c *gin.Context) {
 	size := 0
 	files := resp.ArrayJSON()
 	for _, file := range files {
-		size += int(file["size"].(float64))
+		s, ok := file["size"]
+		if ok {
+			size += int(s.(float64))
+		}
 	}
 	c.JSON(http.StatusOK, map[string]interface{}{"size": size})
-}
-
-func Bookmark(c *gin.Context) {
-	hash := c.Param("hash")
-	switch c.Request.Method {
-	case "POST":
-		updater := deta.NewUpdater(hash)
-		updater.Set("pinned", true)
-		resp := base.Update(updater)
-		c.JSON(resp.StatusCode, resp.JSON())
-		return
-
-	case "DELETE":
-		updater := deta.NewUpdater(hash)
-		updater.Delete("pinned")
-		resp := base.Update(updater)
-		c.JSON(resp.StatusCode, resp.JSON())
-		return
-
-	default:
-		c.String(http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
 }
 
 func FolderChildrenCount(c *gin.Context) {

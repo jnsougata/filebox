@@ -199,24 +199,30 @@ function handleFileMenuClick(file) {
   bookmarkOption.innerHTML = `<p>Pin</p><span class="material-symbols-rounded">${bookmarkMode}</span>`;
   bookmarkOption.addEventListener("click", () => {
     if (file.pinned) {
-      fetch(`/api/bookmark/${file.hash}`, { method: "DELETE" }).then(() => {
+      fetch(`/api/metadata`, { 
+        method: "PATCH",
+        body: JSON.stringify({ hash: file.hash, pinned: false }), 
+      }).then(() => {
         showSnack(`Unpinned successfully`, COLOR_ORANGE, "info");
         let card = document.getElementById(`card-${file.hash}`);
         if (card) {
           card.remove();
         }
         delete file.pinned;
-        bookmarkOption.innerHTML = `<p>Bookmark</p><span class="material-symbols-rounded">add</span>`;
+        bookmarkOption.innerHTML = `<p>Pin</p><span class="material-symbols-rounded">add</span>`;
       });
     } else {
-      fetch(`/api/bookmark/${file.hash}`, { method: "POST" }).then(() => {
+      fetch(`/api/metadata`, { 
+        method: "PATCH",
+        body: JSON.stringify({ hash: file.hash, pinned: true }), 
+      }).then(() => {
         showSnack(`Pinned successfully`, COLOR_GREEN, "success");
         let pins = document.querySelector(".pinned_files");
         if (pins) {
           pins.appendChild(newFileElem(file));
         }
         file.pinned = true;
-        bookmarkOption.innerHTML = `<p>Bookmark</p><span class="material-symbols-rounded">remove</span>`;
+        bookmarkOption.innerHTML = `<p>Pin</p><span class="material-symbols-rounded">remove</span>`;
       });
     }
   });
@@ -261,8 +267,8 @@ function handleFileMenuClick(file) {
         showSnack("File extension cannot be changed", COLOR_ORANGE, "warning");
         return;
       }
-      fetch(`/api/rename`, {
-        method: "POST",
+      fetch(`/api/metadata`, {
+        method: "PATCH",
         body: JSON.stringify({ hash: file.hash, name: fileNameElem.innerText }),
       }).then((res) => {
         if (res.status === 200) {
