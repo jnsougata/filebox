@@ -232,15 +232,15 @@ func Consumption(c *gin.Context) {
 	q.NotEquals("type", "folder")
 	q.NotEquals("shared", true)
 	resp := base.FetchUntilEnd(q)
-	size := 0
+	consumption := 0
 	files := resp.ArrayJSON()
 	for _, file := range files {
-		s, ok := file["size"]
+		size, ok := file["size"]
 		if ok {
-			size += int(s.(float64))
+			consumption += int(size.(float64))
 		}
 	}
-	c.JSON(http.StatusOK, map[string]interface{}{"size": size})
+	c.JSON(http.StatusOK, map[string]interface{}{"size": consumption})
 }
 
 func FolderChildrenCount(c *gin.Context) {
