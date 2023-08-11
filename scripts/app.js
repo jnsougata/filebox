@@ -222,7 +222,7 @@ usernameField.addEventListener("click", () => {
     return;
   }
   navigator.clipboard.writeText(userIdGL).then(() => {
-    showSnack("User Id copied to clipboard!", COLOR_GREEN, "success");
+    showSnack("User Id copied to clipboard", COLOR_GREEN, "success");
   });
 });
 
