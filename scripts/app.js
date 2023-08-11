@@ -65,10 +65,8 @@ let previousOption = null;
 let sidebarOptions = document.querySelectorAll(".nav_left_option");
 Array.from(sidebarOptions).forEach((option) => {
   option.addEventListener("click", () => {
-    option.style.borderLeft = "5px solid #2e83f3a8";
-    option.style.backgroundColor = "#ffffff09";
+    option.style.backgroundColor = "#0561da31";
     if (previousOption && previousOption !== option) {
-      previousOption.style.borderLeft = "5px solid transparent";
       previousOption.style.backgroundColor = "transparent";
     }
     previousOption = option;

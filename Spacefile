@@ -16,7 +16,7 @@ micros:
       - scripts/
       - static/
       - manifest.json
-      - service-worker.js
+      - worker.js
     run: ./backend
     dev: go run .
     actions:
@@ -27,7 +27,7 @@ micros:
         default_interval: "0/15 * * * *"
     public_routes:
       - "/manifest.json"
-      - "/service-worker.js"
+      - "/worker.js"
       - "/assets/*"
       - "/shared/*"
       - "/styles/*"
