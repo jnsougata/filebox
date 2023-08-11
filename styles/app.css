@@ -699,7 +699,13 @@ main > ul > li > .info > p {
 .queue > .queue_content > ul > li > .icon {
     font-size: 18px;
     color: white;
-    padding: 8px 16px;
+    margin: 0 10px;
+}
+.queue > .queue_content > ul > li > .icon > span {
+    padding: 10px;
+    background-color: #ffffff0c;
+    border: 1px solid #cccccc09;
+    border-radius: 5px;
 }
 .queue > .queue_content > ul > li > .info {
     width: 100%;
