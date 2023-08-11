@@ -136,7 +136,7 @@ function handleTrashFileMenuClick(file) {
       }
       close.click();
       if (trashFilesGL.length === 0) {
-        renderOriginalNav();
+        NAV_TOP.removeChild(NAV_TOP.firstChild);
       }
     });
   });
@@ -540,7 +540,7 @@ function newFileElem(file, trashed = false) {
         let cancelButton = document.createElement("button");
         cancelButton.innerHTML = "Cancel";
         cancelButton.addEventListener("click", () => {
-          renderOriginalNav();
+          NAV_TOP.removeChild(NAV_TOP.firstChild);
         });
         let selectButton = document.createElement("button");
         selectButton.innerHTML = "Select";
@@ -569,11 +569,10 @@ function newFileElem(file, trashed = false) {
             showSnack("Files Moved Successfully", COLOR_GREEN, "success");
             if (openedFolderGL) {
               handleFolderClick(openedFolderGL);
-              renderOriginalNav();
             } else {
-              isFileMovingGL = false;
               browseButton.click();
             }
+            NAV_TOP.removeChild(NAV_TOP.firstChild);
           });
         });
         let p = document.createElement("p");
@@ -581,6 +580,7 @@ function newFileElem(file, trashed = false) {
         fileMover.appendChild(cancelButton);
         fileMover.appendChild(p);
         fileMover.appendChild(selectButton);
+        NAV_TOP.removeChild(NAV_TOP.firstChild);
         renderAuxNav(fileMover);
       });
       let privateButton = document.createElement("button");
@@ -630,7 +630,7 @@ function newFileElem(file, trashed = false) {
             document.getElementById(`file-${file.hash}`).remove();
           });
           multiSelectBucketGL = [];
-          renderOriginalNav();
+          NAV_TOP.removeChild(NAV_TOP.firstChild);
           showSnack(`Deleted selected files`, COLOR_RED, "info");
           document.getElementById("deselect-all").click();
         });
@@ -673,7 +673,7 @@ function newFileElem(file, trashed = false) {
         "selection-count"
       ).innerHTML = `${multiSelectBucketGL.length} selected`;
       if (multiSelectBucketGL.length === 0) {
-        renderOriginalNav();
+        NAV_TOP.removeChild(NAV_TOP.firstChild);
       }
     }
   });
@@ -1028,7 +1028,7 @@ function fileMover(file) {
   let cancelButton = document.createElement("button");
   cancelButton.innerHTML = "Cancel";
   cancelButton.addEventListener("click", () => {
-    renderOriginalNav();
+    NAV_TOP.removeChild(NAV_TOP.firstChild);
   });
   let selectButton = document.createElement("button");
   selectButton.innerHTML = "Select";
@@ -1054,9 +1054,8 @@ function fileMover(file) {
         }
         showSnack("File Moved Successfully", COLOR_GREEN, "success");
         handleFolderClick(openedFolderGL);
-        renderOriginalNav();
+        NAV_TOP.removeChild(NAV_TOP.firstChild);
       } else {
-        isFileMovingGL = false;
         browseButton.click();
       }
     });
@@ -1131,198 +1130,11 @@ function renderSearchResults(query) {
     });
 }
 
-function renderOriginalNav() {
-  isFileMovingGL = false;
-  openedFolderGL = null;
-  multiSelectBucketGL = [];
-  NAV_TOP.style.paddingLeft = "10px";
-  NAV_TOP.style.paddingRight = "10px";
-  let icon = buildDynamicNavIcon();
-  let searched = false;
-  let clearButton = document.createElement("button");
-  clearButton.innerHTML =
-    '<span class="material-symbols-rounded">clear_all</span>';
-  clearButton.style.display = "none";
-  clearButton.addEventListener("click", () => {
-    clearButton.style.display = "none";
-    if (searched) {
-      currentOption().click();
-    } else {
-      inputBar.value = "";
-    }
-  });
-  let inputBar = document.createElement("input");
-  inputBar.type = "text";
-  inputBar.placeholder = "Search in Drive";
-  inputBar.spellcheck = false;
-  inputBar.autocomplete = "on";
-  let inputTimer = null;
-  inputBar.addEventListener("input", (ev) => {
-    if (inputTimer) {
-      clearTimeout(inputTimer);
-    }
-    inputTimer = setTimeout(() => {
-      if (ev.target.value.length > 0) {
-        searched = true;
-        clearButton.style.display = "flex";
-        let matches = /:(.*?) (.*)/.exec(ev.target.value);
-        if (matches) {
-          let attr = matches[1];
-          let contains = matches[2];
-          renderSearchResults({ [`${attr}?contains`]: `${contains}` });
-        } else {
-          renderSearchResults({ "name?contains": `${ev.target.value}` });
-        }
-      }
-    }, 500);
-  });
-  let newFolderButton = document.createElement("button");
-  newFolderButton.title = "New Folder";
-  newFolderButton.innerHTML =
-    '<span class="material-symbols-rounded">create_new_folder</span>';
-  newFolderButton.addEventListener("click", () => {
-    createFolder();
-  });
-  let newHiddenFolderInput = document.createElement("input");
-  newHiddenFolderInput.type = "file";
-  newHiddenFolderInput.multiple = true;
-  newHiddenFolderInput.style.display = "none";
-  newHiddenFolderInput.webkitdirectory = true;
-  newHiddenFolderInput.addEventListener("change", (ev) => {
-    let relativePaths = [];
-    for (let i = 0; i < ev.target.files.length; i++) {
-      relativePaths.push(ev.target.files[i].webkitRelativePath);
-    }
-    let uniqueFolders = [];
-    for (let i = 0; i < relativePaths.length; i++) {
-      let folderPath = relativePaths[i].split("/");
-      folderPath.pop();
-      folderPath = folderPath.join("/");
-      if (!uniqueFolders.includes(folderPath)) {
-        uniqueFolders.push(folderPath);
-      }
-    }
-    let parents = [];
-    uniqueFolders.forEach((folder) => {
-      let folderPath = folder.split("/");
-      let currentPath = "";
-      folderPath.forEach((folder) => {
-        currentPath += folder + "/";
-        if (!parents.includes(currentPath)) {
-          parents.push(currentPath);
-        }
-      });
-    });
-    let strippedParents = parents.map((parent) => {
-      return parent.slice(0, -1);
-    });
-    strippedParents.forEach((parent) => {
-      let relativePath;
-      if (openedFolderGL) {
-        if (openedFolderGL.parent) {
-          relativePath = `${openedFolderGL.parent}/${openedFolderGL.name}`;
-        } else {
-          relativePath = openedFolderGL.name;
-        }
-      }
-      let folderName;
-      let folderPath = "";
-      if (parent.includes("/")) {
-        let parentParts = parent.split("/");
-        folderName = parentParts.pop();
-        folderPath = `${parentParts.join("/")}`;
-      } else {
-        folderName = parent;
-      }
-      if (relativePath && folderPath) {
-        folderPath = `${relativePath}/${folderPath}`;
-      } else if (relativePath) {
-        folderPath = relativePath;
-      }
-      let body = {
-        name: folderName,
-        type: "folder",
-        hash: randId(),
-        date: new Date().toISOString(),
-      };
-      body.parent = folderPath ? folderPath : null;
-      fetch(`/api/metadata`, { method: "POST", body: JSON.stringify(body) });
-    });
-    for (let i = 0; i < ev.target.files.length; i++) {
-      let file = ev.target.files[i];
-      let relativePath = ev.target.files[i].webkitRelativePath;
-      let parentFragments = relativePath.split("/");
-      parentFragments.pop();
-      let parent = parentFragments.join("/");
-      if (openedFolderGL) {
-        if (openedFolderGL.parent) {
-          parent = `${openedFolderGL.parent}/${openedFolderGL.name}/${parent}`;
-        } else {
-          parent = `${openedFolderGL.name}/${parent}`;
-        }
-      }
-      let metadata = buildFileMetadata(file);
-      metadata.parent = parent;
-      prependQueueElem(metadata, true);
-      upload(
-        file,
-        metadata,
-        (percentage) => {
-          progressHandlerById(metadata.hash, percentage);
-        },
-        false
-      );
-    }
-  });
-  let folderUploadButton = document.createElement("button");
-  folderUploadButton.title = "Upload Folder";
-  folderUploadButton.innerHTML =
-    '<span class="material-symbols-rounded">drive_folder_upload</span>';
-  folderUploadButton.addEventListener("click", () => {
-    newHiddenFolderInput.click();
-  });
-  let newHiddenFileInput = document.createElement("input");
-  newHiddenFileInput.type = "file";
-  newHiddenFileInput.multiple = true;
-  newHiddenFileInput.style.display = "none";
-  let newFileButton = document.createElement("button");
-  newFileButton.title = "Upload File";
-  newFileButton.innerHTML =
-    '<span class="material-symbols-rounded">upload_file</span>';
-  newFileButton.addEventListener("click", () => {
-    newHiddenFileInput.click();
-  });
-  newHiddenFileInput.addEventListener("change", (ev) => {
-    queueButton.click();
-    for (let i = 0; i < ev.target.files.length; i++) {
-      let file = ev.target.files[i];
-      let metadata = buildFileMetadata(file);
-      prependQueueElem(metadata, true);
-      upload(file, metadata, (percentage) => {
-        progressHandlerById(metadata.hash, percentage);
-      });
-    }
-  });
-  NAV_TOP.innerHTML = "";
-  NAV_TOP.appendChild(icon);
-  NAV_TOP.appendChild(inputBar);
-  NAV_TOP.appendChild(clearButton);
-  NAV_TOP.appendChild(newFolderButton);
-  NAV_TOP.appendChild(folderUploadButton);
-  NAV_TOP.appendChild(newFileButton);
-  NAV_TOP.appendChild(newHiddenFileInput);
-  NAV_TOP.appendChild(newHiddenFolderInput);
-}
-
 function renderAuxNav(elem) {
-  NAV_TOP.style.width = "100%";
-  NAV_TOP.style.margin = "0";
-  NAV_TOP.style.padding = "0";
   let wrapper = document.createElement("div");
   wrapper.className = "other";
-  NAV_TOP.innerHTML = "";
   wrapper.appendChild(elem);
-  NAV_TOP.appendChild(wrapper);
+  NAV_TOP.prepend(wrapper);
 }
 
 function renderFileSenderModal(file) {

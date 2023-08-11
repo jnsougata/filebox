@@ -246,8 +246,7 @@ body {
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    padding-right: 10px;
-    padding-left: 10px;
+    padding: 0 10px;
     justify-content: space-between;
     z-index: 2;
     border-bottom: 1px solid #cccccc09;
@@ -294,6 +293,7 @@ body {
     padding: 10px 20px;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 @media screen and (max-width: 768px) {
@@ -921,7 +921,7 @@ main > ul > li > .info > p {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    box-shadow: 0 0 10px 0 rgba(0,0,0,0.5);
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
     background-color: var(--color-blackish);
     z-index: 9999 !important;
     border: 1px solid var(--color-blackish-light);

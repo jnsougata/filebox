@@ -227,6 +227,14 @@ func Query(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+func UploadPart(c *gin.Context) {
+	id := c.Param("id")
+	index := c.Param("index")
+	content, _ := io.ReadAll(c.Request.Body)
+	resp := drive.Put(fmt.Sprintf("%s.%s.part", id, index), content)
+	c.JSON(resp.StatusCode, nil)
+}
+
 func Consumption(c *gin.Context) {
 	q := deta.NewQuery()
 	q.NotEquals("type", "folder")

@@ -34,6 +34,7 @@ func main() {
 	api.Any("/metadata", Metadata)
 	api.GET("/metadata/:hash", SharedMeta)
 	api.POST("/query", Query)
+	api.PUT("/upload/:id/:index", UploadPart)
 	api.GET("/consumption", Consumption)
 	api.POST("/count/items", FolderChildrenCount)
 	api.Any("/bulk", FileBulkOps)

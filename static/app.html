@@ -28,6 +28,8 @@
     />
   </head>
   <body>
+    <input style="display: none;" type="file" id="file-input" multiple />
+    <input style="display: none;" type="file" id="folder-input" multiple webkitdirectory />
     <dialog class="file_preview"></dialog>
     <dialog class="context_menu"></dialog>
     <div class="snackbar"></div>
@@ -101,7 +103,22 @@
         </div>
       </div>
       <div class="content">
-        <nav></nav>
+        <nav>
+          <span class="material-symbols-rounded" id="search" style="padding-left: 10px;">search</span>
+          <input type="text" id="search-input" placeholder="Search in Drive" autocomplete="on" spellcheck="true"/>
+          <button id="clear-query" style="display: none;">
+            <span class="material-symbols-rounded">clear_all</span>
+          </button>
+          <button id="create-new-folder" title="Create New Folder">
+            <span class="material-symbols-rounded">create_new_folder</span>
+          </button>
+          <button id="drive-folder-upload" title="Upload Folder">
+            <span class="material-symbols-rounded">drive_folder_upload</span>
+          </button>
+          <button id="upload-file" title="Upload File">
+            <span class="material-symbols-rounded">upload_file</span>
+          </button>
+        </nav>
         <main></main>
       </div>
     </div>

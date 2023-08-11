@@ -1,3 +1,61 @@
+async function partUploader(hash, index, content, totalSize, handler) {
+  console.log(`Uploading part ${index} of ${hash}`);
+  const resp = await fetch(`/api/upload/${hash}/${index}`, {
+    method: "PUT",
+    body: content,
+  })
+  handler()
+  if (resp.status === 200) {
+    updateSpaceUsage(content.byteLength)
+    handler((content.byteLength / totalSize) * 100)
+  }
+}
+
+async function chunkedUpload(file, metadata, progressHandler) {
+  let hash = metadata.hash;
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const content = ev.target.result;
+    let chunks = [];
+    let chunkSize = 2 * 1024 * 1024;
+    for (let i = 0; i < content.byteLength; i += chunkSize) {
+      chunks.push({
+        index: i / chunkSize,
+        content: content.slice(i, i + chunkSize)
+      });
+    }
+    let allOk = true;
+    let batchSize = 5;
+    let batches = [];
+    for (let i = 0; i < chunks.length; i += batchSize) {
+      batches.push(chunks.slice(i, i + batchSize));
+    }
+    for (let i = 0; i < batches.length; i++) {
+      let promises = [];
+      let batch = batches[i];
+      batch.forEach((chunk, _) => {
+        promises.push(
+          partUploader(hash, chunk.index, chunk.content, file.size, progressHandler)
+        );
+      });
+      await Promise.all(promises);
+    }
+    if (allOk) {
+      await fetch(`/api/metadata`, {
+        method: "POST",
+        body: JSON.stringify(metadata),
+      });
+      progressHandler(100);
+      showSnack(`Uploaded ${file.name}`, COLOR_BLUE, "success");
+      openedFolderGL
+        ? handleFolderClick(openedFolderGL)
+        : currentOption().click();
+      hideRightNav();
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 function upload(file, metadata, progressHandler, refreshList = true) {
   let hash = metadata.hash;
   let header = { "X-Api-Key": secretKeyGL, "Content-Type": file.type };
@@ -11,7 +69,8 @@ function upload(file, metadata, progressHandler, refreshList = true) {
     let nameFragments = file.name.split(".");
     let saveAs =
       nameFragments.length > 1 ? `${hash}.${nameFragments.pop()}` : `${hash}`;
-    if (file.size < 10 * 1024 * 1024) {
+    const chunkSize = 10 * 1024 * 1024;
+    if (file.size < chunkSize) {
       await fetch(`${ROOT}/${projectId}/filebox/files?name=${saveAs}`, {
         method: "POST",
         body: content,
@@ -41,37 +100,47 @@ function upload(file, metadata, progressHandler, refreshList = true) {
       );
       const data = await resp.json();
       let chunks = [];
-      let chunkSize = 10 * 1024 * 1024;
       for (let i = 0; i < content.byteLength; i += chunkSize) {
-        chunks.push(content.slice(i, i + chunkSize));
+        chunks.push({
+          index: i / chunkSize,
+          content: content.slice(i, i + chunkSize)
+        });
       }
       let allOk = true;
-      let promises = [];
-      let progressIndex = 0;
+      let batches = [];
       let name = data.name;
       let uploadId = data["upload_id"];
-      let finalIndex = chunks.length + 1;
-      chunks.forEach((chunk, index) => {
-        promises.push(
-          fetch(
-            `${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${
-              index + 1
-            }`,
-            {
-              method: "POST",
-              body: chunk,
-              headers: header,
-            }
-          ).then((response) => {
-            if (response.status !== 200) {
-              allOk = false;
-            }
-            progressIndex++;
-            progressHandler(Math.round((progressIndex / finalIndex) * 100));
-          })
-        );
-      });
-      await Promise.all(promises);
+      const batchSize = 5;
+      for (let i = 0; i < chunks.length; i += batchSize) {
+        batches.push(chunks.slice(i, i + batchSize));
+      }
+      let progress = 0;
+      async function uploadPart(chunk) {
+        let resp = await fetch(
+          `${ROOT}/${projectId}/filebox/uploads/${uploadId}/parts?name=${name}&part=${
+            chunk.index + 1
+          }`,
+          {
+            method: "POST",
+            body: chunk.content,
+            headers: header,
+          }
+        )
+        if (resp.status !== 200) {
+          allOk = false;
+          return
+        }
+        progress += chunk.content.byteLength
+        progressHandler(Math.round((progress / file.size) * 100));
+      }
+      for (let i = 0; i < batches.length; i++) {
+        let promises = [];
+        let batch = batches[i];
+        batch.forEach((chunk, _) => {
+          promises.push(uploadPart(chunk));
+        });
+        await Promise.all(promises);
+      }
       if (allOk) {
         await fetch(
           `${ROOT}/${projectId}/filebox/uploads/${uploadId}?name=${name}`,

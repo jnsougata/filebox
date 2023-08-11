@@ -10,6 +10,13 @@ const NAV_LEFT = document.querySelector(".nav_left");
 const NAV_RIGHT = document.querySelector(".nav_right");
 const BLUR_LAYER = document.querySelector(".blur_layer");
 const TOTAL_USAGE = document.querySelector("#storage");
+const HIDDEN_FILE_INPUT = document.querySelector("#file-input");
+const HIDDEN_FOLDER_INPUT = document.querySelector("#folder-input");
+const CLEAR_QUERY = document.querySelector("#clear-query");
+const SEARCH_INPUT = document.querySelector("#search-input");
+const CREATE_NEW_FOLDER = document.querySelector("#create-new-folder");
+const DRIVE_FOLDER_UPLOAD = document.querySelector("#drive-folder-upload");
+const DRIVE_FILE_UPLOAD = document.querySelector("#upload-file");
 
 let controller;
 let multiSelectBucketGL = [];
@@ -68,9 +75,9 @@ Array.from(sidebarOptions).forEach((option) => {
 
 let recentButton = document.querySelector("#recent");
 recentButton.addEventListener("click", async () => {
+  openedFolderGL = null;
   openedOptionGL = "recent";
   closeSidebar();
-  renderOriginalNav();
   const resp = await fetch(`/api/metadata`);
   let data = await resp.json();
   MAIN.innerHTML = "";
@@ -94,9 +101,6 @@ browseButton.addEventListener("click", async () => {
   openedOptionGL = "browse";
   openedFolderGL = null;
   closeSidebar();
-  if (!isFileMovingGL) {
-    renderOriginalNav();
-  }
   const resp = await fetch(`/api/root`);
   const data = await resp.json();
   MAIN.innerHTML = "";
@@ -121,9 +125,9 @@ browseButton.addEventListener("click", async () => {
 
 let pinnedButton = document.querySelector("#pinned");
 pinnedButton.addEventListener("click", async () => {
+  openedFolderGL = null;
   openedOptionGL = "pinned";
   closeSidebar();
-  renderOriginalNav();
   const resp = await fetch("/api/query", {
     method: "POST",
     body: JSON.stringify({ pinned: true, "deleted?ne": true }),
@@ -148,9 +152,9 @@ pinnedButton.addEventListener("click", async () => {
 
 let sharedButton = document.querySelector("#shared");
 sharedButton.addEventListener("click", async () => {
+  openedFolderGL = null;
   openedOptionGL = "shared";
   closeSidebar();
-  renderOriginalNav();
   MAIN.innerHTML = "";
   let fileList = document.createElement("div");
   fileList.className = "file_list";
@@ -172,8 +176,8 @@ sharedButton.addEventListener("click", async () => {
 
 let trashButton = document.querySelector("#trash");
 trashButton.addEventListener("click", async () => {
+  openedFolderGL = null;
   openedOptionGL = "trash";
-  renderOriginalNav();
   const resp = await fetch("/api/query", {
     method: "POST",
     body: JSON.stringify({ deleted: true }),
@@ -255,7 +259,6 @@ BLUR_LAYER.addEventListener("click", () => {
 window.addEventListener("DOMContentLoaded", async () => {
   await fetch("/api/sanitize");
   browseButton.click();
-  renderOriginalNav();
   let resp = await fetch(`/api/key`);
   let data = await resp.json();
   secretKeyGL = data.key;
@@ -333,5 +336,147 @@ window.addEventListener("beforeunload", (e) => {
   if (taskCountGL > 0) {
     e.preventDefault();
     e.returnValue = "";
+  }
+});
+
+let searchInputTimer = null;
+let searched = false;
+SEARCH_INPUT.addEventListener("input", (ev) => {
+  if (searchInputTimer) {
+    clearTimeout(searchInputTimer);
+  }
+  searchInputTimer = setTimeout(() => {
+    if (ev.target.value.length > 0) {
+      searched = true;
+      CLEAR_QUERY.style.display = "flex";
+      let matches = /:(.*?) (.*)/.exec(ev.target.value);
+      if (matches) {
+        let attr = matches[1];
+        let contains = matches[2];
+        renderSearchResults({ [`${attr}?contains`]: `${contains}` });
+      } else {
+        renderSearchResults({ "name?contains": `${ev.target.value}` });
+      }
+    }
+  }, 500);
+});
+
+CREATE_NEW_FOLDER.addEventListener("click", () => {
+  createFolder();  
+});
+
+CLEAR_QUERY.addEventListener("click", () => {
+  CLEAR_QUERY.style.display = "none";
+  if (searched) {
+    currentOption().click();
+  } else {
+    SEARCH_INPUT.value = "";
+  }
+});
+
+DRIVE_FILE_UPLOAD.addEventListener("click", () => {
+  HIDDEN_FILE_INPUT.click();
+});
+
+DRIVE_FOLDER_UPLOAD.addEventListener("click", () => {
+  HIDDEN_FOLDER_INPUT.click();
+});
+
+HIDDEN_FILE_INPUT.addEventListener("change", (ev) => {
+  queueButton.click();
+  for (let i = 0; i < ev.target.files.length; i++) {
+    let file = ev.target.files[i];
+    let metadata = buildFileMetadata(file);
+    prependQueueElem(metadata, true);
+    upload(file, metadata, (percentage) => {
+      progressHandlerById(metadata.hash, percentage);
+    });
+  }
+});
+
+HIDDEN_FOLDER_INPUT.addEventListener("change", (ev) => {
+  let relativePaths = [];
+  for (let i = 0; i < ev.target.files.length; i++) {
+    relativePaths.push(ev.target.files[i].webkitRelativePath);
+  }
+  let uniqueFolders = [];
+  for (let i = 0; i < relativePaths.length; i++) {
+    let folderPath = relativePaths[i].split("/");
+    folderPath.pop();
+    folderPath = folderPath.join("/");
+    if (!uniqueFolders.includes(folderPath)) {
+      uniqueFolders.push(folderPath);
+    }
+  }
+  let parents = [];
+  uniqueFolders.forEach((folder) => {
+    let folderPath = folder.split("/");
+    let currentPath = "";
+    folderPath.forEach((folder) => {
+      currentPath += folder + "/";
+      if (!parents.includes(currentPath)) {
+        parents.push(currentPath);
+      }
+    });
+  });
+  let strippedParents = parents.map((parent) => {
+    return parent.slice(0, -1);
+  });
+  strippedParents.forEach((parent) => {
+    let relativePath;
+    if (openedFolderGL) {
+      if (openedFolderGL.parent) {
+        relativePath = `${openedFolderGL.parent}/${openedFolderGL.name}`;
+      } else {
+        relativePath = openedFolderGL.name;
+      }
+    }
+    let folderName;
+    let folderPath = "";
+    if (parent.includes("/")) {
+      let parentParts = parent.split("/");
+      folderName = parentParts.pop();
+      folderPath = `${parentParts.join("/")}`;
+    } else {
+      folderName = parent;
+    }
+    if (relativePath && folderPath) {
+      folderPath = `${relativePath}/${folderPath}`;
+    } else if (relativePath) {
+      folderPath = relativePath;
+    }
+    let body = {
+      name: folderName,
+      type: "folder",
+      hash: randId(),
+      date: new Date().toISOString(),
+    };
+    body.parent = folderPath ? folderPath : null;
+    fetch(`/api/metadata`, { method: "POST", body: JSON.stringify(body) });
+  });
+  for (let i = 0; i < ev.target.files.length; i++) {
+    let file = ev.target.files[i];
+    let relativePath = ev.target.files[i].webkitRelativePath;
+    let parentFragments = relativePath.split("/");
+    parentFragments.pop();
+    let parent = parentFragments.join("/");
+    if (openedFolderGL) {
+      if (openedFolderGL.parent) {
+        parent = `${openedFolderGL.parent}/${openedFolderGL.name}/${parent}`;
+      } else {
+        parent = `${openedFolderGL.name}/${parent}`;
+      }
+    }
+    let metadata = buildFileMetadata(file);
+    metadata.parent = parent;
+    prependQueueElem(metadata, true);
+    upload(
+      file,
+      metadata,
+      (percentage) => {
+        progressHandlerById(metadata.hash, percentage);
+      },
+      false
+    );
   }
 });
