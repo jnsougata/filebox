@@ -19,6 +19,7 @@ const CREATE_NEW_FOLDER = document.querySelector("#create-new-folder");
 const DRIVE_FOLDER_UPLOAD = document.querySelector("#drive-folder-upload");
 const DRIVE_FILE_UPLOAD = document.querySelector("#upload-file");
 const MENU = document.querySelector("#menu");
+const PREVIEW_MODAL = document.querySelector(".file_preview");
 
 let controller;
 let multiSelectBucketGL = [];
@@ -212,13 +213,6 @@ let queueButton = document.querySelector("#queue");
 queueButton.addEventListener("click", () => {
   closeSidebar();
   renderQueue();
-});
-
-let filePreviewModal = document.querySelector(".file_preview");
-filePreviewModal.addEventListener("click", () => {
-  filePreviewModal.innerHTML = "";
-  filePreviewModal.close();
-  controller.abort();
 });
 
 let usernameField = document.querySelector("#username");

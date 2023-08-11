@@ -944,18 +944,60 @@ async function loadSharedFile(file, controller, loaderElem) {
 
 // this will suck at large files
 async function showFilePreview(file) {
-  filePreviewModal.innerHTML = "";
-  filePreviewModal.innerHTML = `
-    <p><i>${file.name}</i> - <b><span style="color: ${COLOR_GREEN}" id='loader-amount'>0%</span></b></p>`;
-  filePreviewModal.showModal();
+  PREVIEW_MODAL.innerHTML = "";
+  PREVIEW_MODAL.style.display = "flex";
+  PREVIEW_MODAL.style.outline = "none";
+  let description = document.createElement("p");
+  description.innerHTML = `
+    ${file.name}
+    <span 
+      style="color: ${COLOR_GREEN}; 
+      font-size: 15px; 
+      margin-left: 10px" 
+      id='loader-amount'
+    >0%
+    </span>
+  `;
+  PREVIEW_MODAL.appendChild(description);
+  let openInNew = document.createElement("span");
+  openInNew.className = "material-symbols-rounded";
+  openInNew.innerHTML = "open_in_new";
+  openInNew.addEventListener("click", () => {
+    window.open(blobURL, "_blank");
+  });
+  let stop = document.createElement("span");
+  stop.className = "material-symbols-rounded";
+  stop.innerHTML = "close";
+  stop.style.color = COLOR_RED;
+  stop.style.pointerEvents = "all";
+  stop.addEventListener("click", () => {
+    controller.abort();
+    PREVIEW_MODAL.innerHTML = "";
+    PREVIEW_MODAL.style.display = "none";
+    PREVIEW_MODAL.close();
+  });
+  let download = document.createElement("span");
+  download.className = "material-symbols-rounded";
+  download.innerHTML = "download";
+  download.addEventListener("click", () => {
+    let a = document.createElement("a");
+    a.href = blobURL;
+    a.download = file.name;
+    a.click();
+  });
+  PREVIEW_MODAL.appendChild(stop);
+  PREVIEW_MODAL.appendChild(download);
+  PREVIEW_MODAL.appendChild(openInNew);
+  PREVIEW_MODAL.showModal();
   let loaderAmount = document.querySelector("#loader-amount");
   controller = new AbortController();
-  let src;
-  let embed = document.createElement("embed");
+  let blobURL;
   if (file.shared) {
     let blob = await loadSharedFile(file, controller, loaderAmount);
-    src = URL.createObjectURL(new Blob([blob], { type: file.mime }));
+    blobURL = URL.createObjectURL(new Blob([blob], { type: file.mime }));
     loaderAmount.innerHTML = "100%";
+    openInNew.style.pointerEvents = "all";
+    download.style.pointerEvents = "all";
   } else {
     let extRegex = /(?:\.([^.]+))?$/;
     let extension = extRegex.exec(file.name);
@@ -977,8 +1019,8 @@ async function showFilePreview(file) {
       signal: controller.signal,
     });
     if (response.status !== 200) {
-      embed.type = "application/json";
-      src = URL.createObjectURL(await response.blob(), { type: "application/json" });
+      loaderAmount.style.color = COLOR_RED;
+      loaderAmount.innerHTML = `Error ${response.status}`
     } else {
       let progress = 0;
       const reader = response.body.getReader();
@@ -1002,13 +1044,11 @@ async function showFilePreview(file) {
       });
       const rs = new Response(stream);
       const blob = await rs.blob();
-      src = URL.createObjectURL(new Blob([blob], { type: file.mime }));
-      embed.type = file.mime;
+      blobURL = URL.createObjectURL(new Blob([blob], { type: file.mime }));
+      openInNew.style.pointerEvents = "all";
+      download.style.pointerEvents = "all";
     }
   }
-  filePreviewModal.innerHTML = "";
-  embed.src = src;
-  filePreviewModal.appendChild(embed);
 }
 
 function fileMover(file) {
