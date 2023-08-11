@@ -56,7 +56,7 @@ function renderQueue() {
   let content = document.createElement("div");
   content.className = "queue_content";
   let p = document.createElement("p");
-  p.innerHTML = "Tasks";
+  p.innerHTML = "Activities";
   let tasks = document.createElement("ul");
   let sortedNodes = Object.values(taskFactoryGL).sort((a, b) => b.index - a.index);
   for (let node of sortedNodes) {

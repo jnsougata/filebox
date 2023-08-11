@@ -10,6 +10,7 @@ const NAV_LEFT = document.querySelector(".nav_left");
 const NAV_RIGHT = document.querySelector(".nav_right");
 const BLUR_LAYER = document.querySelector(".blur_layer");
 const TOTAL_USAGE = document.querySelector("#storage");
+const ACTIVITY = document.querySelector("#activity");
 const HIDDEN_FILE_INPUT = document.querySelector("#file-input");
 const HIDDEN_FOLDER_INPUT = document.querySelector("#folder-input");
 const CLEAR_QUERY = document.querySelector("#clear-query");
@@ -17,6 +18,7 @@ const SEARCH_INPUT = document.querySelector("#search-input");
 const CREATE_NEW_FOLDER = document.querySelector("#create-new-folder");
 const DRIVE_FOLDER_UPLOAD = document.querySelector("#drive-folder-upload");
 const DRIVE_FILE_UPLOAD = document.querySelector("#upload-file");
+const MENU = document.querySelector("#menu");
 
 let controller;
 let multiSelectBucketGL = [];
@@ -232,6 +234,11 @@ usernameField.addEventListener("click", () => {
   });
 });
 
+MENU.addEventListener("click", (e) => {
+  NAV_LEFT.style.display = "flex";
+  BLUR_LAYER.style.display = "block";
+});
+
 MAIN.addEventListener("dragover", (e) => {
   e.preventDefault();
   e.stopPropagation();
@@ -274,7 +281,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 window.addEventListener("load", () => {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js");
+    navigator.serviceWorker.register("/worker.js");
   } else {
     console.log("Service worker not supported");
   }
@@ -306,8 +313,10 @@ window.addEventListener("resize", () => {
     navIcon.parentNode.replaceChild(buildDynamicNavIcon(), navIcon);
   }
   if (window.innerWidth > 768) {
+    MENU.style.display = "none";
     NAV_LEFT.style.display = "flex";
   } else {
+    MENU.style.display = "flex";
     NAV_LEFT.style.display = "none";
     if (fileContextMenuGL) {
       fileContextMenuGL.close();

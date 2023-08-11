@@ -15,8 +15,8 @@ func main() {
 	r.GET("/manifest.json", func(c *gin.Context) {
 		c.File("manifest.json")
 	})
-	r.GET("/service-worker.js", func(c *gin.Context) {
-		c.File("service-worker.js")
+	r.GET("/worker.js", func(c *gin.Context) {
+		c.File("worker.js")
 	})
 	r.GET("/shared/:hash", SharedPage)
 	r.GET("/embed/:hash", EmbedFile)

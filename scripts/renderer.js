@@ -650,23 +650,12 @@ function newFileElem(file, trashed = false) {
       showSnack(`Can't select more than 25 items`, COLOR_ORANGE, "warning");
       return;
     } else {
-      li.style.backgroundColor = "rgba(255, 255, 255, 0.055)";
-      let checkIcon = document.createElement("span");
-      checkIcon.className = "material-symbols-rounded";
-      checkIcon.innerHTML = "done";
-      checkIcon.style.color = "rgb(30, 112, 30)";
-      checkIcon.style.backgroundColor = "var(--color-blackish-hover)";
-      checkIcon.style.borderRadius = "50%";
-      checkIcon.style.padding = "5px";
-      checkIcon.style.fontSize = "20px";
-      fileIcon.innerHTML = "";
-      fileIcon.appendChild(checkIcon);
+      fileIcon.innerHTML = `<span class="material-symbols-rounded" style="color: rgb(48, 166, 48)">done</span>`;
       let index = multiSelectBucketGL.findIndex((f) => f.hash === file.hash);
       if (index === -1) {
         multiSelectBucketGL.push(file);
       } else {
         multiSelectBucketGL.splice(index, 1);
-        li.style.backgroundColor = "transparent";
         setIconByMime(file.mime, fileIcon);
       }
       document.getElementById(

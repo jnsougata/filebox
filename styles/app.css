@@ -246,10 +246,9 @@ body {
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    padding: 0 10px;
+    padding: 0 15px;
     justify-content: space-between;
     z-index: 2;
-    border-bottom: 1px solid #cccccc09;
 }
 .content > nav > span {
     font-size: 20px;
@@ -260,14 +259,19 @@ body {
 }
 .content > nav > input[type="text"] {
     width: 100%;
-    height: calc(100% - 10px);
+    max-width: 500px;
     background-color: transparent;
     border: none;
     outline: none;
     color: white;
     font-size: 16px;
+    padding: 7px 15px;
+    border-radius: 20px;
+    background-color: #ffffff0c;
+    border: 1px solid #cccccc09;
+    transition: all 0.2s ease-in-out;
 }
-.content > nav > button {
+.content > nav > div > button {
     height: max-content;
     background-color: #2d2f32;
     border: none;
@@ -282,7 +286,7 @@ body {
     justify-content: center;
     border-radius: 50%;
 }
-.content > nav > button > span {
+.content > nav > div > button > span {
     font-size: 20px;
     color: #d2e4ffbf;
 }
@@ -290,10 +294,14 @@ body {
     width: 100%;
     height: 100%;
     display: flex;
-    padding: 10px 20px;
+    padding: 5px;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+}
+
+#menu {
+    display: none;
 }
 
 @media screen and (max-width: 768px) {
@@ -307,17 +315,17 @@ body {
         width: 100%;
     }
     .content > nav {
-        height: 50px;
+        padding: 20px 10px;
     }
     .content > nav > input[type="text"] {
         font-size: 14px;
     }
-    .content > nav > button {
+    .content > nav > div > button {
         font-size: 12px;
         padding: 6px;
     }
-    .content > nav > .other {
-        padding: 0 10px;
+    #menu {
+        display: flex;
     }
 }
 
@@ -357,20 +365,18 @@ main > ul > li {
     padding-left: 5px;
     cursor: pointer;
     justify-content: space-between;
-    border-bottom: 1px solid #ffffff0c;
-}
-main > ul > li:last-child {
-    border-bottom: none;
 }
 main > ul > li > .file_icon {
-    width: 60px;
-    height: 50px;
+    padding: 10px;
     border-radius: 5px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 25px;
     color: #ccc;
+    background-color: #ffffff0c;
+    border: 1px solid #cccccc09;
+    margin: 0 10px;
 }
 main > ul > li > span {
     color: #ccc;
@@ -401,6 +407,9 @@ main > ul > li > .info > p {
     main > ul > li {
         height: 50px;
         padding-right: 10px;
+    }
+    main > ul > li > .file_icon {
+        margin-left: 5px;
     }
     main > ul > li > span {
         font-size: 10px;
@@ -528,7 +537,7 @@ main > ul > li > .info > p {
 .prompt {
     width: 100%;
     height: 50px;
-    padding: 20px 20px 10px 10px;
+    padding: 0 20px;
     display: flex;
     flex-shrink: 0;
     align-items: center;
@@ -545,14 +554,14 @@ main > ul > li > .info > p {
 .prompt > i {
     color: #ccc;
     font-size: 20px;
-    padding: 10px;
     cursor: pointer;
 }
 .prompt > div > p {
     width: fit-content;
     max-width: 600px;
     padding: 4px 8px;
-    background-color: #a7313cfa;
+    background-color: #ffffff0c;
+    border: 1px solid #cccccc09;
     border-radius: 15px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
@@ -571,8 +580,11 @@ main > ul > li > .info > p {
 }
 
 @media screen and (max-width: 768px) {
-    .prompt > p {
-        max-width: 320px;
+    .prompt {
+        padding-right: 10px;
+    }
+    .prompt > div > p {
+        max-width: 250px;
     }
 }
 

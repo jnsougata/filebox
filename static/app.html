@@ -104,20 +104,26 @@
       </div>
       <div class="content">
         <nav>
-          <span class="material-symbols-rounded" id="search" style="padding-left: 10px;">search</span>
+          <div id="menu" title="Menu" >
+            <button style="margin-left: 0; margin-right: 10px;">
+              <span class="material-symbols-rounded">menu</span>
+            </button>
+          </div>
           <input type="text" id="search-input" placeholder="Search in Drive" autocomplete="on" spellcheck="true"/>
-          <button id="clear-query" style="display: none;">
-            <span class="material-symbols-rounded">clear_all</span>
-          </button>
-          <button id="create-new-folder" title="Create New Folder">
-            <span class="material-symbols-rounded">create_new_folder</span>
-          </button>
-          <button id="drive-folder-upload" title="Upload Folder">
-            <span class="material-symbols-rounded">drive_folder_upload</span>
-          </button>
-          <button id="upload-file" title="Upload File">
-            <span class="material-symbols-rounded">upload_file</span>
-          </button>
+          <div style="display: flex; justify-content: flex-end;">
+            <button id="clear-query" style="display: none;">
+              <span class="material-symbols-rounded">clear_all</span>
+            </button>
+            <button id="create-new-folder" title="Create New Folder">
+              <span class="material-symbols-rounded">create_new_folder</span>
+            </button>
+            <button id="drive-folder-upload" title="Upload Folder">
+              <span class="material-symbols-rounded">drive_folder_upload</span>
+            </button>
+            <button id="upload-file" title="Upload File">
+              <span class="material-symbols-rounded">upload_file</span>
+            </button>
+          </div>
         </nav>
         <main></main>
       </div>
