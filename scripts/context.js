@@ -3,41 +3,7 @@ function onSendClick(file) {
 }
 
 function onRenameClick(file) {
-  let elem = document.querySelector(`#filename-${file.hash}`);
-  elem.contentEditable = true;
-  elem.style.zIndex = "9999";
-  elem.focus();
-  elem.addEventListener("blur", (ev) => {
-    elem.contentEditable = false;
-    elem.style.zIndex = "1";
-    if (ev.target.innerText === file.name) {
-      return;
-    }
-    let extPattern = /\.[0-9a-z]+$/i;
-    let oldext = extPattern.exec(file.name);
-    oldext = oldext ? oldext[0] : "";
-    let newext = extPattern.exec(ev.target.innerText);
-    newext = newext ? newext[0] : "";
-    if (oldext !== newext) {
-      ev.target.innerHTML = file.name;
-      showSnack("File extension cannot be changed", COLOR_ORANGE, "warning");
-      return;
-    }
-    fetch(`/api/metadata`, {
-      method: "PATCH",
-      body: JSON.stringify({ hash: file.hash, name: ev.target.innerText }),
-    }).then((res) => {
-      if (res.status === 200) {
-        file.name = ev.target.innerText;
-        elem.innerHTML = ev.target.innerText;
-        showSnack(
-          `File renamed to ${ev.target.innerText}`,
-          COLOR_GREEN,
-          "success"
-        );
-      }
-    });
-  });
+  showRenameModal(file);
 }
 
 function onDownloadClick(file) {

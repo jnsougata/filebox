@@ -248,37 +248,7 @@ function handleFileMenuClick(file) {
   rename.className = "file_menu_option";
   rename.innerHTML = `<p>Rename</p><span class="material-symbols-rounded">edit</span>`;
   rename.addEventListener("click", () => {
-    fileNameElem.contentEditable = true;
-    fileNameElem.spellcheck = false;
-    fileNameElem.focus();
-    fileNameElem.addEventListener("blur", (e) => {
-      fileNameElem.contentEditable = false;
-      if (file.name === fileNameElem.innerText) {
-        return;
-      }
-      let extPattern = /\.[0-9a-z]+$/i;
-      let oldext = extPattern.exec(file.name);
-      oldext = oldext ? oldext[0] : "";
-      let newext = extPattern.exec(fileNameElem.innerText);
-      newext = newext ? newext[0] : "";
-      fileNameElem.contentEditable = false;
-      if (oldext !== newext) {
-        e.target.innerHTML = file.name;
-        showSnack("File extension cannot be changed", COLOR_ORANGE, "warning");
-        return;
-      }
-      fetch(`/api/metadata`, {
-        method: "PATCH",
-        body: JSON.stringify({ hash: file.hash, name: fileNameElem.innerText }),
-      }).then((res) => {
-        if (res.status === 200) {
-          file.name = fileNameElem.innerText;
-          document.querySelector(`#filename-${file.hash}`).innerHTML =
-            file.name;
-          showSnack(`File renamed to ${file.name}`, COLOR_GREEN, "success");
-        }
-      });
-    });
+    showRenameModal(file);
   });
 
   // Download
@@ -1106,28 +1076,6 @@ function fileMover(file) {
   return fileMover;
 }
 
-function buildDynamicNavIcon() {
-  let icon = document.createElement("span");
-  icon.className = "material-symbols-rounded";
-  icon.id = "dyn-nav-icon";
-  if (window.innerWidth < 768) {
-    icon.innerHTML = "menu";
-    icon.style.color = "#ccc";
-    icon.style.padding = "0px 10px";
-    icon.addEventListener("click", () => {
-      BLUR_LAYER.style.display = "block";
-      NAV_LEFT.style.display = "flex";
-    });
-  } else {
-    icon.innerHTML = "search";
-    icon.style.color = "var(--color-blueish)";
-    icon.style.padding = "0px";
-    icon.style.paddingRight = "10px";
-    icon.style.paddingLeft = "10px";
-  }
-  return icon;
-}
-
 function renderSearchResults(query) {
   fetch(`/api/query`, {
     method: "POST",
@@ -1331,4 +1279,72 @@ function renderGreetings() {
   greetings.appendChild(innerOne);
   greetings.appendChild(innerTwo);
   document.body.prepend(greetings);
+}
+
+function showRenameModal(file) {
+  let renameModal = document.createElement("div");
+  renameModal.className = "rename";
+  let input = document.createElement("input");
+  input.type = "text";
+  input.value = file.name;
+  input.autofocus = true;
+  input.placeholder = "Enter new name";
+  input.spellcheck = false;
+  input.addEventListener("input", () => {
+    if (file.name === input.value) {
+      renameButton.style.opacity = "0.5";
+      renameButton.disabled = true;
+      return;
+    }
+    let pattern = /\.[0-9a-z]+$/i;
+    let oldExtension = pattern.exec(file.name);
+    oldExtension = oldExtension ? oldExtension[0] : "";
+    let newExtension = pattern.exec(input.value);
+    newExtension = newExtension ? newExtension[0] : "";
+    if (oldExtension !== newExtension) {
+      renameButton.style.opacity = "0.5";
+      renameButton.disabled = true;
+      return;
+    }
+    renameButton.style.opacity = "1";
+    renameButton.disabled = false;
+  });
+  let buttons = document.createElement("div");
+  buttons.style.display = "flex";
+  buttons.style.width = "100%";
+  buttons.style.justifyContent = "flex-end";
+  let cancelButton = document.createElement("button");
+  cancelButton.innerHTML = "Cancel";
+  cancelButton.style.marginRight = "10px";
+  cancelButton.style.backgroundColor = COLOR_RED + "6f";
+  cancelButton.addEventListener("click", () => {
+    renameModal.remove();
+    PREVIEW_MODAL.style.display = "none";
+    PREVIEW_MODAL.close();
+  });
+  let renameButton = document.createElement("button");
+  renameButton.style.opacity = "0.5";
+  renameButton.disabled = true;
+  renameButton.innerHTML = "Rename";
+  renameButton.style.backgroundColor = COLOR_GREEN + "6f";
+  renameButton.addEventListener("click", () => {
+    fetch(`/api/metadata`, {
+      method: "PATCH",
+      body: JSON.stringify({ hash: file.hash, name:input.value }),
+    }).then((res) => {
+      if (res.status === 200) {
+        file.name = input.value;
+        document.querySelector(`#filename-${file.hash}`).innerHTML = file.name;
+        cancelButton.click();
+        showSnack("File renamed successfully", COLOR_GREEN, "info");
+      }
+    });
+  });
+  buttons.appendChild(cancelButton);
+  buttons.appendChild(renameButton);
+  renameModal.appendChild(input);
+  renameModal.appendChild(buttons);
+  PREVIEW_MODAL.appendChild(renameModal);
+  PREVIEW_MODAL.style.display = "flex";
+  PREVIEW_MODAL.showModal();
 }

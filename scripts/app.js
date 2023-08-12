@@ -300,10 +300,6 @@ document.addEventListener("click", (e) => {
 });
 
 window.addEventListener("resize", () => {
-  let navIcon = document.querySelector("#dyn-nav-icon");
-  if (navIcon) {
-    navIcon.parentNode.replaceChild(buildDynamicNavIcon(), navIcon);
-  }
   if (window.innerWidth > 768) {
     MENU.style.display = "none";
     NAV_LEFT.style.display = "flex";
