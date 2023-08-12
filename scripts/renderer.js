@@ -960,12 +960,15 @@ async function showFilePreview(file) {
   `;
   PREVIEW_MODAL.appendChild(description);
   let openInNew = document.createElement("span");
+  openInNew.title = "Open in new tab";
   openInNew.className = "material-symbols-rounded";
   openInNew.innerHTML = "open_in_new";
+  openInNew.style.opacity = 0.5;
   openInNew.addEventListener("click", () => {
     window.open(blobURL, "_blank");
   });
   let stop = document.createElement("span");
+  stop.title = "Stop loading";
   stop.className = "material-symbols-rounded";
   stop.innerHTML = "close";
   stop.style.color = COLOR_RED;
@@ -977,8 +980,10 @@ async function showFilePreview(file) {
     PREVIEW_MODAL.close();
   });
   let download = document.createElement("span");
+  download.title = "Download";
   download.className = "material-symbols-rounded";
   download.innerHTML = "download";
+  download.style.opacity = 0.5;
   download.addEventListener("click", () => {
     let a = document.createElement("a");
     a.href = blobURL;
@@ -996,6 +1001,8 @@ async function showFilePreview(file) {
     let blob = await loadSharedFile(file, controller, loaderAmount);
     blobURL = URL.createObjectURL(new Blob([blob], { type: file.mime }));
     loaderAmount.innerHTML = "100%";
+    openInNew.style.opacity = 1;
+    download.style.opacity = 1;
     openInNew.style.pointerEvents = "all";
     download.style.pointerEvents = "all";
   } else {
@@ -1047,6 +1054,8 @@ async function showFilePreview(file) {
       blobURL = URL.createObjectURL(new Blob([blob], { type: file.mime }));
       openInNew.style.pointerEvents = "all";
       download.style.pointerEvents = "all";
+      openInNew.style.opacity = 1;
+      download.style.opacity = 1;
     }
   }
 }

@@ -1072,6 +1072,7 @@ main > ul > li > .info > p {
     padding-left: 10px;
     margin-right: 20px;
     font-size: 16px;
+    word-break: break-all;
 }
 .file_preview > span {
     padding: 5px;
