@@ -179,6 +179,7 @@ let trashButton = document.querySelector("#trash");
 trashButton.addEventListener("click", async () => {
   openedFolderGL = null;
   openedOptionGL = "trash";
+  closeSidebar();
   const resp = await fetch("/api/query", {
     method: "POST",
     body: JSON.stringify({ deleted: true }),
@@ -199,7 +200,6 @@ trashButton.addEventListener("click", async () => {
   data.forEach((file) => {
     list.appendChild(newFileElem(file, true));
   });
-  closeSidebar();
 });
 
 let sanitizeButton = document.querySelector("#sanitize");
