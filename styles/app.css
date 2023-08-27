@@ -298,6 +298,9 @@ body {
     #menu {
         display: flex;
     }
+    #search-icon {
+        display: none;
+    }
 }
 
 main {
