@@ -19,6 +19,7 @@ const CREATE_NEW_FOLDER = document.querySelector("#create-new-folder");
 const DRIVE_FOLDER_UPLOAD = document.querySelector("#drive-folder-upload");
 const DRIVE_FILE_UPLOAD = document.querySelector("#upload-file");
 const MENU = document.querySelector("#menu");
+const SEARCH_ICON = document.querySelector("#search-icon");
 const PREVIEW_MODAL = document.querySelector(".file_preview");
 
 let controller;
@@ -302,9 +303,11 @@ document.addEventListener("click", (e) => {
 window.addEventListener("resize", () => {
   if (window.innerWidth > 768) {
     MENU.style.display = "none";
+    SEARCH_ICON.style.display = "flex";
     NAV_LEFT.style.display = "flex";
   } else {
     MENU.style.display = "flex";
+    SEARCH_ICON.style.display = "none";
     NAV_LEFT.style.display = "none";
     if (fileContextMenuGL) {
       fileContextMenuGL.close();

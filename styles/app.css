@@ -218,7 +218,7 @@ body {
     flex-shrink: 0;
     align-items: center;
     padding: 0 15px;
-    justify-content: space-between;
+    justify-content: flex-start;
     z-index: 2;
 }
 .content > nav > span {

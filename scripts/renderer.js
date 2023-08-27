@@ -431,6 +431,32 @@ async function handleFolderClick(folder) {
 
 function newFileElem(file, trashed = false) {
   let li = document.createElement("li");
+  li.dataset.parent = file.parent || "";
+  li.dataset.name = file.name;
+  li.dataset.hash = file.hash;
+  if (file.type === "folder") {
+    li.addEventListener("drop", (ev) => {
+      ev.stopPropagation();
+      let hash = ev.dataTransfer.getData("hash");
+      let pe = ev.target.parentElement;
+      let parent = pe.dataset.parent ? `${pe.dataset.parent}/${pe.dataset.name}` : pe.dataset.name;
+      fetch(`/api/metadata`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          hash: hash,
+          parent: parent,
+        }),
+      }).then(() => {
+        showSnack("File Moved Successfully", COLOR_GREEN, "success");
+        document.getElementById(`file-${hash}`).remove();
+      });
+    });
+  } else {
+    li.draggable = true;
+    li.addEventListener("dragstart", (ev) => {
+      ev.dataTransfer.setData("hash", file.hash);
+    });
+  }
   li.id = `file-${file.hash}`;
   let fileIcon = document.createElement("div");
   fileIcon.style.color = file.color || "#ccc";
@@ -1043,7 +1069,7 @@ function fileMover(file) {
   selectButton.style.backgroundColor = "var(--color-blueish)";
   selectButton.addEventListener("click", () => {
     if (!openedFolderGL) {
-      delete file.parent;
+      file.parent = null;
     } else {
       if (openedFolderGL.parent) {
         file.parent = `${openedFolderGL.parent}/${openedFolderGL.name}`;
@@ -1052,17 +1078,20 @@ function fileMover(file) {
       }
     }
     fetch(`/api/metadata`, {
-      method: "PUT",
-      body: JSON.stringify(file),
+      method: "PATCH",
+      body: JSON.stringify({
+        hash: file.hash,
+        parent: file.parent,
+      }),
     }).then(() => {
+      if (document.querySelector(`#file-${file.hash}`)) {
+        showSnack("File is already here", COLOR_ORANGE, "info");
+        return;
+      }
+      showSnack("File Moved Successfully", COLOR_GREEN, "success");
+      NAV_TOP.removeChild(NAV_TOP.firstChild);
       if (openedFolderGL) {
-        if (document.querySelector(`#file-${file.hash}`)) {
-          showSnack("File is already here", COLOR_ORANGE, "info");
-          return;
-        }
-        showSnack("File Moved Successfully", COLOR_GREEN, "success");
         handleFolderClick(openedFolderGL);
-        NAV_TOP.removeChild(NAV_TOP.firstChild);
       } else {
         browseButton.click();
       }
