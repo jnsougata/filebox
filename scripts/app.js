@@ -67,7 +67,7 @@ let previousOption = null;
 let sidebarOptions = document.querySelectorAll(".nav_left_option");
 Array.from(sidebarOptions).forEach((option) => {
   option.addEventListener("click", () => {
-    option.style.backgroundColor = "#0561da31";
+    option.style.backgroundColor = "var(--nav-left-option-bg)";
     if (previousOption && previousOption !== option) {
       previousOption.style.backgroundColor = "transparent";
     }
@@ -292,6 +292,10 @@ window.addEventListener("load", () => {
   //         }
   //     });
   // }
+  let mode = localStorage.getItem("light-mode");
+  if (mode === "true") {
+    document.body.classList.add("light-mode");
+  }
 });
 
 document.addEventListener("click", (e) => {
@@ -479,4 +483,10 @@ HIDDEN_FOLDER_INPUT.addEventListener("change", (ev) => {
       false
     );
   }
+});
+
+let logo = document.querySelector(".logo");
+logo.addEventListener("click", () => {
+  document.body.classList.toggle("light-mode");
+  localStorage.setItem("light-mode", document.body.classList.contains("light-mode"));
 });

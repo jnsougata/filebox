@@ -6,11 +6,41 @@
 }
 
 :root {
-    --color-blueish: #0561da;
-    --color-blackish: #1a1c20;
-    --color-blackish-light: #2d2f32;
-    --color-blackish-hover: #ffffff0c;
+    --accent-blue: #0561da;
+    --bg-primary: #1a1c20;
+    --bg-secondary: #ffffff0c;
+    --bg-secondary-solid: #2d2f32;
+    --border-primary: #ffffff0c;
+    --border-secondary: #cccccc09;
+    --blur-bg: rgba(110,118,129,0.4);
+    --scrollbar-track-bg: #1919194d;
+    --shadow: rgba(0, 0, 0, 0.425);
+    --text-color: #ccc;
+    --icon-span-color: #ccc;
+    --filemenu-span-bg: #ffffff0c;
+    --user-span-color: #d2e4ffbf;
+    --nav-left-option-bg: #0561da31;
+    --progress-bar-bg: #2d2f32;
+    --white-text: #ffffff;
 } 
+
+.light-mode {
+    --accent-blue: #0561da;
+    --bg-primary: whitesmoke;
+    --bg-secondary: #0000000c;
+    --bg-secondary-solid: #2d2f32;
+    --border-primary: #0000000c;
+    --border-secondary: #02020209;
+    --blur-bg: rgba(110,118,129,0.4);
+    --scrollbar-track-bg: #1919194d;
+    --shadow: rgba(0, 0, 0, 0.425);
+    --text-color: #3b3a3ace;
+    --icon-span-color: #4b4545;
+    --filemenu-span-bg: #08080813;
+    --user-span-color: #747477;
+    --nav-left-option-bg: #2e323810;
+    --progress-bar-bg: #2d2f3242;
+}
 
 ::-webkit-scrollbar {
     width: 5px;
@@ -18,19 +48,19 @@
 }
   
 ::-webkit-scrollbar-track {
-    background: #1919194d;
+    background: var(--scrollbar-track-bg);
 }
   
 
 ::-webkit-scrollbar-thumb {
-    background: var(--color-blackish-light);
+    background: var(--bg-secondary-solid);
 }
 
 body {
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
-    background-color: var(--color-blackish);
+    background-color: var(--bg-primary);
 }
 
 .container {
@@ -47,7 +77,7 @@ body {
     height: 100%;
     position: absolute;
     z-index: 99;
-    background-color: rgba(110,118,129,0.4);
+    background-color: var(--blur-bg);
 }
 
 @keyframes sildein_ltr {
@@ -72,8 +102,8 @@ body {
     align-items: center;
     z-index: 10000 !important;
     animation: sildein_rtl 0.5s;
-    background-color: #1a1c20;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.425);
+    background-color: var(--bg-primary);
+    box-shadow: 0 0 10px 0 var(--shadow);
 }
 
 @media screen and (max-width: 768px) {
@@ -86,15 +116,15 @@ body {
     width: 250px;
     height: 100%;
     height: 100dvh;
-    background-color: #1a1c20;
-    color: white;
+    background-color: var(--bg-primary);
+    color: var(--text-color);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     z-index: 100;
     overflow-y: auto;
-    border-right: 1px solid #cccccc10;
+    border-right: 1px solid var(--border-primary);
     animation: sildein_ltr 0.5s;
     padding: 20px;
     padding-bottom: 10px;
@@ -107,10 +137,11 @@ body {
     justify-content: center;
     align-items: center;
     flex-shrink: 0;
-    background-color: #ffffff0c;
-    border: 1px solid #cccccc09;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
     border-radius: 5px;
     margin-bottom: 20px;
+    cursor: pointer;
 }
 .nav_left > .logo > img {
     width: 40px;
@@ -119,7 +150,7 @@ body {
 }
 .nav_left > .logo > p {
     font-size: 20px;
-    color: white;
+    color: var(--text-color);
 }
 .nav_left > .wrapper {
     width: 100%;
@@ -150,7 +181,7 @@ body {
 }
 .nav_left_option > .icon > span {
     font-size: 20px;
-    color: #ccc;
+    color: var(--icon-span-color);
     z-index: 2;
 }
 .nav_left_option:hover {
@@ -164,46 +195,40 @@ body {
     padding: 5px;
     align-items: center;
     justify-content: space-between;
-    background-color: #202023;
+    background-color: var(--bg-secondary);
     z-index: 10;
     border-radius: 30px;
-}
-.user > img {
-    width: 30px;
-    height: 30px;
-    object-fit: cover;
-    border-radius: 50%;
 }
 .user > p {
     max-width: 125px;
     font-size: 15px;
-    color: #d2e4ffbf;
+    color: var(--text-color);
     padding: 5px 14px;
     border-radius: 16px;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
     text-align: end;
-    background-color: var(--color-blackish-hover);
+    background-color: var(--border-primary);
     cursor: copy;
 }
 .user > p:hover {
-    background-color: var(--color-blackish);
+    background-color: var(--bg-primary);
 }
 .user > span {
     font-size: 16px;
-    color: #ccc;
+    color: var(--user-span-color);
     cursor: pointer;
     padding: 8px;
     border-radius: 50%;
-    background-color: var(--color-blackish-hover);
+    background-color: var(--border-primary);
 }
 
 .content {
     width: calc(100% - 250px);
     height: 100%;
     background-color: transparent;
-    color: white;
+    color: var(--text-color);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -223,7 +248,7 @@ body {
 }
 .content > nav > span {
     font-size: 20px;
-    color: #0561da;
+    color: var(--accent-blue);
     z-index: 2;
     margin-right: 10px;
     font-weight: 800;
@@ -234,17 +259,17 @@ body {
     background-color: transparent;
     border: none;
     outline: none;
-    color: white;
+    color: var(--text-color);
     font-size: 16px;
     padding: 7px 15px;
     border-radius: 20px;
-    background-color: #ffffff0c;
-    border: 1px solid #cccccc09;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
     transition: all 0.2s ease-in-out;
 }
 .content > nav > div > button {
     height: max-content;
-    background-color: #2d2f32;
+    background-color: var(--bg-secondary);
     border: none;
     outline: none;
     color: #ccc;
@@ -259,7 +284,7 @@ body {
 }
 .content > nav > div > button > span {
     font-size: 20px;
-    color: #d2e4ffbf;
+    color: var(--user-span-color);
 }
 .content > nav > .other {
     width: 100%;
@@ -315,7 +340,7 @@ main {
 }
 main > p {
     font-size: 12px;
-    color: white;
+    color: var(--white-text);
     margin-top: 10px;
     padding: 3px 10px;
     border-radius: 15px;
@@ -347,17 +372,17 @@ main > ul > li > .file_icon {
     justify-content: center;
     align-items: center;
     font-size: 25px;
-    color: #ccc;
-    background-color: #ffffff0c;
-    border: 1px solid #cccccc09;
+    color: var(--icon-span-color);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
     margin: 0 10px;
 }
 main > ul > li > span {
-    color: #ccc;
+    color: var(--icon-span-color);
     padding: 5px;
     border-radius: 50%;
     cursor: pointer;
-    background-color: #ffffff0c;
+    background-color: var(--filemenu-span-bg);
 }
 main > ul > li > .info {
     width: 100%;
@@ -367,11 +392,11 @@ main > ul > li > .info {
     justify-content: center;
     align-items: flex-start;
     padding-left: 5px;
+    color: var(--text-color);
 }
 main > ul > li > .info > p {
     max-width: 650px;
     font-size: 15px;
-    color: #ccc;
     overflow: hidden;
     white-space: nowrap;
     text-align: left;
@@ -415,20 +440,6 @@ main > ul > li > .info > p {
     justify-content: flex-start;
     align-items: center;
 }
-.file_menu > .file_menu_close {
-    top: 0;
-    right: 0;
-    position: absolute;
-    width: 35px;
-    height: 35px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    border-radius: 50%;
-    color: #0561da;
-    margin: 10px 20px 0 0;
-}
 .file_menu > .title {
     width: 100%;
     height: 60px;
@@ -450,7 +461,7 @@ main > ul > li > .info > p {
     font-size: 25px;
     cursor: pointer;
     padding: 5px;
-    color: #ccc;
+    color: var(--icon-span-color);
 }
 .file_menu > .file_menu_option {
     width: 100%;
@@ -460,15 +471,15 @@ main > ul > li > .info > p {
     padding-left: 20px;
     padding-right: 20px;
     justify-content: space-between;
-    border-bottom: 1px solid #ffffff0c;
+    border-bottom: 1px solid var(--border-primary);
     cursor: pointer;
 }
 .file_menu > .file_menu_option:hover {
-    background-color: #ffffff0c;
+    background-color: var(--bg-secondary);
 }
 .file_menu > .file_menu_option > p {
     font-size: 15px;
-    color: white;
+    color: var(--text-color);
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -476,11 +487,11 @@ main > ul > li > .info > p {
 }
 .file_menu > .file_menu_option > span {
     font-size: 15px;
-    color: #ccc;
+    color: var(--icon-span-color);
     padding: 10px;
     border-radius: 50%;
     cursor: pointer;
-    background-color: #ffffff0c;
+    background-color: var(--bg-secondary);
 }
 
 @media screen and (max-width: 768px) {
@@ -526,7 +537,7 @@ main > ul > li > .info > p {
     flex-wrap: nowrap;
 }
 .prompt > i {
-    color: #ccc;
+    color: var(--icon-span-color);
     font-size: 20px;
     cursor: pointer;
 }
@@ -534,8 +545,8 @@ main > ul > li > .info > p {
     width: fit-content;
     max-width: 600px;
     padding: 4px 8px;
-    background-color: #ffffff0c;
-    border: 1px solid #cccccc09;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
     border-radius: 15px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
@@ -544,11 +555,11 @@ main > ul > li > .info > p {
     text-overflow: ellipsis;
 }
 .prompt > div > i {
-    color: #ccc;
+    color: var(--icon-span-color);
     font-size: 18px;
     padding: 5px;
     cursor: pointer;
-    background-color: var(--color-blackish-hover);
+    background-color: var(--border-primary);
     border-radius: 50%;
     margin-left: 5px;
 }
@@ -580,7 +591,7 @@ main > ul > li > .info > p {
     display: none;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--white-text);
     font-size: 20px;
     transition: bottom 0.5s;
     z-index: 10001 !important;
@@ -598,7 +609,7 @@ main > ul > li > .info > p {
     justify-content: space-between;
     border-radius: 25px;
     background-color: rgb(30, 112, 30);
-    box-shadow: 0 0 10px 0 #0000006e;
+    box-shadow: 0 0 10px 0 var(--shadow);
 }
 .snackbar > .snack_content > p {
     font-size: 16px;
@@ -612,7 +623,7 @@ main > ul > li > .info > p {
     align-items: center;
     justify-content: center;
     font-size: 18px;
-    color: white;
+    color: var(--white-text);
     padding: 3px;
     border-radius: 50%;
     background-color: #ffffff3f;
@@ -652,7 +663,7 @@ main > ul > li > .info > p {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #ccc;
+    color: var(--icon-span-color);
     font-size: 15px;
 }
 .queue > .queue_content {
@@ -665,7 +676,7 @@ main > ul > li > .info > p {
 }
 .queue > .queue_content > p {
     font-size: 15px;
-    color: white;
+    color: var(--text-color);
     margin-bottom: 10px;
     padding: 7px 15px;
     border-radius: 25px;
@@ -694,26 +705,26 @@ main > ul > li > .info > p {
 .queue > .queue_content > ul > li > p {
     width: 60px;
     font-size: 13px;
-    color: white;
+    color: var(--text-color);
     text-align: center;
     border-radius: 5px;
     padding-top: 20px;
 }
 .queue > .queue_content > ul > li > .icon {
     font-size: 18px;
-    color: white;
+    color: var(--text-color);
     margin: 0 10px;
 }
 .queue > .queue_content > ul > li > .icon > span {
     padding: 10px;
-    background-color: #ffffff0c;
-    border: 1px solid #cccccc09;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
     border-radius: 5px;
 }
 .queue > .queue_content > ul > li > .info {
     width: 100%;
     font-size: 15px;
-    color: white;
+    color: var(--text-color);
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -723,7 +734,7 @@ main > ul > li > .info > p {
     width: 100%;
     max-width: 618px;
     font-size: 15px;
-    color: white;
+    color: var(--text-color);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -733,12 +744,12 @@ main > ul > li > .info > p {
     height: 3px;
     width: 100%;
     border-radius: 10px;
-    background-color: #2d2f32;
+    background-color: var(--progress-bar-bg);
 }
 .queue > .queue_content > ul > li > .info > .progress > .bar {
     width: 0;
     height: 100%;
-    background-color: var(--color-blueish);
+    background-color: var(--accent-blue);
     transition: width 0.5s;
     border-radius: 10px;
 }
@@ -775,12 +786,12 @@ main > ul > li > .info > p {
     align-items: center;
     justify-content: center;
     border-radius: 5px;
-    color: white;
+    color: var(--text-color);
     font-size: 15px;
     cursor: pointer;
     border: none;
     padding: 5px 10px;
-    background-color: var(--color-blackish-light);
+    background-color: var(--bg-secondary-solid);
 }
 
 .trash_options {
@@ -795,7 +806,7 @@ main > ul > li > .info > p {
     align-items: center;
     justify-content: center;
     border-radius: 5px;
-    color: white;
+    color: var(--text-color);
     font-size: 18px;
     cursor: pointer;
     border: none;
@@ -821,12 +832,12 @@ main > ul > li > .info > p {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    color: white;
+    color: var(--text-color);
     cursor: pointer;
     border: none;
     padding: 8px;
     margin-left: 10px;
-    background-color: var(--color-blackish-light);
+    background-color: var(--bg-secondary);
 }
 .multi_select_options > button > span {
     font-size: 18px;
@@ -860,19 +871,19 @@ main > ul > li > .info > p {
     font-size: 18px;
     padding: 5px 10px;
     color: #ccc;
-    background-color: var(--color-blackish-light);
+    background-color: var(--bg-secondary-solid);
 }
 .file_sender > div > button {
     border: none;
     padding: 7px 20px;
     font-size: 16px;
-    color: white;
+    color: var(--text-color);
     cursor: pointer;
     outline: none;
     white-space: nowrap;
     border-radius: 5px;
     flex-shrink: 0;
-    background-color: var(--color-blackish-light);
+    background-color: var(--bg-secondary-solid);
     margin: 0 10px;
 }
 .file_sender > p {
@@ -907,16 +918,16 @@ main > ul > li > .info > p {
     height: max-content;
     position: fixed;
     border-radius: 5px;
-    color: white;
+    color: var(--text-color);
     padding: 10px;
     display: none;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
-    background-color: var(--color-blackish);
+    box-shadow: 0 0 10px 0 var(--shadow);
+    background-color: var(--bg-primary);
     z-index: 9999 !important;
-    border: 1px solid var(--color-blackish-light);
+    border: 1px solid var(--bg-secondary-solid);
 }
 .context_menu > ul {
     width: 100%;
@@ -939,11 +950,11 @@ main > ul > li > .info > p {
     border-radius: 5px;
 }
 .context_menu > ul > li:hover {
-    background-color: var(--color-blackish-hover);
+    background-color: var(--border-primary);
 }
 .context_menu > ul > li > span {
     font-size: 18px;
-    color: #ccc;
+    color: var(--icon-span-color);
 }
 
 .greetings {
@@ -953,8 +964,8 @@ main > ul > li > .info > p {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-blackish);
-    color: white;
+    background-color: var(--bg-primary);
+    color: var(--text-color);
     overflow-y: auto;
     padding: 40px;
 }
@@ -973,7 +984,7 @@ main > ul > li > .info > p {
     transition: 0.2s;
     color: #ccc;
     padding: 2px 15px;
-    background-color: var(--color-blackish-hover);
+    background-color: var(--border-primary);
 }
 .greetings > .inner {
     width: 100%;
@@ -1002,7 +1013,7 @@ main > ul > li > .info > p {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px dashed var(--color-blackish-hover);
+    border: 2px dashed var(--border-primary);
     cursor: pointer;
 }
 .greetings > .inner > .drop > span {
@@ -1022,11 +1033,11 @@ main > ul > li > .info > p {
     outline: none;
     border-radius: 5px;
     font-size: 16px;
-    color: white;
+    color: var(--text-color);
     margin-top: 20px;
     cursor: pointer;
     transition: 0.2s;
-    background-color: var(--color-blueish);
+    background-color: var(--accent-blue);
 }
 @media screen and (max-width: 768px) {
     .greetings {
@@ -1059,10 +1070,10 @@ main > ul > li > .info > p {
     margin: auto;
     padding: 15px;
     position: fixed;
-    color: white;
+    color: var(--text-color);
     border-radius: 30px;
-    background-color: var(--color-blackish);
-    border: 1px solid var(--color-blackish-light);
+    background-color: var(--bg-primary);
+    border: 1px solid var(--bg-secondary-solid);
     display: none;
     align-items: center;
     justify-content: center;
@@ -1079,12 +1090,12 @@ main > ul > li > .info > p {
 }
 .file_preview > span {
     padding: 5px;
-    background-color: #ffffff0c;
-    border: 1px solid #cccccc09;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
     border-radius: 50%;
     pointer-events: none;
     cursor: pointer;
-    color: #ccc;
+    color: var(--icon-span-color);
     font-size: 19px;
     margin-left: 10px;
 }
@@ -1106,10 +1117,10 @@ main > ul > li > .info > p {
     outline: none;
     border-radius: 40px;
     font-size: 16px;
-    color: white;
+    color: var(--text-color);
     padding: 10px 20px;
-    background-color: #ffffff0c;
-    border: 1px solid #cccccc09;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
 }
 .rename button {
     padding: 10px 20px;
@@ -1117,9 +1128,9 @@ main > ul > li > .info > p {
     outline: none;
     border-radius: 25px;
     font-size: 15px;
-    color: white;
+    color: var(--text-color);
     margin-top: 20px;
     cursor: pointer;
     transition: 0.2s;
-    background-color: var(--color-blueish);
+    background-color: var(--accent-blue);
 }

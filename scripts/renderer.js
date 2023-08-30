@@ -459,10 +459,10 @@ function newFileElem(file, trashed = false) {
   }
   li.id = `file-${file.hash}`;
   let fileIcon = document.createElement("div");
-  fileIcon.style.color = file.color || "#ccc";
+  fileIcon.style.color = file.color || "var(--icon-span-color)";
   let pickerElem = document.createElement("input");
   pickerElem.type = "color";
-  pickerElem.value = file.color || "#ccc";
+  pickerElem.value = file.color || "var(--icon-span-color)";
   pickerElem.addEventListener("change", () => {
     file.color = pickerElem.value;
     fetch(`/api/metadata`, {
