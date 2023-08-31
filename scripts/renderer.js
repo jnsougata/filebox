@@ -540,7 +540,7 @@ function newFileElem(file, trashed = false) {
         });
         let selectButton = document.createElement("button");
         selectButton.innerHTML = "Select";
-        selectButton.style.backgroundColor = "var(--color-blueish)";
+        selectButton.style.backgroundColor = "var(--accent-blue)";
         selectButton.addEventListener("click", () => {
           multiSelectBucketGL.forEach((file) => {
             delete file.deleted;
@@ -1066,7 +1066,7 @@ function fileMover(file) {
   });
   let selectButton = document.createElement("button");
   selectButton.innerHTML = "Select";
-  selectButton.style.backgroundColor = "var(--color-blueish)";
+  selectButton.style.backgroundColor = "var(--accent-blue)";
   selectButton.addEventListener("click", () => {
     if (!openedFolderGL) {
       file.parent = null;

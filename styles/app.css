@@ -25,7 +25,6 @@
 } 
 
 .light-mode {
-    --accent-blue: #0561da;
     --bg-primary: whitesmoke;
     --bg-secondary: #0000000c;
     --bg-secondary-solid: #2d2f32;
