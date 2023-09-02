@@ -377,6 +377,9 @@ main > ul > li > .file_icon {
     border: 1px solid var(--border-secondary);
     margin: 0 10px;
 }
+main > ul > li:hover > .file_icon {
+    border: 1px dashed #cccccc7e;
+}
 main > ul > li > span {
     color: var(--icon-span-color);
     padding: 5px;
