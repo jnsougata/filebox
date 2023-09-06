@@ -33,6 +33,7 @@ micros:
       - "/styles/*"
       - "/scripts/*"
       - "/embed/*"
+      - "/api/metadata/*"
       - "/api/download/*"
       - "/api/accept"
       - "/api/query"
