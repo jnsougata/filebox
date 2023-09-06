@@ -319,13 +319,13 @@ function handleFileMenuClick(file) {
     if (file.access === "private") {
       share.style.opacity = 0.3;
     }
-    fileOptionPanel.appendChild(share);
     if (file.access === "private" || file.size > 1024 * 1024 * 4) {
       embed.style.opacity = 0.3;
     }
     fileOptionPanel.appendChild(embed);
     fileOptionPanel.appendChild(move);
   }
+  fileOptionPanel.appendChild(share);
 
   // Download as zip
   let downloadZip = document.createElement("div");

@@ -168,7 +168,6 @@ const contextOptions = [
     label: "Share Link",
     icon: "link",
     callback: onShareLinkClick,
-    fileOnly: true,
     ownerOnly: true,
   },
   {
