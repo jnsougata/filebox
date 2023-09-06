@@ -435,6 +435,12 @@ function newFileElem(file, trashed = false) {
   li.dataset.name = file.name;
   li.dataset.hash = file.hash;
   if (file.type === "folder") {
+    li.addEventListener("dragover", (ev) => {
+      li.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+    });
+    li.addEventListener("dragleave", (ev) => {
+      li.style.backgroundColor = "";
+    });
     li.addEventListener("drop", (ev) => {
       ev.stopPropagation();
       let hash = ev.dataTransfer.getData("hash");
@@ -762,6 +768,9 @@ function buildPrompt(folder) {
   backButton.className = "material-symbols-rounded";
   backButton.innerHTML = "arrow_back";
   backButton.addEventListener("click", () => {
+    if (NAV_TOP.firstElementChild.className === "other" && !isFileMovingGL) {
+      NAV_TOP.firstElementChild.remove();
+    }
     if (!isFileMovingGL) {
       multiSelectBucketGL = [];
     }

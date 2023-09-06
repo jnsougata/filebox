@@ -57,13 +57,6 @@ func Root(c *gin.Context) {
 
 func Metadata(c *gin.Context) {
 	switch c.Request.Method {
-	case "GET":
-		q := deta.NewQuery()
-		q.NotEquals("deleted", true)
-		resp := base.FetchUntilEnd(q)
-		items := resp.ArrayJSON()
-		c.JSON(http.StatusOK, items)
-		return
 
 	case "POST":
 		var data map[string]interface{}
@@ -210,8 +203,6 @@ func SharedMeta(c *gin.Context) {
 	delete(data, "key")
 	delete(data, "deleted")
 	delete(data, "recipients")
-	delete(data, "access")
-	delete(data, "parent")
 	delete(data, "project_id")
 	c.JSON(http.StatusOK, data)
 }
@@ -219,7 +210,19 @@ func SharedMeta(c *gin.Context) {
 func Query(c *gin.Context) {
 	var data map[string]interface{}
 	c.BindJSON(&data)
+	ok, _ := data["__union"].(bool)
 	q := deta.NewQuery()
+	if ok {
+		raw := data["__queries"].([]interface{})
+		var queries []map[string]interface{}
+		for _, item := range raw {
+			queries = append(queries, item.(map[string]interface{}))
+		}
+		q.Value = append(q.Value, queries...)
+		q.Value = q.Value[1:]
+		delete(data, "__union")
+		delete(data, "__queries")	
+	}
 	for k, v := range data {
 		q.Equals(k, v)
 	}

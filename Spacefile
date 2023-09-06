@@ -35,3 +35,4 @@ micros:
       - "/embed/*"
       - "/api/download/*"
       - "/api/accept"
+      - "/api/query"

@@ -5,6 +5,8 @@ const NAV_LEFT = document.querySelector(".nav_left");
 const BLUR_LAYER = document.querySelector(".blur_layer");
 const TASKS = document.querySelector("#tasks");
 const COLOR_GREEN = "#2AA850";
+let root = null;
+
 
 
 BLUR_LAYER.addEventListener("click", () => {
@@ -23,15 +25,47 @@ window.addEventListener("resize", () => {
 });
 
 
-
 window.addEventListener("DOMContentLoaded", async () => {
   const hash = window.location.href.split("/").pop();
   const resp = await fetch(`/api/metadata/${hash}`);
   const file = await resp.json();
-  let files = document.createElement("ul");
-  files.appendChild(fileElem(file));
-  MAIN.appendChild(files);
+  if (file.type === "folder") {
+    root = file.parent;
+    await renderFolder(file);
+  } else {
+    let files = document.createElement("ul");
+    files.appendChild(fileElem(file));
+    MAIN.appendChild(files);
+  }
 });
+
+function promptElem(folder) {
+  let prompt = document.createElement("div");
+  prompt.className = "prompt";
+  let fragment = document.createElement("div");
+  let text = folder.parent ? `${folder.parent}/${folder.name}` : folder.name;
+  fragment.innerHTML = `<p>${text}</p>`
+  let div = document.createElement("div");
+  let backButton = document.createElement("i");
+  backButton.className = "material-symbols-rounded";
+  backButton.innerHTML = "arrow_back";
+  backButton.style.backgroundColor = "var(--accent-blue)";
+  backButton.addEventListener("click", async () => {
+    if (folder.parent === root) {
+      return;
+    }
+    if (folder.parent) {
+      let parent = folder.parent.split("/");
+      let name = parent.pop();
+      parent = parent.join("/");
+      await renderFolder({parent: parent, name: name});
+    }
+  });
+  prompt.appendChild(fragment);
+  div.appendChild(backButton);
+  prompt.appendChild(div);
+  return prompt;
+}
 
 
 function fileElem(file) {
@@ -48,7 +82,11 @@ function fileElem(file) {
   fileName.innerText = file.name;
   let fileSizeAndDate = document.createElement("p");
   fileSizeAndDate.style.fontSize = "12px";
-  fileSizeAndDate.innerHTML = `${handleSizeUnit(file.size)} • ${formatDateString(file.date)}`;
+  if (file.type !== "folder") {
+    fileSizeAndDate.innerHTML = `${handleSizeUnit(file.size)} • ${formatDateString(file.date)}`;
+  } else {
+    fileSizeAndDate.innerHTML = `${formatDateString(file.date)}`;
+  }
   info.appendChild(fileName);
   info.appendChild(fileSizeAndDate);
   li.appendChild(info);
@@ -64,7 +102,7 @@ function fileElem(file) {
   li.appendChild(progressEL);
   let download = document.createElement("span");
   progressEL.style.marginLeft = "10px";
-  download.style.fontSize = "18px";
+  download.style.fontSize = "22px";
   download.classList.add("material-symbols-rounded");
   download.innerText = "download";
   download.addEventListener("click", async () => {
@@ -72,14 +110,11 @@ function fileElem(file) {
     NAV_RIGHT.style.display = "flex";
     progressEL.style.display = "block";
     download.style.display = "none";
-    // keep it rotating until download is complete clock-wise
     let angle = 0;
     let interval = setInterval(() => {
       angle += 3;
       progressEL.style.transform = `rotate(${angle}deg)`;
     }, 10);
-
-    let fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
     const chunkSize = 1024 * 1024 * 4;
     let taskEL = document.querySelector(`#task-${file.hash}`);
     if (taskEL) {
@@ -108,7 +143,6 @@ function fileElem(file) {
       } else {
         skips = Math.floor(file.size / chunkSize) + 1;
       }
-      console.log(skips);
       let heads = Array.from(Array(skips).keys());
       let promises = [];
       let progress = 0;
@@ -147,9 +181,54 @@ function fileElem(file) {
     progressEL.style.display = "none";
     download.style.display = "block";
   });
-  li.appendChild(download);
+  if (file.type !== "folder") {
+    li.appendChild(download);
+  }
+  if (file.type === "folder") {
+    li.addEventListener("click", async () => {
+      await renderFolder(file);
+    });
+  }
   return li;
 }
+
+async function renderFolder(file) {
+  let parent = file.parent ? `${file.parent}/${file.name}` : file.name;
+  const resp = await fetch(`/api/query`, {
+    method: "POST",
+    body: JSON.stringify({
+      "__union": true,
+      "__queries": [
+        {
+          "parent": parent,
+          "type": "folder",
+        },
+        {
+          "parent": parent,
+          "access": "public",
+        }
+      ]
+    }),
+  })
+  let ul = document.createElement("ul");
+  let children = await resp.json();
+  children = children.sort((a, b) => {
+    if (a.type === "folder" && b.type !== "folder") {
+      return -1;
+    } else if (a.type !== "folder" && b.type === "folder") {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+  children.forEach((child) => {
+    ul.appendChild(fileElem(child)); 
+  });
+  MAIN.innerHTML = "";
+  MAIN.appendChild(promptElem(file));
+  MAIN.appendChild(ul);
+};
+
 
 function prependQueueElem(file) {
   let li = document.createElement("li");
