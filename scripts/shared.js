@@ -1,9 +1,9 @@
 const MAIN = document.querySelector("main");
 const SNACKBAR = document.querySelector(".snackbar");
 const NAV_RIGHT = document.querySelector(".nav_right");
-const NAV_LEFT = document.querySelector(".nav_left");
 const BLUR_LAYER = document.querySelector(".blur_layer");
 const TASKS = document.querySelector("#tasks");
+const PROGRESS = document.querySelector("#progress");
 const COLOR_GREEN = "#2AA850";
 let root = null;
 
@@ -11,17 +11,10 @@ let root = null;
 
 BLUR_LAYER.addEventListener("click", () => {
   closeRightNav();
-  if( window.innerWidth < 768) {
-    NAV_LEFT.style.display = "none";
-  }
 });
 
-window.addEventListener("resize", () => {
-  if( window.innerWidth < 768) {
-    NAV_LEFT.style.display = "none";
-  } else {
-    NAV_LEFT.style.display = "flex";
-  }
+PROGRESS.addEventListener("click", () => {
+  showRightNav();
 });
 
 
@@ -42,6 +35,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 function promptElem(folder) {
   let prompt = document.createElement("div");
   prompt.className = "prompt";
+  prompt.style.paddingLeft = "5px";
+  prompt.style.paddingRight = "0";
   let fragment = document.createElement("div");
   let text = folder.parent ? `${folder.parent}/${folder.name}` : folder.name;
   fragment.innerHTML = `<p>${text}</p>`
@@ -49,7 +44,7 @@ function promptElem(folder) {
   let backButton = document.createElement("i");
   backButton.className = "material-symbols-rounded";
   backButton.innerHTML = "arrow_back";
-  backButton.style.backgroundColor = "var(--accent-blue)";
+  backButton.style.color = "white";
   backButton.addEventListener("click", async () => {
     if (folder.parent === root) {
       return;
@@ -71,6 +66,7 @@ function promptElem(folder) {
 function fileElem(file) {
   let li = document.createElement("li");
   li.id = `file-${file.hash}`;
+  li.style.padding = "0";
   let fileIcon = document.createElement("div");
   fileIcon.classList.add("file_icon");
   setIconByMime(file.mime, fileIcon);
