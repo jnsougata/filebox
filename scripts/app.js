@@ -47,11 +47,11 @@ window.fetch = async (...args) => {
 
 function currentOption() {
   let options = {
-    recent: recentButton,
     browse: browseButton,
     pinned: pinnedButton,
-    trash: trashButton,
+    recent: recentButton,
     shared: sharedButton,
+    trash: trashButton,
   };
   return options[openedOptionGL];
 }
@@ -64,7 +64,7 @@ function closeSidebar() {
 }
 
 let previousOption = null;
-let sidebarOptions = document.querySelectorAll(".nav_left_option");
+const sidebarOptions = document.querySelectorAll(".nav_left_option");
 Array.from(sidebarOptions).forEach((option) => {
   option.addEventListener("click", () => {
     option.style.backgroundColor = "var(--nav-left-option-bg)";
@@ -75,7 +75,7 @@ Array.from(sidebarOptions).forEach((option) => {
   });
 });
 
-let recentButton = document.querySelector("#recent");
+const recentButton = document.querySelector("#recent");
 recentButton.addEventListener("click", async () => {
   openedFolderGL = null;
   openedOptionGL = "recent";
@@ -94,14 +94,11 @@ recentButton.addEventListener("click", async () => {
       list.appendChild(newFileElem(file));
     });
   } else {
-    let greeted = localStorage.getItem("isGreeted");
-    if (!greeted) {
-      renderGreetings();
-    }
+    MAIN.innerHTML = `<p>You don't have any file or folder</p>`;
   }
 });
 
-let browseButton = document.querySelector("#browse");
+const browseButton = document.querySelector("#browse");
 browseButton.addEventListener("click", async () => {
   openedOptionGL = "browse";
   openedFolderGL = null;
@@ -112,10 +109,13 @@ browseButton.addEventListener("click", async () => {
   });
   const data = await resp.json();
   MAIN.innerHTML = "";
-  if (!data) {
+  if (!data && !localStorage.getItem("isGreeted")) {
+    renderGreetings();
+    return;
+  } else if (!data) {
     MAIN.innerHTML = `<p>You don't have any file or folder</p>`;
     return;
-  }
+  } 
   let files = [];
   let folders = [];
   data.forEach((file) => {
@@ -131,7 +131,7 @@ browseButton.addEventListener("click", async () => {
   document.querySelector(".fragment").innerText = "home";
 });
 
-let pinnedButton = document.querySelector("#pinned");
+const pinnedButton = document.querySelector("#pinned");
 pinnedButton.addEventListener("click", async () => {
   openedFolderGL = null;
   openedOptionGL = "pinned";
@@ -158,7 +158,7 @@ pinnedButton.addEventListener("click", async () => {
   });
 });
 
-let sharedButton = document.querySelector("#shared");
+const sharedButton = document.querySelector("#shared");
 sharedButton.addEventListener("click", async () => {
   openedFolderGL = null;
   openedOptionGL = "shared";
@@ -182,7 +182,7 @@ sharedButton.addEventListener("click", async () => {
   });
 });
 
-let trashButton = document.querySelector("#trash");
+const trashButton = document.querySelector("#trash");
 trashButton.addEventListener("click", async () => {
   openedFolderGL = null;
   openedOptionGL = "trash";
@@ -209,7 +209,7 @@ trashButton.addEventListener("click", async () => {
   });
 });
 
-let themeButton = document.querySelector("#theme");
+const themeButton = document.querySelector("#theme");
 themeButton.addEventListener("click", async () => {
   let lightMode = localStorage.getItem("light-mode");
   if (lightMode === "true") {
@@ -223,7 +223,7 @@ themeButton.addEventListener("click", async () => {
   }
 });
 
-let queueButton = document.querySelector("#queue");
+const queueButton = document.querySelector("#queue");
 queueButton.addEventListener("click", () => {
   closeSidebar();
   renderQueue();
@@ -305,8 +305,7 @@ window.addEventListener("load", () => {
   //         }
   //     });
   // }
-  let mode = localStorage.getItem("light-mode");
-  if (mode === "true") {
+  if (localStorage.getItem("light-mode") === "true") {
     document.body.classList.add("light-mode");
     themeButton.innerHTML = "dark_mode";
   }
@@ -357,8 +356,8 @@ window.addEventListener("beforeunload", (e) => {
   }
 });
 
-let searchInputTimer = null;
 let searched = false;
+let searchInputTimer = null;
 SEARCH_INPUT.addEventListener("input", (ev) => {
   if (searchInputTimer) {
     clearTimeout(searchInputTimer);
