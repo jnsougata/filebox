@@ -80,7 +80,10 @@ recentButton.addEventListener("click", async () => {
   openedFolderGL = null;
   openedOptionGL = "recent";
   closeSidebar();
-  const resp = await fetch(`/api/metadata`);
+  const resp = await fetch(`/api/query`, {
+    method: "POST",
+    body: JSON.stringify({ "deleted?ne": true , "type?ne": "folder" }),
+  });
   let data = await resp.json();
   MAIN.innerHTML = "";
   if (data) {
@@ -103,7 +106,10 @@ browseButton.addEventListener("click", async () => {
   openedOptionGL = "browse";
   openedFolderGL = null;
   closeSidebar();
-  const resp = await fetch(`/api/root`);
+  const resp = await fetch(`/api/query`, {
+    method: "POST",
+    body: JSON.stringify({ parent: null, "deleted?ne": true }),
+  });
   const data = await resp.json();
   MAIN.innerHTML = "";
   if (!data) {
@@ -203,11 +209,18 @@ trashButton.addEventListener("click", async () => {
   });
 });
 
-let sanitizeButton = document.querySelector("#sanitize");
-sanitizeButton.addEventListener("click", async () => {
-  const resp = await fetch("/api/sanitize");
-	const data = await resp.json();
-	showSnack(`${data.sanitized} files sanitized `, COLOR_GREEN, "success");
+let themeButton = document.querySelector("#theme");
+themeButton.addEventListener("click", async () => {
+  let lightMode = localStorage.getItem("light-mode");
+  if (lightMode === "true") {
+    localStorage.setItem("light-mode", false);
+    document.body.classList.remove("light-mode");
+    themeButton.innerHTML = "light_mode";
+  } else {
+    localStorage.setItem("light-mode", true);
+    document.body.classList.add("light-mode");
+    themeButton.innerHTML = "dark_mode";
+  }
 });
 
 let queueButton = document.querySelector("#queue");
@@ -295,6 +308,7 @@ window.addEventListener("load", () => {
   let mode = localStorage.getItem("light-mode");
   if (mode === "true") {
     document.body.classList.add("light-mode");
+    themeButton.innerHTML = "dark_mode";
   }
 });
 
@@ -483,10 +497,4 @@ HIDDEN_FOLDER_INPUT.addEventListener("change", (ev) => {
       false
     );
   }
-});
-
-let logo = document.querySelector(".logo");
-logo.addEventListener("click", () => {
-  document.body.classList.toggle("light-mode");
-  localStorage.setItem("light-mode", document.body.classList.contains("light-mode"));
 });
