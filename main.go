@@ -23,7 +23,7 @@ func main() {
 	app.Static("/assets", "assets")
 	app.Static("/scripts", "scripts")
 	app.Static("/styles", "styles")
-	app.POST("/__space/v0/actions", Action)
+	app.POST("/__space/v0/actions", Job)
 	app.GET("/__space/actions", AppActions)
 
 	api := app.Group("/api")

@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Action(c *gin.Context) {
+func Job(c *gin.Context) {
 	data := drive.Files("", 0, "").JSON()
 	names := data["names"].([]interface{})
 	hashes := map[string]string{}
