@@ -7,37 +7,26 @@ A personal cloud storage service for free (upto 10GB)
 
 - [Install on Deta Space](https://deta.space/discovery/@gyrooo/filebox)
 
-### Comes with
+# Features
+- Simple and clean UI
+- Multiple file upload
+- Upload file upto 10GB
+- Storage usage indicator
+- Easy file download on demand
+- Embeddable file urls (up to 4MB)
+- Publicly shareable urls of any file and folder
+- Preview for common file types
+- Cross instance file sharing
+- Upload and store folders ( ⚠ limited browser support )
+- Zipped folder or multiple file download support
 
-- Minimal UI
-- Easy file upload
-- Multiple file upload with drag and drop
-- Upload any file of size less than max capacity
-- Download file from your space drive when needed
-- Share any file of size less than 30MB with others
-
-### What's new
-- Folder support
-- More suitable for mobile devices
-- Embed files of size less than 5MB 
-- File preview (image, audio, video, pdf, text)
-- Visibilty controls for embeds and shared files
 
 ### Logo Credit
 <a href="https://www.flaticon.com/free-icons/box" title="box icons">Box icons created by srip - Flaticon</a>
 
 ## Mobile Preview
-![image](https://github.com/jnsougata/filebox/assets/53375272/8aa8e0f7-2412-44ea-96bf-9e7e377963a2)
-
+![image](/previews/mobile.png)
 
 
 ## Desktop Preview
-![image](https://github.com/jnsougata/filebox/assets/53375272/983921bc-1fca-4dae-be92-b81ba7db1b7e)
-
-
-
-## TODO Improvements
-- [x] Use global right sidebar  
-- [ ] Modal based search panel
-- [x] Code refactor and cleanup
-- [x] CSS cleanup
+![image](/previews/desktop.png)
