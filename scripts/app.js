@@ -82,7 +82,7 @@ recentButton.addEventListener("click", async () => {
   closeSidebar();
   const resp = await fetch(`/api/query`, {
     method: "POST",
-    body: JSON.stringify({ "deleted?ne": true , "type?ne": "folder" }),
+    body: JSON.stringify({ "deleted?ne": true, "type?ne": "folder" }),
   });
   let data = await resp.json();
   MAIN.innerHTML = "";
@@ -115,7 +115,7 @@ browseButton.addEventListener("click", async () => {
   } else if (!data) {
     MAIN.innerHTML = `<p>You don't have any file or folder</p>`;
     return;
-  } 
+  }
   let files = [];
   let folders = [];
   data.forEach((file) => {
@@ -239,6 +239,12 @@ usernameField.addEventListener("click", () => {
     showSnack("User Id copied to clipboard", COLOR_GREEN, "success");
   });
 });
+
+let logo = document.querySelector(".logo")
+logo.addEventListener("click", async () => {
+  // open in new tab
+  window.open("https://github.com/jnsougata/filebox", "_blank");
+})
 
 MENU.addEventListener("click", (e) => {
   NAV_LEFT.style.display = "flex";
@@ -379,16 +385,13 @@ SEARCH_INPUT.addEventListener("input", (ev) => {
 });
 
 CREATE_NEW_FOLDER.addEventListener("click", () => {
-  createFolder();  
+  createFolder();
 });
 
 CLEAR_QUERY.addEventListener("click", () => {
   CLEAR_QUERY.style.display = "none";
-  if (searched) {
-    currentOption().click();
-  } else {
-    SEARCH_INPUT.value = "";
-  }
+  currentOption().click();
+  SEARCH_INPUT.value = "";
 });
 
 DRIVE_FILE_UPLOAD.addEventListener("click", () => {

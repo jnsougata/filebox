@@ -90,7 +90,6 @@ body {
 
 .nav_right {
     right: 0;
-    bottom: 0;
     position: fixed;
     width: 500px;
     height: 100vh;
@@ -194,7 +193,6 @@ body {
     padding: 5px;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--bg-secondary);
     z-index: 10;
     border-radius: 30px;
 }
@@ -244,13 +242,17 @@ body {
     padding: 0 15px;
     justify-content: flex-start;
     z-index: 2;
+    padding: 0 10px;
 }
 .content > nav > span {
-    font-size: 20px;
-    color: var(--accent-blue);
-    z-index: 2;
-    margin-right: 10px;
-    font-weight: 800;
+    cursor: pointer; 
+    font-size: 20px; 
+    font-weight: 500; 
+    margin: 10px; 
+    padding: 5px;
+    border-radius: 5px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
 }
 .content > nav > input[type="text"] {
     width: 100%;
@@ -265,6 +267,8 @@ body {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-secondary);
     transition: all 0.2s ease-in-out;
+    padding-right: 50px;
+    margin: 0 10px;
 }
 .content > nav > div > button {
     height: max-content;
@@ -300,6 +304,11 @@ body {
     display: none;
 }
 
+#search-icon {
+    margin-left: -60px;
+    border-left: 1px solid var(--border-primary);
+}
+
 @media screen and (max-width: 768px) {
     .nav_left {
         top: 0;
@@ -310,9 +319,7 @@ body {
     .content {
         width: 100%;
     }
-    .content > nav {
-        padding: 20px 10px;
-    }
+    
     .content > nav > input[type="text"] {
         font-size: 14px;
     }
@@ -331,6 +338,7 @@ body {
 main {
     width: 100%;
     height: 100%;
+    padding: 0 10px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -360,8 +368,6 @@ main > ul > li {
     height: 60px;
     display: flex;
     align-items: center;
-    padding-right: 20px;
-    padding-left: 5px;
     cursor: pointer;
     justify-content: space-between;
 }
@@ -383,6 +389,7 @@ main > ul > li:hover > .file_icon {
 main > ul > li > span {
     color: var(--icon-span-color);
     padding: 5px;
+    margin: 10px;
     border-radius: 50%;
     cursor: pointer;
     background-color: var(--filemenu-span-bg);
@@ -408,14 +415,9 @@ main > ul > li > .info > p {
 @media screen and (max-width: 768px) {
     main > ul > li {
         height: 50px;
-        padding-right: 10px;
-    }
-    main > ul > li > .file_icon {
-        margin-left: 5px;
     }
     main > ul > li > span {
         font-size: 10px;
-        margin-left: 5px;
     }
     main > ul > li > .info {
         height: 50px;
@@ -525,24 +527,27 @@ main > ul > li > .info > p {
 .prompt {
     width: 100%;
     height: 50px;
-    padding: 0 20px;
     display: flex;
     flex-shrink: 0;
     align-items: center;
     justify-content: space-between;
     overflow-y: hidden;
     overflow-x: auto;
+    margin: 10px;
 }
-.prompt div {
+
+.prompt > i {
+    color: var(--icon-span-color);
+    font-size: 22px;
+    cursor: pointer;
+    margin: 10px;
+    padding: 10px;
+}
+.prompt > div {
     display: flex;
     align-items: center;
     justify-content: flex-end;
     flex-wrap: nowrap;
-}
-.prompt > i {
-    color: var(--icon-span-color);
-    font-size: 20px;
-    cursor: pointer;
 }
 .prompt > div > p {
     width: fit-content;
@@ -559,18 +564,16 @@ main > ul > li > .info > p {
 }
 .prompt > div > i {
     color: var(--icon-span-color);
-    font-size: 18px;
+    font-size: 22px;
     padding: 5px;
     cursor: pointer;
     background-color: var(--border-primary);
     border-radius: 50%;
+    margin: 10px;
     margin-left: 5px;
 }
 
 @media screen and (max-width: 768px) {
-    .prompt {
-        padding-right: 10px;
-    }
     .prompt > div > p {
         max-width: 250px;
     }
@@ -657,7 +660,7 @@ main > ul > li > .info > p {
 .queue > .queue_close {
     top: 0;
     right: 0;
-    position: fixed;
+    position: absolute;
     width: 25px;
     height: 25px;
     margin-top: 15px;

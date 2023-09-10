@@ -35,8 +35,6 @@ window.addEventListener("DOMContentLoaded", async () => {
 function promptElem(folder) {
   let prompt = document.createElement("div");
   prompt.className = "prompt";
-  prompt.style.paddingLeft = "5px";
-  prompt.style.paddingRight = "0";
   let fragment = document.createElement("div");
   let text = folder.parent ? `${folder.parent}/${folder.name}` : folder.name;
   fragment.innerHTML = `<p>${text}</p>`
