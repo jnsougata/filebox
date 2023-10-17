@@ -40,7 +40,8 @@ func main() {
 	api.GET("/external/:recipient/:owner/:hash/:part", DownloadFileExtern)
 	api.POST("/push/:id", PushFileMeta)
 	api.POST("/accept", AcceptFileMeta)
-
+	api.POST("/v2/migrate", MigrateV2)
+	
 	actions := app.Group("/actions")
 	actions.POST("/save", Save.Handler)
 

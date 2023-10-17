@@ -429,6 +429,210 @@ async function handleFolderClick(folder) {
   updateFolderStats(folders);
 }
 
+function handleMultiSelectMenuClick() {
+  let fileOptionPanel = document.createElement("div");
+  fileOptionPanel.className = "file_menu";
+
+  // Title
+  let title = document.createElement("div");
+  title.className = "title";
+  let fileNameElem = document.createElement("p");
+  fileNameElem.innerHTML = "Options";
+  title.appendChild(fileNameElem);
+  let close = document.createElement("span");
+  close.className = `material-symbols-rounded`;
+  close.innerHTML = `chevron_right`;
+  close.addEventListener("click", () => {
+    hideRightNav();
+  });
+  title.appendChild(close);
+  fileOptionPanel.appendChild(title);
+
+  // Zip Option
+  let zipOption = document.createElement("div");
+  zipOption.className = "file_menu_option";
+  zipOption.innerHTML = `<p>Download as Zip</p><span class="material-symbols-rounded">archive</span>`;
+  zipOption.addEventListener("click", () => {
+    let zip = new JSZip();
+    let totalSize = 0;
+    multiSelectBucketGL.forEach((file) => {
+      totalSize += parseInt(file.size);
+    });
+    let randomZipId = randId();
+    let zipData = {
+      name: `filebox-download-${randomZipId}.zip`,
+      mime: "application/zip",
+      size: totalSize,
+      hash: randomZipId,
+    };
+    prependQueueElem(zipData);
+    queueButton.click();
+    let promises = [];
+    let completed = 0;
+    multiSelectBucketGL.forEach((file) => {
+      promises.push(
+        fetchFileFromDrive(file, (cmp) => {
+          completed += cmp;
+          let percentage = Math.round((completed / totalSize) * 100);
+          progressHandlerById(zipData.hash, percentage);
+        }).then((blob) => {
+          zip.file(file.name, new Blob([blob], { type: file.mime }));
+        })
+      );
+    });
+    Promise.all(promises).then(() => {
+      zip.generateAsync({ type: "blob" }).then((content) => {
+        let a = document.createElement("a");
+        a.href = window.URL.createObjectURL(content);
+        a.download = zipData.name;
+        a.click();
+      });
+    });
+  })
+
+  // Move Option
+  let moveOption = document.createElement("div");
+  moveOption.className = "file_menu_option";
+  moveOption.innerHTML = `<p>Move</p><span class="material-symbols-rounded">arrow_forward</span>`;
+  moveOption.addEventListener("click", () => {
+    isFileMovingGL = true;
+    browseButton.click();
+    let fileMover = document.createElement("div");
+    fileMover.className = "file_mover";
+    let cancelButton = document.createElement("button");
+    cancelButton.innerHTML = "Cancel";
+    cancelButton.addEventListener("click", () => {
+      isFileMovingGL = false;
+      multiSelectBucketGL = [];
+      NAV_TOP.removeChild(NAV_TOP.firstChild);
+    });
+    let selectButton = document.createElement("button");
+    selectButton.innerHTML = "Select";
+    selectButton.style.backgroundColor = "var(--accent-blue)";
+    selectButton.addEventListener("click", () => {
+      multiSelectBucketGL.forEach((file) => {
+        delete file.deleted;
+      });
+      if (!openedFolderGL) {
+        multiSelectBucketGL.forEach((file) => {
+          delete file.parent;
+        });
+      } else {
+        multiSelectBucketGL.forEach((file) => {
+          if (openedFolderGL.parent) {
+            file.parent = `${openedFolderGL.parent}/${openedFolderGL.name}`;
+          } else {
+            file.parent = openedFolderGL.name;
+          }
+        });
+      }
+      fetch(`/api/bulk`, {
+        method: "PATCH",
+        body: JSON.stringify(multiSelectBucketGL),
+      }).then(() => {
+        showSnack("Files Moved Successfully", COLOR_GREEN, "success");
+        if (openedFolderGL) {
+          handleFolderClick(openedFolderGL);
+        } else {
+          browseButton.click();
+        }
+        NAV_TOP.removeChild(NAV_TOP.firstChild);
+      });
+    });
+    let p = document.createElement("p");
+    p.innerHTML = "Select Move Destination";
+    fileMover.appendChild(cancelButton);
+    fileMover.appendChild(p);
+    fileMover.appendChild(selectButton);
+    NAV_TOP.removeChild(NAV_TOP.firstChild);
+    renderAuxNav(fileMover);
+  })
+
+  // Private Option
+  let privateOption = document.createElement("div");
+  privateOption.className = "file_menu_option";
+  privateOption.innerHTML = `<p>Make Private</p><span class="material-symbols-rounded">visibility_off</span>`;
+  privateOption.addEventListener("click", () => {
+    multiSelectBucketGL.forEach((file) => {
+      file.access = "private";
+    });
+    fetch(`/api/bulk`, {
+      method: "PATCH",
+      body: JSON.stringify(multiSelectBucketGL),
+    }).then(() => {
+      showSnack(`Made selected files private`, COLOR_ORANGE, "info");
+    });
+  })
+
+  // Public Option
+  let publicOption = document.createElement("div");
+  publicOption.className = "file_menu_option";
+  publicOption.innerHTML = `<p>Make Public</p><span class="material-symbols-rounded">visibility</span>`;
+  publicOption.addEventListener("click", () => {
+    multiSelectBucketGL.forEach((file) => {
+      file.access = "public";
+    });
+    fetch(`/api/bulk`, {
+      method: "PATCH",
+      body: JSON.stringify(multiSelectBucketGL),
+    }).then(() => {
+      showSnack(`Made selected files public`, COLOR_ORANGE, "info");
+    });
+  })
+
+  // Delete Option
+  let deleteOption = document.createElement("div");
+  deleteOption.className = "file_menu_option";
+  deleteOption.innerHTML = `<p>Delete</p><span class="material-symbols-rounded">delete_forever</span>`;
+  deleteOption.addEventListener("click", () => {
+    let ok = confirm(
+      `Do you really want to delete ${multiSelectBucketGL.length} file(s)?`
+    );
+    if (!ok) {
+      return;
+    }
+    fetch(`/api/bulk`, {
+      method: "DELETE",
+      body: JSON.stringify(multiSelectBucketGL),
+    }).then(() => {
+      multiSelectBucketGL.forEach((file) => {
+        document.getElementById(`file-${file.hash}`).remove();
+      });
+      multiSelectBucketGL = [];
+      NAV_TOP.removeChild(NAV_TOP.firstChild);
+      showSnack(`Deleted selected files`, COLOR_RED, "info");
+      document.getElementById("deselect-all").click();
+    });
+  })
+
+  // Migrate v2 Option
+  let migrateOption = document.createElement("div");
+  migrateOption.className = "file_menu_option";
+  migrateOption.innerHTML = `<p>Migrate v2</p><span class="material-symbols-rounded">sync_alt</span>`;
+  migrateOption.addEventListener("click", async() => {
+    const resp = await fetch(`/api/v2/migrate`, {
+      method: "POST",
+      body: JSON.stringify(multiSelectBucketGL)
+    })
+    if (resp.status === 207) {
+      showSnack(`Migrated selected files`, COLOR_GREEN, "info");
+    } else {
+      showSnack(`Failed to migrate selected files`, COLOR_RED, "info");
+    }
+
+  })
+
+  fileOptionPanel.appendChild(zipOption);
+  fileOptionPanel.appendChild(moveOption);
+  fileOptionPanel.appendChild(privateOption);
+  fileOptionPanel.appendChild(publicOption);
+  fileOptionPanel.appendChild(deleteOption);
+  fileOptionPanel.appendChild(migrateOption);
+
+  renderInRightNav(fileOptionPanel);
+  
+}
+
 function newFileElem(file, trashed = false) {
   let li = document.createElement("li");
   li.dataset.parent = file.parent || "";
@@ -491,161 +695,18 @@ function newFileElem(file, trashed = false) {
     if (!document.querySelector(".multi_select_options")) {
       let multiSelectOptions = document.createElement("div");
       multiSelectOptions.className = "multi_select_options";
-      let zipButton = document.createElement("button");
-      zipButton.innerHTML =
-        '<span class="material-symbols-rounded">archive</span>';
-      zipButton.addEventListener("click", () => {
-        let zip = new JSZip();
-        let totalSize = 0;
-        multiSelectBucketGL.forEach((file) => {
-          totalSize += parseInt(file.size);
-        });
-        let randomZipId = randId();
-        let zipData = {
-          name: `filebox-download-${randomZipId}.zip`,
-          mime: "application/zip",
-          size: totalSize,
-          hash: randomZipId,
-        };
-        prependQueueElem(zipData);
-        queueButton.click();
-        let promises = [];
-        let completed = 0;
-        multiSelectBucketGL.forEach((file) => {
-          promises.push(
-            fetchFileFromDrive(file, (cmp) => {
-              completed += cmp;
-              let percentage = Math.round((completed / totalSize) * 100);
-              progressHandlerById(zipData.hash, percentage);
-            }).then((blob) => {
-              zip.file(file.name, new Blob([blob], { type: file.mime }));
-            })
-          );
-        });
-        Promise.all(promises).then(() => {
-          zip.generateAsync({ type: "blob" }).then((content) => {
-            let a = document.createElement("a");
-            a.href = window.URL.createObjectURL(content);
-            a.download = zipData.name;
-            a.click();
-          });
-        });
-      });
-      let moveButton = document.createElement("button");
-      moveButton.innerHTML =
-        '<span class="material-symbols-rounded">arrow_forward</span>';
-      moveButton.addEventListener("click", () => {
-        isFileMovingGL = true;
-        browseButton.click();
-        let fileMover = document.createElement("div");
-        fileMover.className = "file_mover";
-        let cancelButton = document.createElement("button");
-        cancelButton.innerHTML = "Cancel";
-        cancelButton.addEventListener("click", () => {
-          NAV_TOP.removeChild(NAV_TOP.firstChild);
-        });
-        let selectButton = document.createElement("button");
-        selectButton.innerHTML = "Select";
-        selectButton.style.backgroundColor = "var(--accent-blue)";
-        selectButton.addEventListener("click", () => {
-          multiSelectBucketGL.forEach((file) => {
-            delete file.deleted;
-          });
-          if (!openedFolderGL) {
-            multiSelectBucketGL.forEach((file) => {
-              delete file.parent;
-            });
-          } else {
-            multiSelectBucketGL.forEach((file) => {
-              if (openedFolderGL.parent) {
-                file.parent = `${openedFolderGL.parent}/${openedFolderGL.name}`;
-              } else {
-                file.parent = openedFolderGL.name;
-              }
-            });
-          }
-          fetch(`/api/bulk`, {
-            method: "PATCH",
-            body: JSON.stringify(multiSelectBucketGL),
-          }).then(() => {
-            showSnack("Files Moved Successfully", COLOR_GREEN, "success");
-            if (openedFolderGL) {
-              handleFolderClick(openedFolderGL);
-            } else {
-              browseButton.click();
-            }
-            NAV_TOP.removeChild(NAV_TOP.firstChild);
-          });
-        });
-        let p = document.createElement("p");
-        p.innerHTML = "Select Move Destination";
-        fileMover.appendChild(cancelButton);
-        fileMover.appendChild(p);
-        fileMover.appendChild(selectButton);
-        NAV_TOP.removeChild(NAV_TOP.firstChild);
-        renderAuxNav(fileMover);
-      });
-      let privateButton = document.createElement("button");
-      privateButton.innerHTML =
-        '<span class="material-symbols-rounded">visibility_off</span>';
-      privateButton.addEventListener("click", () => {
-        multiSelectBucketGL.forEach((file) => {
-          file.access = "private";
-        });
-        fetch(`/api/bulk`, {
-          method: "PATCH",
-          body: JSON.stringify(multiSelectBucketGL),
-        }).then(() => {
-          showSnack(`Made selected files private`, COLOR_ORANGE, "info");
-        });
-      });
-      let publicButton = document.createElement("button");
-      publicButton.innerHTML =
-        '<span class="material-symbols-rounded">visibility</span>';
-      publicButton.addEventListener("click", () => {
-        multiSelectBucketGL.forEach((file) => {
-          file.access = "public";
-        });
-        fetch(`/api/bulk`, {
-          method: "PATCH",
-          body: JSON.stringify(multiSelectBucketGL),
-        }).then(() => {
-          showSnack(`Made selected files public`, COLOR_GREEN, "info");
-        });
-      });
-      let deleteButton = document.createElement("button");
-      deleteButton.innerHTML =
-        '<span class="material-symbols-rounded">delete_forever</span>';
-      deleteButton.style.backgroundColor = COLOR_DELETE_FOREVER;
-      deleteButton.addEventListener("click", () => {
-        let ok = confirm(
-          `Do you really want to delete ${multiSelectBucketGL.length} file(s)?`
-        );
-        if (!ok) {
-          return;
-        }
-        fetch(`/api/bulk`, {
-          method: "DELETE",
-          body: JSON.stringify(multiSelectBucketGL),
-        }).then(() => {
-          multiSelectBucketGL.forEach((file) => {
-            document.getElementById(`file-${file.hash}`).remove();
-          });
-          multiSelectBucketGL = [];
-          NAV_TOP.removeChild(NAV_TOP.firstChild);
-          showSnack(`Deleted selected files`, COLOR_RED, "info");
-          document.getElementById("deselect-all").click();
-        });
+      
+      let menuButton = document.createElement("button");
+      menuButton.innerHTML =
+        '<span class="material-symbols-rounded">more_horiz</span>';
+      menuButton.addEventListener("click", () => {
+        handleMultiSelectMenuClick();
       });
       let selectCount = document.createElement("p");
       selectCount.style.marginRight = "auto";
       selectCount.id = "selection-count";
       multiSelectOptions.appendChild(selectCount);
-      multiSelectOptions.appendChild(zipButton);
-      multiSelectOptions.appendChild(moveButton);
-      multiSelectOptions.appendChild(privateButton);
-      multiSelectOptions.appendChild(publicButton);
-      multiSelectOptions.appendChild(deleteButton);
+      multiSelectOptions.appendChild(menuButton);
       renderAuxNav(multiSelectOptions);
     }
     if (multiSelectBucketGL.length === 25) {

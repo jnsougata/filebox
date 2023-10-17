@@ -3,7 +3,6 @@ package deta
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"time"
 )
 
@@ -17,7 +16,13 @@ type Record struct {
 }
 
 func (r *Record) marshal() interface{} {
-	data := map[string]interface{}{}
+	var data map[string]interface{}
+	if r.Value != nil {
+		ba, _ := json.Marshal(r.Value)
+		json.Unmarshal(ba, &data)
+	} else {
+		data = map[string]interface{}{ "value": nil }
+	}
 	if r.Key != "" {
 		data["key"] = r.Key
 	}
@@ -25,13 +30,6 @@ func (r *Record) marshal() interface{} {
 		data["__expires"] = r.ExpireIn + time.Now().Unix()
 	} else if r.ExpireOn != 0 {
 		data["__expires"] = r.ExpireOn
-	}
-	if r.Value != nil && reflect.TypeOf(r.Value).Kind() == reflect.Map {
-		for k, v := range r.Value.(map[string]interface{}) {
-			data[k] = v
-		}
-	} else {
-		data["value"] = r.Value
 	}
 	return data
 }

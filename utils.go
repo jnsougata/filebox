@@ -42,3 +42,43 @@ func randomHex(n int) string {
 	}
 	return hex.EncodeToString(b)
 }
+
+type FileV1 struct {
+	Key        string   `json:"key"`
+	Access     string   `json:"access"`
+	Date       string   `json:"date"`
+	Hash       string   `json:"hash"`
+	Mime       string   `json:"mime"`
+	Name       string   `json:"name"`
+	Color      string   `json:"color"`
+	Parent     string   `json:"parent"`
+	Size       float64  `json:"size"`
+	Type       string   `json:"type"`
+	Pinned     bool     `json:"pinned"`
+	Recipients []string `json:"recipients"`
+	Deleted    bool     `json:"deleted"`
+}
+
+type AccessToken struct {
+	Value string `json:"value"`
+	Label string `json:"label"`
+}
+
+type FileV2 struct {
+	Key           string        `json:"key"`
+	Name          string        `json:"name"`
+	Color         string        `json:"color"`
+	NameLowercase string        `json:"nameLowercase"`
+	Folder        bool          `json:"folder"`
+	Public        bool          `json:"public"`
+	CreatedAt     string        `json:"createdAt"`
+	Path          string        `json:"path"`
+	Type          string        `json:"type"`
+	Owner         string        `json:"owner"`
+	Size          float64       `json:"size"`
+	Tag           []string      `json:"tag"`
+	Partial       bool          `json:"partial"`
+	UploadedUpTo  float64       `json:"uploadedUpTo"`
+	Deleted       bool          `json:"deleted"`
+	AccessTokens  []AccessToken `json:"accessTokens"`
+}

@@ -17,6 +17,7 @@ var detaProjectKey = os.Getenv("DETA_PROJECT_KEY")
 var connection = deta.New(detaProjectKey)
 var drive = connection.Drive("filebox")
 var base = connection.Base("filebox_metadata")
+var metadata = connection.Base("metadata")
 
 func Ping(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
@@ -208,7 +209,7 @@ func Query(c *gin.Context) {
 		q.Value = append(q.Value, queries...)
 		q.Value = q.Value[1:]
 		delete(data, "__union")
-		delete(data, "__queries")	
+		delete(data, "__queries")
 	}
 	for k, v := range data {
 		q.Equals(k, v)
@@ -239,7 +240,7 @@ func FolderChildrenCount(c *gin.Context) {
 	counterMap := map[string]interface{}{}
 	for _, target := range targets {
 		counterMap[FolderToAsParentPath(target)] = map[string]interface{}{
-			"hash":  target["hash"], "count": 0,
+			"hash": target["hash"], "count": 0,
 		}
 	}
 	q := deta.NewQuery()
@@ -384,4 +385,35 @@ func SanitizeFiles(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, map[string]interface{}{"sanitized": success})
+}
+
+func MigrateV2(c *gin.Context) {
+	var files []FileV1
+	c.BindJSON(&files)
+	var records []deta.Record
+	for _, file := range files {
+		fv2 := FileV2{
+			Key:           file.Key,
+			Name:          file.Name,
+			Color:         file.Color,
+			Path:          file.Parent,
+			Deleted:       file.Deleted,
+			Size:          file.Size,
+			Type:          file.Mime,
+			Public:        file.Access == "public" || file.Access == "",
+			Folder:        file.Type == "folder",
+			Owner:         "",
+			Tag:           []string{},
+			Partial:       false,
+			UploadedUpTo:  file.Size,
+			AccessTokens:  []AccessToken{},
+			NameLowercase: strings.ToLower(file.Name),
+		}
+		if file.Parent == "" {
+			fv2.Path = "/"
+		}
+		records = append(records, deta.Record{Value: fv2})
+		resp := metadata.Put(records...)
+		c.String(resp.StatusCode, "OK")
+	}
 }

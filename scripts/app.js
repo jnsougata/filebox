@@ -102,7 +102,7 @@ const browseButton = document.querySelector("#browse");
 browseButton.addEventListener("click", async () => {
   openedOptionGL = "browse";
   openedFolderGL = null;
-  closeSidebar();
+  BLUR_LAYER.click();
   const resp = await fetch(`/api/query`, {
     method: "POST",
     body: JSON.stringify({ parent: null, "deleted?ne": true }),
@@ -135,7 +135,7 @@ const pinnedButton = document.querySelector("#pinned");
 pinnedButton.addEventListener("click", async () => {
   openedFolderGL = null;
   openedOptionGL = "pinned";
-  closeSidebar();
+  BLUR_LAYER.click();
   const resp = await fetch("/api/query", {
     method: "POST",
     body: JSON.stringify({ pinned: true, "deleted?ne": true }),
@@ -162,7 +162,7 @@ const sharedButton = document.querySelector("#shared");
 sharedButton.addEventListener("click", async () => {
   openedFolderGL = null;
   openedOptionGL = "shared";
-  closeSidebar();
+  BLUR_LAYER.click();
   MAIN.innerHTML = "";
   let fileList = document.createElement("div");
   fileList.className = "file_list";
@@ -186,7 +186,7 @@ const trashButton = document.querySelector("#trash");
 trashButton.addEventListener("click", async () => {
   openedFolderGL = null;
   openedOptionGL = "trash";
-  closeSidebar();
+  BLUR_LAYER.click();
   const resp = await fetch("/api/query", {
     method: "POST",
     body: JSON.stringify({ deleted: true }),
