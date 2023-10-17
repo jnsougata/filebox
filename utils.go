@@ -94,9 +94,9 @@ func buildFolderQuery(name string, parent interface{}) *deta.Query {
 	return q
 }
 
-func buildPathV2FromV1(parent string) (string, error) {
+func buildPathV2FromV1(parent string) string {
 	if parent == "" {
-		return "/", nil
+		return "/"
 	}
 	var path string
 	expr, _ := regexp.Compile(`[^/]+`)
@@ -105,13 +105,13 @@ func buildPathV2FromV1(parent string) (string, error) {
 	resp := base.Fetch(buildFolderQuery(rootFolder, nil))
 	folderData := resp.JSON()["items"].([]interface{})
 	if len(folderData) == 0 {
-		return "", fmt.Errorf("folder %s not found", rootFolder)
+		return "/"
 	}
 	folder := folderData[0].(map[string]interface{})
 	path += fmt.Sprintf("/%s", folder["hash"].(string))
 	matches = matches[1:]
 	if len(matches) == 0 {
-		return path, nil
+		return path
 	}
 	folderNames := matches
 	matches = matches[:len(matches)-1]
@@ -127,9 +127,9 @@ func buildPathV2FromV1(parent string) (string, error) {
 		folderData := resp.JSON()["items"].([]interface{})
 		folder = folderData[0].(map[string]interface{})
 		if len(folderData) == 0 {
-			return "", fmt.Errorf("folder %s not found", name)
+			return "/"
 		}
 		path += fmt.Sprintf("/%s", folder["hash"].(string))
 	}
-	return path, nil
+	return path
 }

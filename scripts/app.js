@@ -21,6 +21,7 @@ const DRIVE_FILE_UPLOAD = document.querySelector("#upload-file");
 const MENU = document.querySelector("#menu");
 const SEARCH_ICON = document.querySelector("#search-icon");
 const PREVIEW_MODAL = document.querySelector(".file_preview");
+const MIGRATION_MODAL = document.querySelector(".file_migration");
 
 let controller;
 let multiSelectBucketGL = [];
@@ -215,17 +216,28 @@ migrateV2Button.addEventListener("click", async () => {
     method: "POST",
     body: JSON.stringify({})
   });
+  MIGRATION_MODAL.style.display = "flex";
+  MIGRATION_MODAL.innerHTML = "";
+  MIGRATION_MODAL.style.flexDirection = "column";
+  MIGRATION_MODAL.style.justifyContent = "flex-start";
+  MIGRATION_MODAL.style.outline = "none";
   const data = await resp.json();
+  let h3 = document.createElement("h3");
+  h3.innerHTML = `⟳ Migrating ${data.length} files`;
+  MIGRATION_MODAL.appendChild(h3);
   data.forEach(async (file) => {
+    MIGRATION_MODAL.showModal();
     const r = await fetch(`/api/v2/migrate`, {
       method: "POST",
       body: JSON.stringify(file)
     });
+    let p = document.createElement("p");
     if (r.status === 207) {
-     showSnack(`Migration successfull (${file.hash})`, COLOR_GREEN, "success"); 
+      p.innerHTML = `<span style="color: ${COLOR_GREEN}">✔</span> ${file.name} successfully migrated.`; 
     } else {
-      showSnack(`Migration failed (${file.hash})`, COLOR_ORANGE, "error");
+      p.innerHTML = `<span style="color: ${COLOR_RED}">𐄂</span> ${file.name} failed to migrate.`;
     }
+    MIGRATION_MODAL.appendChild(p);
   })
 })
 

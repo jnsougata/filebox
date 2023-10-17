@@ -406,13 +406,8 @@ func MigrateV2(c *gin.Context) {
 		AccessTokens:  []AccessToken{},
 		NameLowercase: strings.ToLower(file.Name),
 		CreatedAt:     file.Date,
+		Path:          buildPathV2FromV1(file.Parent),
 	}
-	path, err := buildPathV2FromV1(file.Parent)
-	if err != nil {
-		c.String(http.StatusNotFound, "directory not found")
-		return
-	}
-	v2.Path = path
 	resp := metadata.Put(deta.Record{Value: v2})
 	c.String(resp.StatusCode, "OK")
 }

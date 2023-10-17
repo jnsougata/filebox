@@ -826,38 +826,6 @@ main > ul > li > .info > p {
     }
 }
 
-.multi_select_options {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-}
-.multi_select_options > button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    color: var(--text-color);
-    cursor: pointer;
-    border: none;
-    padding: 8px;
-    margin-left: 10px;
-    background-color: var(--bg-secondary);
-}
-.multi_select_options > button > span {
-    font-size: 18px;
-}
-
-@media screen and (max-width: 768px) {
-    .multi_select_options > button {
-        justify-content: space-evenly;
-    }
-    .multi_select_options > button > span {
-        font-size: 15px;
-    }
-}
-
 .file_sender {
     width: 100%;
     height: 100%;
@@ -1067,6 +1035,31 @@ main > ul > li > .info > p {
     .greetings > .inner > button {
         max-width: 200px;
     }
+}
+
+.file_migration {
+    width: fit-content;
+    min-width: 328px;
+    height: 600px;
+    margin: auto;
+    padding: 15px;
+    position: fixed;
+    color: var(--text-color);
+    border-radius: 10px;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--bg-secondary-solid);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+}
+
+.file_migration::backdrop {
+    background-color: rgba(0, 0, 0, 0.692);
+}
+
+.file_migration p, h3 {
+    width: 100%;
 }
 
 .file_preview {
