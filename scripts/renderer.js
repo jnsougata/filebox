@@ -601,7 +601,6 @@ function handleMultiSelectMenuClick() {
       multiSelectBucketGL = [];
       NAV_TOP.removeChild(NAV_TOP.firstChild);
       showSnack(`Deleted selected files`, COLOR_RED, "info");
-      document.getElementById("deselect-all").click();
     });
   })
 

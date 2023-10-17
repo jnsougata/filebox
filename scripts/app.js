@@ -262,7 +262,6 @@ usernameField.addEventListener("click", () => {
 
 let logo = document.querySelector(".logo")
 logo.addEventListener("click", async () => {
-  // open in new tab
   window.open("https://github.com/jnsougata/filebox", "_blank");
 })
 

@@ -87,26 +87,31 @@ type FileV2 struct {
 
 func buildFolderQuery(name string, parent interface{}) *deta.Query {
 	q := deta.NewQuery()
+	q.Limit = 1
 	q.Equals("name", name)
 	q.Equals("parent", parent)
 	q.Equals("type", "folder")
 	return q
 }
 
-func buildPathV2FromV1(parent string) string {
+func buildPathV2FromV1(parent string) (string, error) {
 	if parent == "" {
-		return "/"
+		return "/", nil
 	}
 	var path string
 	expr, _ := regexp.Compile(`[^/]+`)
 	matches := expr.FindAllString(parent, -1)
 	rootFolder := matches[0]
 	resp := base.Fetch(buildFolderQuery(rootFolder, nil))
-	folderData := resp.JSON()["items"].([]interface{})[0].(map[string]interface{})
-	path += fmt.Sprintf("/%s", folderData["hash"].(string))
+	folderData := resp.JSON()["items"].([]interface{})
+	if len(folderData) == 0 {
+		return "", fmt.Errorf("folder %s not found", rootFolder)
+	}
+	folder := folderData[0].(map[string]interface{})
+	path += fmt.Sprintf("/%s", folder["hash"].(string))
 	matches = matches[1:]
 	if len(matches) == 0 {
-		return path
+		return path, nil
 	}
 	folderNames := matches
 	matches = matches[:len(matches)-1]
@@ -119,8 +124,12 @@ func buildPathV2FromV1(parent string) string {
 	for i, subParent := range subParents {
 		name := folderNames[i]
 		resp := base.Fetch(buildFolderQuery(name, subParent))
-		folderData := resp.JSON()["items"].([]interface{})[0].(map[string]interface{})
-		path += fmt.Sprintf("/%s", folderData["hash"].(string))
+		folderData := resp.JSON()["items"].([]interface{})
+		folder = folderData[0].(map[string]interface{})
+		if len(folderData) == 0 {
+			return "", fmt.Errorf("folder %s not found", name)
+		}
+		path += fmt.Sprintf("/%s", folder["hash"].(string))
 	}
-	return path
+	return path, nil
 }
