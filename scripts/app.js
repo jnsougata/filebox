@@ -209,6 +209,26 @@ trashButton.addEventListener("click", async () => {
   });
 });
 
+const migrateV2Button = document.querySelector("#migrateV2");
+migrateV2Button.addEventListener("click", async () => {
+  const resp = await fetch("/api/query", {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+  const data = await resp.json();
+  data.forEach(async (file) => {
+    const r = await fetch(`/api/v2/migrate`, {
+      method: "POST",
+      body: JSON.stringify(file)
+    });
+    if (r.status === 207) {
+     showSnack(`Migration successfull (${file.hash})`, COLOR_GREEN, "success"); 
+    } else {
+      showSnack(`Migration failed (${file.hash})`, COLOR_ORANGE, "error");
+    }
+  })
+})
+
 const themeButton = document.querySelector("#theme");
 themeButton.addEventListener("click", async () => {
   let lightMode = localStorage.getItem("light-mode");

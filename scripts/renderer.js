@@ -605,29 +605,11 @@ function handleMultiSelectMenuClick() {
     });
   })
 
-  // Migrate v2 Option
-  let migrateOption = document.createElement("div");
-  migrateOption.className = "file_menu_option";
-  migrateOption.innerHTML = `<p>Migrate v2</p><span class="material-symbols-rounded">sync_alt</span>`;
-  migrateOption.addEventListener("click", async() => {
-    const resp = await fetch(`/api/v2/migrate`, {
-      method: "POST",
-      body: JSON.stringify(multiSelectBucketGL)
-    })
-    if (resp.status === 207) {
-      showSnack(`Migrated selected files`, COLOR_GREEN, "info");
-    } else {
-      showSnack(`Failed to migrate selected files`, COLOR_RED, "info");
-    }
-
-  })
-
   fileOptionPanel.appendChild(zipOption);
   fileOptionPanel.appendChild(moveOption);
   fileOptionPanel.appendChild(privateOption);
   fileOptionPanel.appendChild(publicOption);
   fileOptionPanel.appendChild(deleteOption);
-  fileOptionPanel.appendChild(migrateOption);
 
   renderInRightNav(fileOptionPanel);
   

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"backend/deta"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -81,4 +83,44 @@ type FileV2 struct {
 	UploadedUpTo  float64       `json:"uploadedUpTo"`
 	Deleted       bool          `json:"deleted"`
 	AccessTokens  []AccessToken `json:"accessTokens"`
+}
+
+func buildFolderQuery(name string, parent interface{}) *deta.Query {
+	q := deta.NewQuery()
+	q.Equals("name", name)
+	q.Equals("parent", parent)
+	q.Equals("type", "folder")
+	return q
+}
+
+func buildPathV2FromV1(parent string) string {
+	if parent == "" {
+		return "/"
+	}
+	var path string
+	expr, _ := regexp.Compile(`[^/]+`)
+	matches := expr.FindAllString(parent, -1)
+	rootFolder := matches[0]
+	resp := base.Fetch(buildFolderQuery(rootFolder, nil))
+	folderData := resp.JSON()["items"].([]interface{})[0].(map[string]interface{})
+	path += fmt.Sprintf("/%s", folderData["hash"].(string))
+	matches = matches[1:]
+	if len(matches) == 0 {
+		return path
+	}
+	folderNames := matches
+	matches = matches[:len(matches)-1]
+	subParents := []string{rootFolder}
+	tmp := rootFolder
+	for _, match := range matches {
+		tmp += "/" + match
+		subParents = append(subParents, tmp)
+	}
+	for i, subParent := range subParents {
+		name := folderNames[i]
+		resp := base.Fetch(buildFolderQuery(name, subParent))
+		folderData := resp.JSON()["items"].([]interface{})[0].(map[string]interface{})
+		path += fmt.Sprintf("/%s", folderData["hash"].(string))
+	}
+	return path
 }

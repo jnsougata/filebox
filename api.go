@@ -388,32 +388,25 @@ func SanitizeFiles(c *gin.Context) {
 }
 
 func MigrateV2(c *gin.Context) {
-	var files []FileV1
-	c.BindJSON(&files)
-	var records []deta.Record
-	for _, file := range files {
-		fv2 := FileV2{
-			Key:           file.Key,
-			Name:          file.Name,
-			Color:         file.Color,
-			Path:          file.Parent,
-			Deleted:       file.Deleted,
-			Size:          file.Size,
-			Type:          file.Mime,
-			Public:        file.Access == "public" || file.Access == "",
-			Folder:        file.Type == "folder",
-			Owner:         "",
-			Tag:           []string{},
-			Partial:       false,
-			UploadedUpTo:  file.Size,
-			AccessTokens:  []AccessToken{},
-			NameLowercase: strings.ToLower(file.Name),
-		}
-		if file.Parent == "" {
-			fv2.Path = "/"
-		}
-		records = append(records, deta.Record{Value: fv2})
-		resp := metadata.Put(records...)
-		c.String(resp.StatusCode, "OK")
+	var file FileV1
+	c.BindJSON(&file)
+	v2 := FileV2{
+		Key:           file.Key,
+		Name:          file.Name,
+		Color:         file.Color,
+		Path:          buildPathV2FromV1(file.Parent),
+		Deleted:       file.Deleted,
+		Size:          file.Size,
+		Type:          file.Mime,
+		Public:        file.Access == "public" || file.Access == "",
+		Folder:        file.Type == "folder",
+		Owner:         "",
+		Tag:           []string{},
+		Partial:       false,
+		UploadedUpTo:  file.Size,
+		AccessTokens:  []AccessToken{},
+		NameLowercase: strings.ToLower(file.Name),
 	}
+	resp := metadata.Put(deta.Record{Value: v2})
+	c.String(resp.StatusCode, "OK")
 }

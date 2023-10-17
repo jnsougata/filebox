@@ -77,9 +77,7 @@ function setIconByMime(mime, elem) {
 }
 
 function randId() {
-  return [...Array(16)]
-    .map(() => Math.floor(Math.random() * 16).toString(16))
-    .join("");
+  return crypto.randomUUID().replace(/-/g, "");
 }
 
 function buildFileMetadata(file) {
