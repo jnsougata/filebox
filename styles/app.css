@@ -1038,9 +1038,8 @@ main > ul > li > .info > p {
 }
 
 .file_migration {
-    width: fit-content;
-    min-width: 328px;
-    height: 600px;
+    width: 100vw;
+    height: 100vh;
     margin: auto;
     padding: 15px;
     position: fixed;
@@ -1058,8 +1057,31 @@ main > ul > li > .info > p {
     background-color: rgba(0, 0, 0, 0.692);
 }
 
-.file_migration p, h3 {
+.file_migration p {
     width: 100%;
+    background: #ffffff1a;
+    padding: 5px 15px;
+    margin: 4px 0;
+    border-radius: 5px;
+    overflow-wrap: anywhere;
+}
+.file_migration h3 {
+    margin-bottom: 10px;
+}
+
+.file_migration button {
+    position: absolute;
+    right: 0;
+    margin-right: 10px;
+    padding: 5px;
+    border: none;
+    outline: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.2s;
+    background-color: var(--bg-secondary);
+    color: var(--icon-span-color);
+    display: flex;
 }
 
 .file_preview {

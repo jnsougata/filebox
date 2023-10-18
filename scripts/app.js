@@ -212,19 +212,23 @@ trashButton.addEventListener("click", async () => {
 
 const migrateV2Button = document.querySelector("#migrateV2");
 migrateV2Button.addEventListener("click", async () => {
+  openedFolderGL = null;
+  openedOptionGL = "trash";
+  BLUR_LAYER.click();
   const resp = await fetch("/api/query", {
     method: "POST",
     body: JSON.stringify({})
   });
-  MIGRATION_MODAL.style.display = "flex";
   MIGRATION_MODAL.innerHTML = "";
+  MIGRATION_MODAL.style.display = "flex";
   MIGRATION_MODAL.style.flexDirection = "column";
   MIGRATION_MODAL.style.justifyContent = "flex-start";
   MIGRATION_MODAL.style.outline = "none";
   const data = await resp.json();
   let h3 = document.createElement("h3");
-  h3.innerHTML = `⟳ Migrating ${data.length} files`;
+  h3.innerHTML = `Migrating ${data.length} files`;
   MIGRATION_MODAL.appendChild(h3);
+  let counter = 0;
   data.forEach(async (file) => {
     MIGRATION_MODAL.showModal();
     const r = await fetch(`/api/v2/migrate`, {
@@ -233,12 +237,20 @@ migrateV2Button.addEventListener("click", async () => {
     });
     let p = document.createElement("p");
     if (r.status === 207) {
-      p.innerHTML = `<span style="color: ${COLOR_GREEN}">✔</span> ${file.name} successfully migrated.`; 
+      p.innerHTML = `${++counter}. ${file.name} migrated successfully <span style="color: ${COLOR_GREEN}">✔</span>`; 
     } else {
-      p.innerHTML = `<span style="color: ${COLOR_RED}">𐄂</span> ${file.name} failed to migrate.`;
+      p.innerHTML = `${++counter}. ${file.name} failed to migrate <span style="color: ${COLOR_RED}">𐄂</span>`;
     }
     MIGRATION_MODAL.appendChild(p);
+    MIGRATION_MODAL.scrollTop = MIGRATION_MODAL.scrollHeight;
   })
+  let close = document.createElement("button");
+  close.innerHTML = `<span class="material-symbols-rounded" style="font-size: 20px">close</span>`;
+  close.addEventListener("click", () => {
+    MIGRATION_MODAL.style.display = "none";
+    MIGRATION_MODAL.close();
+  })
+  MIGRATION_MODAL.appendChild(close);
 })
 
 const themeButton = document.querySelector("#theme");
