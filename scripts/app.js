@@ -22,6 +22,7 @@ const MENU = document.querySelector("#menu");
 const SEARCH_ICON = document.querySelector("#search-icon");
 const PREVIEW_MODAL = document.querySelector(".file_preview");
 const MIGRATION_MODAL = document.querySelector(".file_migration");
+const USERNAME = document.querySelector("#username");
 
 let controller;
 let multiSelectBucketGL = [];
@@ -273,12 +274,7 @@ queueButton.addEventListener("click", () => {
   renderQueue();
 });
 
-let usernameField = document.querySelector("#username");
-usernameField.addEventListener("click", () => {
-  if (!userIdGL) {
-    showSnack("Can not extract user id from domain name", COLOR_RED, "error");
-    return;
-  }
+USERNAME.addEventListener("click", () => {
   navigator.clipboard.writeText(userIdGL).then(() => {
     showSnack("User Id copied to clipboard", COLOR_GREEN, "success");
   });
@@ -324,11 +320,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   let resp = await fetch(`/api/key`);
   let data = await resp.json();
   secretKeyGL = data.key;
-  let globalUserIdParts = /-(.*?)\./.exec(window.location.hostname);
-  userIdGL = globalUserIdParts ? globalUserIdParts[1] : null;
-  document.querySelector("#username").innerHTML = userIdGL
-    ? userIdGL
-    : "Anonymous";
+  resp = await fetch("/api/microid");
+  data = await resp.json();
+  userIdGL = data.id;
+  USERNAME.innerHTML = userIdGL;
   resp = await fetch("/api/consumption");
   data = await resp.json();
   updateSpaceUsage(data.size);

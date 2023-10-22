@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -41,6 +42,12 @@ func SharedPage(c *gin.Context) {
 
 func ProjectKey(c *gin.Context) {
 	c.JSON(http.StatusOK, map[string]interface{}{"key": detaProjectKey})
+}
+
+func MicroId(c *gin.Context) {
+	pattern := regexp.MustCompile(`^(.*?)\.`)
+	id := pattern.FindStringSubmatch(os.Getenv("DETA_SPACE_APP_HOSTNAME"))
+	c.JSON(http.StatusOK, map[string]interface{}{"id": id[1]})
 }
 
 func Metadata(c *gin.Context) {
@@ -320,7 +327,7 @@ func DownloadFileExtern(c *gin.Context) {
 	recipient := c.Param("recipient")
 	req, err := http.NewRequest(
 		"GET",
-		fmt.Sprintf("https://filebox-%s.deta.app/api/download/%s/%s/%s", owner, recipient, hash, skip),
+		fmt.Sprintf("https://%s.deta.app/api/download/%s/%s/%s", owner, recipient, hash, skip),
 		nil)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Internal Server Error")

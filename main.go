@@ -29,6 +29,7 @@ func main() {
 	api := app.Group("/api")
 	api.GET("/ping", Ping)
 	api.GET("/key", ProjectKey)
+	api.GET("/microid", MicroId)
 	api.GET("/sanitize", SanitizeFiles)
 	api.Any("/metadata", Metadata)
 	api.GET("/metadata/:hash", SharedMeta)
