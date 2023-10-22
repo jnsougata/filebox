@@ -300,6 +300,26 @@ body {
     margin-right: 5px;
 }
 
+.content > nav > .other > .multi_select_options {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.content > nav > .other > .multi_select_options > button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-secondary);
+    border: none;
+    outline: none;
+    color: var(--icon-span-color);
+    padding: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
 #menu {
     display: none;
 }
@@ -1131,7 +1151,7 @@ main > ul > li > .info > p {
     padding: 8px;
     border-radius: 10px;
 }
-.rename > input {
+.rename input {
     width: 100%;
     height: 40px;
     border: none;

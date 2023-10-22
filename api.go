@@ -123,7 +123,7 @@ func EmbedFile(c *gin.Context) {
 		return
 	}
 	if metadata["size"].(float64) > 5*1024*1024 {
-		c.String(http.StatusForbidden, "File too large")
+		c.String(http.StatusBadGateway, "File too large")
 		return
 	}
 	fileName := metadata["name"].(string)
