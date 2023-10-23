@@ -320,13 +320,13 @@ window.addEventListener("DOMContentLoaded", async () => {
   let resp = await fetch(`/api/key`);
   let data = await resp.json();
   secretKeyGL = data.key;
+  resp = await fetch("/api/consumption");
+  data = await resp.json();
+  updateSpaceUsage(data.size);
   resp = await fetch("/api/microid");
   data = await resp.json();
   userIdGL = data.id;
   USERNAME.innerHTML = userIdGL;
-  resp = await fetch("/api/consumption");
-  data = await resp.json();
-  updateSpaceUsage(data.size);
 });
 
 window.addEventListener("load", () => {

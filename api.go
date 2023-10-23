@@ -46,8 +46,14 @@ func ProjectKey(c *gin.Context) {
 
 func MicroId(c *gin.Context) {
 	pattern := regexp.MustCompile(`^(.*?)\.`)
-	id := pattern.FindStringSubmatch(os.Getenv("DETA_SPACE_APP_HOSTNAME"))
-	c.JSON(http.StatusOK, map[string]interface{}{"id": id[1]})
+	matches := pattern.FindStringSubmatch(os.Getenv("DETA_SPACE_APP_HOSTNAME"))
+	var id string
+	if len(matches) < 2 {
+		id = "unknown"
+	} else {
+		id = matches[1]
+	}
+	c.JSON(http.StatusOK, map[string]interface{}{"id": id})
 }
 
 func Metadata(c *gin.Context) {
