@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	app := gin.Default()
 	app.GET("/", func(c *gin.Context) {
 		c.File("static/app.html")
