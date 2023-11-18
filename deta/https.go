@@ -2,6 +2,7 @@ package deta
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 )
@@ -11,34 +12,32 @@ type service struct {
 	projectId string
 }
 
-type HttpRequest struct {
-	Body   io.Reader
-	Method string
-	Key    string
-	Path   string
+type Config struct {
+	Prefix      string
+	Method      string
+	AuthToken   string
+	Path        string
+	ContentType string
+	Body        interface{}
 }
 
-func (r *HttpRequest) Do() (*http.Response, error) {
-	req, err := http.NewRequest(r.Method, r.Path, r.Body)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-API-Key", r.Key)
-	if err != nil {
-		return nil, err
+func Request(config Config) (*http.Response, error) {
+	url := config.Prefix + config.Path
+	var body io.Reader
+	if config.Body != nil {
+		if b, ok := config.Body.([]byte); ok {
+			body = bytes.NewReader(b)
+		} else {
+			b, _ := json.Marshal(config.Body)
+			body = bytes.NewReader(b)
+		}
 	}
-	return http.DefaultClient.Do(req)
-}
-
-type DriveRequest struct {
-	Body   []byte
-	Method string
-	Key    string
-	Path   string
-}
-
-func (r *DriveRequest) Do() (*http.Response, error) {
-	req, err := http.NewRequest(r.Method, r.Path, bytes.NewReader(r.Body))
-	req.Header.Set("Content-Type", "application/octet-stream")
-	req.Header.Set("X-Api-Key", r.Key)
+	req, err := http.NewRequest(config.Method, url, body)
+	if config.ContentType == "" {
+		config.ContentType = "application/json"
+	}
+	req.Header.Set("Content-Type", config.ContentType)
+	req.Header.Set("X-API-Key", config.AuthToken)
 	if err != nil {
 		return nil, err
 	}

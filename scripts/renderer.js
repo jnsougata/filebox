@@ -408,7 +408,7 @@ async function handleFolderClick(folder) {
     : folder.name;
   const resp = await fetch(`/api/query`, {
     method: "POST",
-    body: JSON.stringify({ parent: parentOf }),
+    body: JSON.stringify({ "parent": parentOf, "deleted?ne": true}),
   })
   const data = await resp.json()
   MAIN.innerHTML = "";

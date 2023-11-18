@@ -60,45 +60,40 @@ func Metadata(c *gin.Context) {
 	switch c.Request.Method {
 
 	case "POST":
-		var data map[string]interface{}
-		c.BindJSON(&data)
-		key := data["hash"].(string)
-		data["key"] = key
-		_, isFolder := data["type"]
+		var metadata map[string]interface{}
+		c.BindJSON(&metadata)
+		metadata["key"] = metadata["hash"]
+		_, isFolder := metadata["type"]
 		if isFolder {
 			q := deta.NewQuery()
-			q.Equals("parent", data["parent"])
-			q.Equals("name", data["name"].(string))
+			q.Equals("parent", metadata["parent"])
+			q.Equals("name", metadata["name"].(string))
 			resp := base.FetchUntilEnd(q).ArrayJSON()
 			if len(resp) > 0 {
 				c.JSON(http.StatusConflict, nil)
 				return
 			}
 		}
-		resp := base.Put(deta.Record{Key: key, Value: data})
+		resp := base.Put(metadata)
 		c.JSON(resp.StatusCode, resp.JSON())
-		return
 
 	case "PUT":
-		var data map[string]interface{}
-		c.BindJSON(&data)
-		key := data["hash"].(string)
-		data["key"] = key
-		resp := base.Put(deta.Record{Key: key, Value: data})
+		var metadata map[string]interface{}
+		c.BindJSON(&metadata)
+		metadata["key"] = metadata["hash"]
+		resp := base.Put(metadata)
 		c.JSON(resp.StatusCode, resp.JSON())
-		return
 
 	case "PATCH":
-		var data map[string]interface{}
-		c.BindJSON(&data)
-		updater := deta.NewUpdater(data["hash"].(string))
-		delete(data, "hash")
-		for k, v := range data {
+		var metadata map[string]interface{}
+		c.BindJSON(&metadata)
+		updater := deta.NewUpdater(metadata["hash"].(string))
+		delete(metadata, "hash")
+		for k, v := range metadata {
 			updater.Set(k, v)
 		}
 		resp := base.Update(updater)
 		c.JSON(resp.StatusCode, resp.JSON())
-		return
 
 	case "DELETE":
 		metadata, _ := io.ReadAll(c.Request.Body)
@@ -114,11 +109,9 @@ func Metadata(c *gin.Context) {
 		_ = base.Delete(hash)
 		_ = drive.Delete(FileToDriveSavedName(file))
 		c.JSON(http.StatusOK, nil)
-		return
 
 	default:
 		c.JSON(http.StatusMethodNotAllowed, nil)
-		return
 	}
 }
 
@@ -143,7 +136,7 @@ func EmbedFile(c *gin.Context) {
 	mime := metadata["mime"].(string)
 	c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%s", fileName))
 	streamingResp := drive.Get(FileToDriveSavedName(metadata))
-	c.Data(http.StatusOK, mime, streamingResp.Bytes)
+	c.Data(http.StatusOK, mime, streamingResp.Body)
 }
 
 func DownloadFile(c *gin.Context) {
@@ -309,12 +302,12 @@ func FileBulkOps(c *gin.Context) {
 		return
 
 	case "PATCH":
-		var body []map[string]interface{}
-		c.BindJSON(&body)
-		var files []deta.Record
-		for _, item := range body {
-			record := deta.Record{Key: item["hash"].(string), Value: item}
-			files = append(files, record)
+		var metadatas []map[string]interface{}
+		c.BindJSON(&metadatas)
+		var files []interface{}
+		for _, metadata := range metadatas {
+			metadata["key"] = metadata["hash"]
+			files = append(files, metadata)
 		}
 		_ = base.Put(files...)
 		c.String(http.StatusOK, "OK")
@@ -360,10 +353,10 @@ func PushFileMeta(c *gin.Context) {
 }
 
 func AcceptFileMeta(c *gin.Context) {
-	var data map[string]interface{}
-	c.BindJSON(&data)
-	hash := data["hash"].(string)
-	resp := base.Put(deta.Record{Key: hash, Value: data})
+	var metadata map[string]interface{}
+	c.BindJSON(&metadata)
+	metadata["key"] = metadata["hash"]
+	resp := base.Put(metadata)
 	c.JSON(resp.StatusCode, nil)
 }
 
@@ -388,11 +381,12 @@ func SanitizeFiles(c *gin.Context) {
 	}
 	var success = 0
 	for _, batch := range batches {
-		var records []deta.Record
-		for _, file := range batch {
-			records = append(records, deta.Record{Key: file["hash"].(string), Value: file})
+		var metadatas []interface{}
+		for _, metadata := range batch {
+			metadata["key"] = metadata["hash"]
+			metadatas = append(metadatas, metadata)
 		}
-		resp := base.Put(records...)
+		resp := base.Put(metadatas...)
 		if resp.StatusCode == http.StatusMultiStatus {
 			success += len(batch)
 		}
@@ -403,7 +397,7 @@ func SanitizeFiles(c *gin.Context) {
 func MigrateV2(c *gin.Context) {
 	var file FileV1
 	c.BindJSON(&file)
-	v2 := FileV2{
+	fileV2 := FileV2{
 		Key:           file.Key,
 		Name:          file.Name,
 		Color:         file.Color,
@@ -421,6 +415,6 @@ func MigrateV2(c *gin.Context) {
 		CreatedAt:     file.Date,
 		Path:          buildPathV2FromV1(file.Parent),
 	}
-	resp := metadata.Put(deta.Record{Value: v2})
+	resp := metadata.Put(fileV2)
 	c.String(resp.StatusCode, "OK")
 }

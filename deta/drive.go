@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-const driveHost = "https://drive.deta.sh/v1"
+const DriveHost = "https://drive.deta.sh/v1"
 const maxChunkSize = 1024 * 1024 * 10
 
 type drive struct {
@@ -15,16 +15,17 @@ type drive struct {
 
 // Put uploads the file with the given name.
 // If the file already exists, it is overwritten.
-func (d *drive) Put(name string, content []byte) *Response {
+func (d *drive) Put(saveAs string, content []byte) *Response {
 	if len(content) <= maxChunkSize {
-		req := DriveRequest{
-			Body:   content,
-			Method: "POST",
-			Path:   fmt.Sprintf("%s/%s/%s/files?name=%s", driveHost, d.service.projectId, d.Name, name),
-			Key:    d.service.key,
-		}
-		resp, err := req.Do()
-		return newResponse(resp, err, 201)
+		resp, err := Request(Config{
+			Prefix:      DriveHost,
+			Body:        content,
+			Method:      "POST",
+			Path:        fmt.Sprintf("/%s/%s/files?name=%s", d.service.projectId, d.Name, saveAs),
+			AuthToken:   d.service.key,
+			ContentType: "application/octet-stream",
+		})
+		return NewResponse(resp, err, 201)
 	}
 	chunks := len(content) / maxChunkSize
 	if len(content)%maxChunkSize != 0 {
@@ -39,12 +40,12 @@ func (d *drive) Put(name string, content []byte) *Response {
 		}
 		parts = append(parts, content[start:end])
 	}
-	initReq := DriveRequest{
-		Method: "POST",
-		Path:   fmt.Sprintf("%s/%s/%s/uploads?name=%s", driveHost, d.service.projectId, d.Name, name),
-		Key:    d.service.key,
-	}
-	initResp, err := initReq.Do()
+	initResp, err := Request(Config{
+		Prefix:    DriveHost,
+		Method:    "POST",
+		Path:      fmt.Sprintf("/%s/%s/uploads?name=%s", d.service.projectId, d.Name, saveAs),
+		AuthToken: d.service.key,
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -61,15 +62,14 @@ func (d *drive) Put(name string, content []byte) *Response {
 	codes := make(chan int, len(parts))
 	for i, part := range parts {
 		go func(i int, part []byte) {
-			req := DriveRequest{
-				Body:   part,
-				Method: "POST",
-				Path: fmt.Sprintf(
-					"%s/%s/%s/uploads/%s/parts?name=%s&part=%d",
-					driveHost, d.service.projectId, d.Name, resp.UploadId, resp.Name, i+1),
-				Key: d.service.key,
-			}
-			r, _ := req.Do()
+			r, _ := Request(Config{
+				Prefix:      DriveHost,
+				Body:        part,
+				Method:      "POST",
+				Path:        fmt.Sprintf("/%s/%s/uploads/%s/parts?name=%s&part=%d", d.service.projectId, d.Name, resp.UploadId, resp.Name, i+1),
+				AuthToken:   d.service.key,
+				ContentType: "application/octet-stream",
+			})
 			codes <- r.StatusCode
 		}(i, part)
 	}
@@ -79,41 +79,39 @@ func (d *drive) Put(name string, content []byte) *Response {
 	for i := 0; i < len(parts); i++ {
 		code := <-codes
 		if code != 200 {
-			return newResponse(nil, fmt.Errorf("error uploading part %d", i+1), 200)
+			return NewResponse(nil, fmt.Errorf("error uploading part %d", i+1), 200)
 		}
 	}
-	end := DriveRequest{
-		Method: "PATCH",
-		Path: fmt.Sprintf(
-			"%s/%s/%s/uploads/%s?name=%s",
-			driveHost, d.service.projectId, d.Name, resp.UploadId, resp.Name),
-		Key: d.service.key,
-	}
-	final, err := end.Do()
-	return newResponse(final, err, 200)
+	final, err := Request(Config{
+		Prefix:    DriveHost,
+		Method:    "PATCH",
+		Path:      fmt.Sprintf("/%s/%s/uploads/%s?name=%s", d.service.projectId, d.Name, resp.UploadId, resp.Name),
+		AuthToken: d.service.key,
+	})
+	return NewResponse(final, err, 200)
 }
 
 // Get returns the file as ReadCloser with the given name.
 func (d *drive) Get(name string) *Response {
-	req := DriveRequest{
-		Method: "GET",
-		Path:   fmt.Sprintf("%s/%s/%s/files/download?name=%s", driveHost, d.service.projectId, d.Name, name),
-		Key:    d.service.key,
-	}
-	resp, err := req.Do()
-	return newResponse(resp, err, 200)
+	resp, err := Request(Config{
+		Prefix:    DriveHost,
+		Method:    "GET",
+		Path:      fmt.Sprintf("/%s/%s/files/download?name=%s", d.service.projectId, d.Name, name),
+		AuthToken: d.service.key,
+	})
+	return NewResponse(resp, err, 200)
 }
 
 // Delete deletes the files with the given names.
 func (d *drive) Delete(names ...string) *Response {
-	req := HttpRequest{
-		Method: "DELETE",
-		Path:   fmt.Sprintf("%s/%s/%s/files", driveHost, d.service.projectId, d.Name),
-		Key:    d.service.key,
-		Body:   mapToReader(map[string][]string{"names": names}),
-	}
-	resp, err := req.Do()
-	return newResponse(resp, err, 200)
+	resp, err := Request(Config{
+		Prefix:    DriveHost,
+		Method:    "DELETE",
+		Path:      fmt.Sprintf("/%s/%s/files", d.service.projectId, d.Name),
+		AuthToken: d.service.key,
+		Body:      map[string][]string{"names": names},
+	})
+	return NewResponse(resp, err, 200)
 }
 
 // Files returns all the files in the drive with the given prefix.
@@ -125,18 +123,18 @@ func (d *drive) Files(prefix string, limit int, last string) *Response {
 	if limit < 0 || limit > 1000 {
 		limit = 1000
 	}
-	path := fmt.Sprintf("%s/%s/%s/files?limit=%d", driveHost, d.service.projectId, d.Name, limit)
+	path := fmt.Sprintf("/%s/%s/files?limit=%d", d.service.projectId, d.Name, limit)
 	if prefix != "" {
 		path += fmt.Sprintf("&prefix=%s", prefix)
 	}
 	if last != "" {
 		path += fmt.Sprintf("&last=%s", last)
 	}
-	req := HttpRequest{
-		Method: "GET",
-		Path:   path,
-		Key:    d.service.key,
-	}
-	resp, err := req.Do()
-	return newResponse(resp, err, 200)
+	resp, err := Request(Config{
+		Prefix:    DriveHost,
+		Method:    "GET",
+		Path:      path,
+		AuthToken: d.service.key,
+	})
+	return NewResponse(resp, err, 200)
 }

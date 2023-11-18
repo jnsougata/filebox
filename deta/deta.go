@@ -8,8 +8,8 @@ type deta struct {
 	service *service
 }
 
-func (d *deta) Base(name string) *base {
-	return &base{Name: name, service: d.service}
+func (d *deta) Base(name string) *Base {
+	return &Base{Name: name, service: d.service}
 }
 
 func (d *deta) Drive(name string) *drive {

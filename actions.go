@@ -1,7 +1,6 @@
 package main
 
 import (
-	"backend/deta"
 	"fmt"
 	"time"
 
@@ -40,19 +39,17 @@ var Save = SpaceAppAction{
 		name := data["name"].(string)
 		content := []byte(data["content"].(string))
 		key := randomHex(32)
-		record := deta.Record{
-			Key: key,
-			Value: map[string]interface{}{
-				"name":   name,
-				"date":   time.Now().Format("2006-01-02T15:04:05.000Z"),
-				"parent": nil,
-				"size":   len(content),
-				"mime":   "text/plain",
-				"hash":   key,
-			},
+		record := map[string]interface{}{
+			"key":    key,
+			"name":   name,
+			"date":   time.Now().Format("2006-01-02T15:04:05.000Z"),
+			"parent": nil,
+			"size":   len(content),
+			"mime":   "text/plain",
+			"hash":   key,
 		}
 		base.Put(record)
-		drive.Put(FileToDriveSavedName(record.Value.(map[string]interface{})), content)
+		drive.Put(FileToDriveSavedName(record), content)
 		c.String(200, fmt.Sprintf("Saved %s successfully", name))
 	},
 }

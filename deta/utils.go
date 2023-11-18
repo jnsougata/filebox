@@ -1,7 +1,6 @@
 package deta
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,28 +10,23 @@ import (
 
 type Response struct {
 	StatusCode int
-	Bytes      []byte
+	Body       []byte
 	Error      error
 }
 
 func (r *Response) JSON() map[string]interface{} {
 	var data map[string]interface{}
-	json.Unmarshal(r.Bytes, &data)
+	json.Unmarshal(r.Body, &data)
 	return data
 }
 
 func (r *Response) ArrayJSON() []map[string]interface{} {
 	var data []map[string]interface{}
-	_ = json.Unmarshal(r.Bytes, &data)
+	_ = json.Unmarshal(r.Body, &data)
 	return data
 }
 
-func mapToReader(data interface{}) io.Reader {
-	body, _ := json.Marshal(data)
-	return bytes.NewReader(body)
-}
-
-func buildErrFromStatus(status, ok int) error {
+func ErrFromStatus(status, ok int) error {
 	if status == ok {
 		return nil
 	}
@@ -52,14 +46,14 @@ func buildErrFromStatus(status, ok int) error {
 	}
 }
 
-func newResponse(resp *http.Response, err error, ok int) *Response {
+func NewResponse(resp *http.Response, err error, ok int) *Response {
 	if err != nil {
 		return &Response{Error: err}
 	}
-	err = buildErrFromStatus(resp.StatusCode, ok)
+	err = ErrFromStatus(resp.StatusCode, ok)
 	if err != nil {
 		return &Response{Error: err}
 	}
 	ba, _ := io.ReadAll(resp.Body)
-	return &Response{StatusCode: resp.StatusCode, Bytes: ba, Error: nil}
+	return &Response{StatusCode: resp.StatusCode, Body: ba, Error: nil}
 }
