@@ -1,19 +1,20 @@
-const MAIN = document.querySelector("main");
-const SNACKBAR = document.querySelector(".snackbar");
-const NAV_RIGHT = document.querySelector(".nav_right");
-const BLUR_LAYER = document.querySelector(".blur_layer");
-const TASKS = document.querySelector("#tasks");
-const PROGRESS = document.querySelector("#progress");
+const view = document.querySelector("main");
+const snackbar = document.querySelector(".snackbar");
+const navRight = document.querySelector(".nav_right");
+const blurLayer = document.querySelector(".blur_layer");
+const tasksElem = document.querySelector("#tasks");
+const progressElem = document.querySelector("#progress");
+
 const COLOR_GREEN = "#2AA850";
+
 let root = null;
 
 
-
-BLUR_LAYER.addEventListener("click", () => {
+blurLayer.addEventListener("click", () => {
   closeRightNav();
 });
 
-PROGRESS.addEventListener("click", () => {
+progressElem.addEventListener("click", () => {
   showRightNav();
 });
 
@@ -28,7 +29,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   } else {
     let files = document.createElement("ul");
     files.appendChild(fileElem(file));
-    MAIN.appendChild(files);
+    view.appendChild(files);
   }
 });
 
@@ -100,8 +101,8 @@ function fileElem(file) {
   download.classList.add("material-symbols-rounded");
   download.innerText = "download";
   download.addEventListener("click", async () => {
-    BLUR_LAYER.style.display = "block";
-    NAV_RIGHT.style.display = "flex";
+    blurLayer.style.display = "block";
+    navRight.style.display = "flex";
     progressEL.style.display = "block";
     download.style.display = "none";
     let angle = 0;
@@ -218,9 +219,9 @@ async function renderFolder(file) {
   children.forEach((child) => {
     ul.appendChild(fileElem(child)); 
   });
-  MAIN.innerHTML = "";
-  MAIN.appendChild(promptElem(file));
-  MAIN.appendChild(ul);
+  view.innerHTML = "";
+  view.appendChild(promptElem(file));
+  view.appendChild(ul);
 };
 
 
@@ -250,19 +251,68 @@ function prependQueueElem(file) {
   li.appendChild(icon);
   li.appendChild(info);
   li.appendChild(percentage);
-  TASKS.appendChild(li);
+  tasksElem.appendChild(li);
   showRightNav();
 }
 
 
 function showRightNav() {
-  if (NAV_RIGHT.style.display === "none") {
-    BLUR_LAYER.style.display = "block";
-    NAV_RIGHT.style.display = "flex";
+  if (navRight.style.display === "none") {
+    blurLayer.style.display = "block";
+    navRight.style.display = "flex";
   }
 }
 
 function closeRightNav() {
-  BLUR_LAYER.style.display = "none";
-  NAV_RIGHT.style.display = "none";
+  blurLayer.style.display = "none";
+  navRight.style.display = "none";
+}
+
+function handleSizeUnit(size) {
+  if (size === undefined) {
+    return "~";
+  }
+  if (size < 1024) {
+    return size + " B";
+  } else if (size < 1024 * 1024) {
+    return (size / 1024).toFixed(2) + " KB";
+  } else if (size < 1024 * 1024 * 1024) {
+    return (size / 1024 / 1024).toFixed(2) + " MB";
+  } else {
+    return (size / 1024 / 1024 / 1024).toFixed(2) + " GB";
+  }
+}
+
+function formatDateString(date) {
+  date = new Date(date);
+  return `
+          ${date.toLocaleString("default", { month: "short" })} 
+          ${date.getDate()}, 
+          ${date.getFullYear()} 
+          ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}
+      `;
+}
+
+function setIconByMime(mime, elem) {
+  if (mime === undefined) {
+    elem.innerHTML = `<span class="material-symbols-rounded">folder</span>`;
+  } else if (mime.startsWith("image")) {
+    elem.innerHTML = `<span class="material-symbols-rounded">image</span>`;
+  } else if (mime.startsWith("video")) {
+    elem.innerHTML = `<span class="material-symbols-rounded">movie</span>`;
+  } else if (mime.startsWith("audio")) {
+    elem.innerHTML = `<span class="material-symbols-rounded">music_note</span>`;
+  } else if (mime.startsWith("text")) {
+    elem.innerHTML = `<span class="material-symbols-rounded">text_snippet</span>`;
+  } else if (mime.startsWith("application/pdf")) {
+    elem.innerHTML = `<span class="material-symbols-rounded">book</span>`;
+  } else if (mime.startsWith("application/zip")) {
+    elem.innerHTML = `<span class="material-symbols-rounded">archive</span>`;
+  } else if (mime.startsWith("application/x-rar-compressed")) {
+    elem.innerHTML = `<span class="material-symbols-rounded">archive</span>`;
+  } else if (mime.startsWith("font")) {
+    elem.innerHTML = `<span class="material-symbols-rounded">format_size</span>`;
+  } else {
+    elem.innerHTML = `<span class="material-symbols-rounded">draft</span>`;
+  }
 }
