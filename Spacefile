@@ -1,5 +1,5 @@
 v: 0
-icon: ./assets/app_icon.png
+icon: ./static/assets/app_icon.png
 micros:
   - name: backend
     src: .
@@ -11,9 +11,6 @@ micros:
       - go build .
     include:
       - backend
-      - assets/
-      - styles/
-      - scripts/
       - static/
       - manifest.json
       - worker.js
@@ -28,10 +25,8 @@ micros:
     public_routes:
       - "/manifest.json"
       - "/worker.js"
-      - "/assets/*"
+      - "/static/*"
       - "/shared/*"
-      - "/styles/*"
-      - "/scripts/*"
       - "/embed/*"
       - "/api/metadata/*"
       - "/api/download/*"

@@ -7,12 +7,12 @@
   "scope": ".",
   "icons": [
     {
-      "src": "/assets/icon.png",
+      "src": "/static/assets/icon.png",
       "sizes": "512x512",
       "type": "image/png"
     }, 
     {
-      "src": "/assets/app_icon.png",
+      "src": "/static/assets/app_icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

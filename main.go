@@ -11,7 +11,7 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	app := gin.Default()
 	app.GET("/", func(c *gin.Context) {
-		c.File("static/app.html")
+		c.File("./static/pages/app.html")
 	})
 	app.GET("/manifest.json", func(c *gin.Context) {
 		c.File("manifest.json")
@@ -21,9 +21,7 @@ func main() {
 	})
 	app.GET("/shared/:hash", SharedPage)
 	app.GET("/embed/:hash", EmbedFile)
-	app.Static("/assets", "assets")
-	app.Static("/scripts", "scripts")
-	app.Static("/styles", "styles")
+	app.Static("/static", "static")
 	app.POST("/__space/v0/actions", Job)
 	app.GET("/__space/actions", AppActions)
 

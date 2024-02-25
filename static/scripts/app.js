@@ -213,7 +213,7 @@ trashButton.addEventListener("click", async () => {
 });
 
 const migrateV2Button = document.querySelector("#migrateV2");
-migrateV2Button.addEventListener("click", async () => {
+migrateV2Button?.addEventListener("click", async () => {
   openedFolderGL = null;
   openedOptionGL = "trash";
   blurLayer.click();

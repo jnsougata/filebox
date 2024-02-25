@@ -37,7 +37,7 @@ func SharedPage(c *gin.Context) {
 		c.String(http.StatusForbidden, "Forbidden")
 		return
 	}
-	c.File("static/shared.html")
+	c.File("./static/pages/shared.html")
 }
 
 func ProjectKey(c *gin.Context) {
